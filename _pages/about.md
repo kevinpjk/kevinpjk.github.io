@@ -23,7 +23,7 @@ Put your address / P.O. box / other info right below your picture. You can also 
 
 Link to your social media connections, too. This theme is set up to use [Font Awesome icons](https://fontawesome.com/) and [Academicons](https://jpswalsh.github.io/academicons/), like the ones below. Add your Facebook, Twitter, LinkedIn, Google Scholar, or just disable all of them. -->
 
-Welcome! I'm a third year PhD student in Computer Science at the University of Toronto.
+Welcome! I'm a 5th year PhD student in Computer Science at the University of Toronto.
 I am advised by Prof. [Tovi Grossman](https://www.tovigrossman.com/) at the [Dynamic Graphics Group](https://www.dgp.toronto.edu/) (DGP) lab and Prof. [Yan Chen](https://chensivan.github.io/).
 
 My research interests lie in human-computer interaction, artificial intelligence, and their intersection. My past works have focused on aligning AI support with human capabilities to build harmonious mixed-initiative and AI-proactive workflows for automation, programming, and ideation.
