@@ -5,7 +5,7 @@ permalink: /
 # subtitle: <a href='https://www.dgp.toronto.edu/'>Dynamic Graphics Project</a>, UofT
 profile:
   align: right
-  image: prof_pic.png
+  image: IMG_0022.jpg
   image_circular: false # crops the image to make it circular
   more_info: >
     <p>40 St George St.</p>
