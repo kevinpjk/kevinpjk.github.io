@@ -6,6 +6,15 @@
   - firstname: ["Yan", "Yan Chen"]
     url: https://chensivan.github.io/
 
+"hartmann":
+  - firstname: ["Bjoern", "Bjoern Hartmann"]
+    url: https://people.eecs.berkeley.edu/~bjoern/
+
+"feng":
+  - firstname: ["Kevin", "K. J.", "Kevin Feng", "K. J. Kevin Feng"]
+    url: https://kjfeng.me/#/
+
+
 # "adams":
 #   - firstname: ["Edwin", "E.", "E. P.", "Edwin Plimpton"]
 #     url: https://en.wikipedia.org/wiki/Edwin_Plimpton_Adams
