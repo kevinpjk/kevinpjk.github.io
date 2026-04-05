@@ -1,0 +1,58 @@
+# =============================================================================
+# news.yml — Kevin Pu's news / announcements
+# Migrated from _news/ markdown files for site redesign
+# =============================================================================
+
+- date: "2026-04-10"
+  content: "I am traveling to _CHI 2026_ in Barcelona, Spain! Looking forward to connecting with folks!"
+
+- date: "2026-03-09"
+  content: "[Cocoa](https://arxiv.org/abs/2412.10999) has received a **🏆 Best Paper Award** (top 1% of submissions)! Congratulations to first author [Kevin Feng](https://kjfeng.me/#/) and all collaborators!"
+
+- date: "2026-02-09"
+  content: "I am visiting [Bjoern Hartmann](https://people.eecs.berkeley.edu/~bjoern/)'s lab at UC Berkeley from January to May 2026 as a visiting scholar! Looking forward to new collaborations and connections!"
+
+- date: "2026-01-31"
+  content: "One co-authored paper is conditionally accepted to _CHI 2026_! Congrats to [Kevin Feng](https://kjfeng.me/#/) and other collaborators!"
+
+- date: "2025-09-28"
+  content: "Super excited to attend _UIST 2025_ in Busan! I will be presenting my Meta internship paper on [proactive assistant in smart glasses](https://arxiv.org/abs/2507.21378) and a co-authored paper on [interactive co-design with AI](https://arxiv.org/abs/2508.03182)!"
+
+- date: "2025-09-26"
+  content: "It was my pleasure to visit KAIST and give a research talk at the [KIXLAB](https://www.kixlab.org/). Thank you for hosting me!"
+
+- date: "2025-07-10"
+  content: "Two papers are conditionally accepted to _UIST 2025_! Excited to present soon in Busan, South Korea!"
+
+- date: "2025-05-14"
+  content: "Invited to give a research talk at the [VisLab](http://vis.cse.ust.hk/) at HKUST. Thank you for hosting me!"
+
+- date: "2025-04-25"
+  content: "Attending _CHI 2025_ in Yokohama, Japan! I will be presenting two papers on [proactive programming tools](https://arxiv.org/abs/2502.18658) and [interactive research idea development](https://arxiv.org/abs/2410.04025)!"
+
+- date: "2025-03-28"
+  content: "Wrapped up my internship at Meta Reality Labs and submitted to _UIST 2025_. Fingers crossed!"
+
+- date: "2025-01-16"
+  content: "Two papers conditionally accepted to _CHI 2025_!! See you in Yokohama, Japan!"
+
+- date: "2024-10-28"
+  content: "Started my internship as a Research Scientist intern at Meta Reality Labs in Toronto!"
+
+- date: "2024-10-13"
+  content: "Excited to serve as an SV again at _UIST 2024_ in Pittsburgh! [Xiaohang](https://xiaohang-tang.github.io/) is going to present our collaborative work [VizGroup](https://dl.acm.org/doi/10.1145/3654777.3676347)."
+
+- date: "2024-09-13"
+  content: "Wrapped up my internship at [Ai2 Semantic Scholars](https://www.semanticscholar.org/research/research-team) and submitted to _CHI 2025_. Had a great time in Seattle thanks to my mentor Pao Siangliulue and other collaborators!"
+
+- date: "2024-05-28"
+  content: "Started my internship at [Ai2 Semantic Scholars](https://www.semanticscholar.org/research/research-team). Excited to spend my summer in Seattle!"
+
+- date: "2024-05-09"
+  content: "Attending _CHI 2024_ in Honolulu, Hawaii! One co-authored [paper](https://dl.acm.org/doi/10.1145/3613904.3642367) got accepted!"
+
+- date: "2023-10-28"
+  content: "Attending _UIST 2023_ at San Francisco as a Student Volunteer and presenting [DiLogics](https://dl.acm.org/doi/10.1145/3586183.3606822)!"
+
+- date: "2022-10-28"
+  content: "I will be traveling to Bend, Oregon to attend the _UIST 2022_ conference and present [SemanticOn](https://dl.acm.org/doi/abs/10.1145/3526113.3545691)! SemanticOn received the **🏅 Honorable Mention Award** at _UIST 2022_!"

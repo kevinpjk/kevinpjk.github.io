@@ -1,0 +1,243 @@
+# =============================================================================
+# publications.yml — Kevin Pu's full publication list
+# Migrated from _bibliography/papers.bib for site redesign
+# =============================================================================
+
+- slug: promemassist
+  title: "ProMemAssist: Exploring Timely Proactive Assistance Through Working Memory Modeling in Multi-Modal Wearable Devices"
+  authors:
+    - { name: "Kevin Pu", url: null, highlight: true }
+    - { name: "Ting Zhang", url: null }
+    - { name: "Naveen Sendhilnathan", url: null }
+    - { name: "Sebastian Freitag", url: null }
+    - { name: "Raj Sodhi", url: null }
+    - { name: "Tanya R. Jonker", url: null }
+  venue: UIST
+  year: 2025
+  category: human-ai-collaboration
+  award: null
+  links:
+    pdf: /assets/pdf/promemassist_uist_2025.pdf
+    video: https://youtu.be/Z2pjXKUZtMg
+    arxiv: https://arxiv.org/abs/2507.21378
+    website: null
+    code: null
+  abstract: "Wearable AI systems aim to provide timely assistance in daily life, but existing approaches often rely on user initiation or predefined task knowledge, neglecting users' current mental states. We introduce ProMemAssist, a smart glasses system that models a user's working memory (WM) in real-time using multi-modal sensor signals. Grounded in cognitive theories of WM, our system represents perceived information as memory items and episodes with encoding mechanisms, such as displacement and interference. This WM model informs a timing predictor that balances the value of assistance with the cost of interruption. In a user study with 12 participants completing cognitively demanding tasks, ProMemAssist delivered more selective assistance and received higher engagement compared to an LLM baseline system. Qualitative feedback highlights the benefits of WM modeling for nuanced, context-sensitive support, offering design implications for more attentive and user-aware proactive agents."
+  selected: true
+  teaser: promemassist.png
+  teaser_type: image
+  ring_concept: "working memory model"
+  ring_keywords: ["memory", "proactivity", "wearable", "cognitive load", "interruption"]
+
+- slug: storyensemble
+  title: "StoryEnsemble: Enabling Dynamic Exploration & Iteration in the Design Process with AI and Forward-Backward Propagation"
+  authors:
+    - { name: "Sangho Suh", url: null }
+    - { name: "Michael Lai", url: null }
+    - { name: "Kevin Pu", url: null, highlight: true }
+    - { name: "Steven P. Dow", url: null }
+    - { name: "Tovi Grossman", url: "https://www.tovigrossman.com/" }
+  venue: UIST
+  year: 2025
+  category: human-ai-collaboration
+  award: null
+  links:
+    pdf: /assets/pdf/storyensemble_uist_2025.pdf
+    video: https://youtu.be/19lfRs-cizU
+    arxiv: null
+    website: null
+    code: null
+  abstract: "Design processes involve exploration, iteration, and movement across interconnected stages such as persona creation, problem framing, solution ideation, and prototyping. However, time and resource constraints often hinder designers from exploring broadly, collecting feedback, and revisiting earlier assumptions—making it difficult to uphold core design principles in practice. To better understand these challenges, we conducted a formative study with 15 participants—comprised of UX practitioners, students, and instructors. Based on the findings, we developed StoryEnsemble, a tool that integrates AI into a node-link interface and leverages forward and backward propagation to support dynamic exploration and iteration across the design process. A user study with 10 participants showed that StoryEnsemble enables rapid, multi-directional iteration and flexible navigation across design stages. This work advances our understanding of how AI can foster more iterative design practices by introducing novel interactions that make exploration and iteration more fluid, accessible, and engaging."
+  selected: false
+  teaser: storyensemble.png
+  teaser_type: image
+  ring_concept: "design iteration with AI"
+  ring_keywords: ["design thinking", "iteration", "propagation", "AI co-design"]
+
+- slug: codellaborator
+  title: "Assistance or Disruption? Exploring and Evaluating the Design and Trade-offs of Proactive AI Programming Support"
+  authors:
+    - { name: "Kevin Pu", url: null, highlight: true }
+    - { name: "Daniel Lazaro", url: null }
+    - { name: "Ian Arawjo", url: null }
+    - { name: "Haijun Xia", url: null }
+    - { name: "Ziang Xiao", url: null }
+    - { name: "Tovi Grossman", url: "https://www.tovigrossman.com/" }
+    - { name: "Yan Chen", url: "https://chensivan.github.io/" }
+  venue: CHI
+  year: 2025
+  category: mixed-initiative
+  award: null
+  links:
+    pdf: /assets/pdf/codellaborator_chi_2025.pdf
+    video: https://youtu.be/mI-jd-IjfE4
+    arxiv: https://arxiv.org/abs/2502.18658
+    website: null
+    code: null
+  abstract: "AI programming tools enable powerful code generation, and recent prototypes attempt to reduce user effort with proactive AI agents, but their impact on programming workflows remains unexplored. We introduce and evaluate Codellaborator, a design probe LLM agent that initiates programming assistance based on editor activities and task context. We explored three interface variants to assess trade-offs between increasingly salient AI support: prompt-only, proactive agent, and proactive agent with presence and context (Codellaborator). In a within-subject study (N = 18), we find that proactive agents increase efficiency compared to prompt-only paradigm, but also incur workflow disruptions. However, presence indicators and interaction context support alleviated disruptions and improved users' awareness of AI processes. We underscore trade-offs of Codellaborator on user control, ownership, and code understanding, emphasizing the need to adapt proactivity to programming processes. Our research contributes to the design exploration and evaluation of proactive AI systems, presenting design implications on AI-integrated programming workflow."
+  selected: true
+  teaser: cody.png
+  teaser_type: image
+  ring_concept: "proactive code agents"
+  ring_keywords: ["proactivity", "programming", "agent", "disruption", "code"]
+
+- slug: ideasynth
+  title: "IdeaSynth: Iterative Research Idea Development Through Evolving and Composing Idea Facets with Literature-Grounded Feedback"
+  authors:
+    - { name: "Kevin Pu", url: null, highlight: true }
+    - { name: "K. J. Kevin Feng", url: "https://kjfeng.me/#/" }
+    - { name: "Tovi Grossman", url: "https://www.tovigrossman.com/" }
+    - { name: "Tom Hope", url: null }
+    - { name: "Bhavana Dalvi Mishra", url: null }
+    - { name: "Matt Latzke", url: null }
+    - { name: "Jonathan Bragg", url: null }
+    - { name: "Joseph Chee Chang", url: null }
+    - { name: "Pao Siangliulue", url: null }
+  venue: CHI
+  year: 2025
+  category: human-ai-collaboration
+  award: null
+  links:
+    pdf: /assets/pdf/ideasynth_chi_2025.pdf
+    video: https://youtu.be/QxDKICfCWg4
+    arxiv: https://arxiv.org/abs/2410.04025
+    website: null
+    code: null
+  abstract: "Research ideation involves broad exploring and deep refining ideas. Both require deep engagement with literature. Existing tools focus primarily on broad idea generation, yet offer little support for iterative specification, refinement, and evaluation needed to further develop initial ideas. To bridge this gap, we introduce IdeaSynth, a research idea development system that uses LLMs to provide literature-grounded feedback for articulating research problems, solutions, evaluations, and contributions. IdeaSynth represents these idea facets as nodes on a canvas, and allow researchers to iteratively refine them by creating and exploring variations and combinations. Our lab study (N = 20) showed that participants, while using IdeaSynth, explored more alternative ideas and expanded initial ideas with more details compared to a strong LLM-based baseline. Our deployment study (N = 7) demonstrated that participants effectively used IdeaSynth for real-world research projects at various ideation stages from developing initial ideas to revising framings of mature manuscripts, highlighting the possibilities to adopt IdeaSynth in researcher's workflows."
+  selected: true
+  teaser: ideasynth.jpg
+  teaser_type: image
+  ring_concept: "literature-grounded ideation"
+  ring_keywords: ["research", "ideation", "literature", "LLM", "canvas"]
+
+- slug: cocoa
+  title: "Cocoa: Co-Planning and Co-Execution with AI Agents"
+  authors:
+    - { name: "K. J. Kevin Feng", url: "https://kjfeng.me/#/" }
+    - { name: "Kevin Pu", url: null, highlight: true }
+    - { name: "Matt Latzke", url: null }
+    - { name: "Tal August", url: null }
+    - { name: "Pao Siangliulue", url: null }
+    - { name: "Jonathan Bragg", url: null }
+    - { name: "Daniel S. Weld", url: null }
+    - { name: "Amy X. Zhang", url: null }
+    - { name: "Joseph Chee Chang", url: null }
+  venue: arXiv
+  year: 2025
+  category: mixed-initiative
+  award: null
+  links:
+    pdf: https://arxiv.org/abs/2412.10999
+    video: null
+    arxiv: https://arxiv.org/abs/2412.10999
+    website: null
+    code: null
+  abstract: "As AI agents take on increasingly long-running tasks involving sophisticated planning and execution, there is a corresponding need for novel interaction designs that enable deeper human-agent collaboration. However, most prior works leverage human interaction to fix \"autonomous\" workflows that have yet to become fully autonomous or rigidly treat planning and execution as separate stages. Based on a formative study with 9 researchers using AI to support their work, we propose a design that affords greater flexibility in collaboration, so that users can 1) delegate agency to the user or agent via a collaborative plan where individual steps can be assigned; and 2) interleave planning and execution so that plans can adjust after partial execution. We introduce Cocoa, a system that takes design inspiration from computational notebooks to support complex research tasks. A lab study (n=16) found that Cocoa enabled steerability without sacrificing ease-of-use, and a week-long field deployment (n=7) showed how researchers collaborated with Cocoa to accomplish real-world tasks."
+  selected: false
+  teaser: cocoa.png
+  teaser_type: image
+  ring_concept: "co-planning with agents"
+  ring_keywords: ["agents", "planning", "co-execution", "collaboration"]
+
+- slug: vizgroup
+  title: "VizGroup: An AI-assisted Event-driven System for Collaborative Programming Learning Analytics"
+  authors:
+    - { name: "Xiaohang Tang", url: null }
+    - { name: "Sam Wong", url: null }
+    - { name: "Kevin Pu", url: null, highlight: true }
+    - { name: "Xi Chen", url: null }
+    - { name: "Yalong Yang", url: null }
+    - { name: "Yan Chen", url: "https://chensivan.github.io/" }
+  venue: UIST
+  year: 2024
+  category: human-ai-collaboration
+  award: null
+  links:
+    pdf: /assets/pdf/Vizgroup_UIST_2024.pdf
+    video: "https://www.dropbox.com/scl/fi/ovfsmqllqd1zt5igx5onl/uist-demo.mp4?rlkey=s49cru2syqphiwjnjio9du3g4&e=1&dl=0"
+    arxiv: null
+    website: null
+    code: null
+  abstract: "Programming instructors often conduct collaborative learning activities, like Peer Instruction, to foster a deeper understanding in students and enhance their engagement with learning. These activities, however, may not always yield productive outcomes due to the diversity of student mental models and their ineffective collaboration. In this work, we introduce VizGroup, an AI-assisted system that enables programming instructors to easily oversee students' real-time collaborative learning behaviors during large programming courses. VizGroup leverages Large Language Models (LLMs) to recommend event specifications for instructors so that they can simultaneously track and receive alerts about key correlation patterns between various collaboration metrics and ongoing coding tasks. We evaluated VizGroup with 12 instructors in a comparison study using a dataset collected from a Peer Instruction activity that was conducted in a large programming lecture. The results showed that VizGroup helped instructors effectively overview, narrow down, and track nuances throughout students' behaviors."
+  selected: false
+  teaser: vizgroup.png
+  teaser_type: image
+  ring_concept: "collaborative learning analytics"
+  ring_keywords: ["education", "collaboration", "analytics", "LLM", "visualization"]
+
+- slug: pupularity
+  title: "Behind the Pup-ularity Curtain: Understanding the Motivations, Challenges, and Work Performed in Creating and Managing Pet Influencer Accounts"
+  authors:
+    - { name: "Suhyeon Yoo", url: null }
+    - { name: "Kevin Pu", url: null, highlight: true }
+    - { name: "Khai N. Truong", url: null }
+  venue: CHI
+  year: 2024
+  category: human-ai-collaboration
+  award: null
+  links:
+    pdf: /assets/pdf/Pupularity_CHI_2024.pdf
+    video: null
+    arxiv: null
+    website: null
+    code: null
+  abstract: "Creating dedicated accounts to post users' pet content is a growing trend on Instagram. While these account owners derive joy from this pursuit, they may also struggle with criticisms and challenges. Yet, there remains a knowledge gap on how pet account owners manage their pets' online presence and navigate these obstacles successfully. Drawing from interviews with 21 Instagram pet account owners, we uncover the motivations behind pet account creation, spanning personal, altruistic, and commercial goals. We learn about the strategies employed for crafting their pets' online identities and personas, as well as the challenges faced by both owners and their pets in navigating the complexities of digital identity management. We discuss the evolving dynamics between humans and their pets, positioning pet identity cultivation as a form of collaborative work, akin to the \"third shift\", highlighting the need to design interfaces that support this unique identity management process."
+  selected: false
+  teaser: pupularity.png
+  teaser_type: image
+  ring_concept: "digital identity management"
+  ring_keywords: ["social media", "identity", "pets", "influencer"]
+
+- slug: dilogics
+  title: "DiLogics: Creating Web Automation Programs with Diverse Logics"
+  authors:
+    - { name: "Kevin Pu", url: null, highlight: true }
+    - { name: "Jim Yang", url: null }
+    - { name: "Angel Yuan", url: null }
+    - { name: "Minyi Ma", url: null }
+    - { name: "Rui Dong", url: null }
+    - { name: "Xinyu Wang", url: null }
+    - { name: "Yan Chen", url: "https://chensivan.github.io/" }
+    - { name: "Tovi Grossman", url: "https://www.tovigrossman.com/" }
+  venue: UIST
+  year: 2023
+  category: neurosymbolic
+  award: null
+  links:
+    pdf: /assets/pdf/Dilogics_UIST_2023.pdf
+    video: https://www.youtube.com/watch?v=9WBvEUFLu-M
+    arxiv: null
+    website: null
+    code: null
+  abstract: "Knowledge workers frequently encounter repetitive web data entry tasks, like updating records or placing orders. Web automation increases productivity, but translating tasks to web actions accurately and extending to new specifications is challenging. Existing tools can automate tasks that perform the same logical trace of UI actions (e.g., input text in each field in order), but do not support tasks requiring different executions based on varied input conditions. We present DiLogics, a programming-by-demonstration system that utilizes NLP to assist users in creating web automation programs that handle diverse specifications. DiLogics first semantically segments input data to structured task steps. By recording user demonstrations for each step, DiLogics generalizes the web macros to novel but semantically similar task requirements. Our evaluation showed that non-experts can effectively use DiLogics to create automation programs that fulfill diverse input instructions. DiLogics provides an efficient, intuitive, and expressive method for developing web automation programs satisfying diverse specifications."
+  selected: false
+  teaser: dilogics.png
+  teaser_type: image
+  ring_concept: "neurosymbolic web automation"
+  ring_keywords: ["automation", "PBD", "NLP", "web", "neurosymbolic"]
+
+- slug: semanticon
+  title: "SemanticOn: Specifying Content-Based Semantic Conditions for Web Automation Programs"
+  authors:
+    - { name: "Kevin Pu", url: null, highlight: true }
+    - { name: "Rainey Fu", url: null }
+    - { name: "Rui Dong", url: null }
+    - { name: "Xinyu Wang", url: null }
+    - { name: "Yan Chen", url: "https://chensivan.github.io/" }
+    - { name: "Tovi Grossman", url: "https://www.tovigrossman.com/" }
+  venue: UIST
+  year: 2022
+  category: neurosymbolic
+  award: "Best Paper Honorable Mention"
+  links:
+    pdf: /assets/pdf/Semanticon_UIST_2022.pdf
+    video: https://www.youtube.com/watch?v=NBnc2ToS_j0
+    arxiv: null
+    website: null
+    code: null
+  abstract: "Data scientists, researchers, and clerks often create web automation programs to perform repetitive yet essential tasks, such as data scraping and data entry. However, existing web automation systems lack mechanisms for defining conditional behaviors where the system can intelligently filter candidate content based on semantic filters (e.g., extract texts based on key ideas or images based on entity relationships). We introduce SemanticOn, a system that enables users to specify, refine, and incorporate visual and textual semantic conditions in web automation programs via two methods: natural language description via prompts or information highlighting. Users can coordinate with SemanticOn to refine the conditions as the program continuously executes or reclaim manual control to repair errors. In a user study, participants completed a series of conditional web automation tasks. They reported that SemanticOn helped them effectively express and refine their semantic intent by utilizing visual and textual conditions."
+  selected: true
+  teaser: semanticon.jpeg
+  teaser_type: image
+  ring_concept: "intent discovery"
+  ring_keywords: ["semantics", "intent", "automation", "PBD", "NLP"]

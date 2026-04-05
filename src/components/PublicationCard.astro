@@ -1,0 +1,112 @@
+---
+import type { Publication, VenueInfo } from '../lib/data';
+
+interface Props {
+  pub: Publication;
+  venueInfo: VenueInfo | undefined;
+}
+
+const { pub, venueInfo } = Astro.props;
+const venueColor = venueInfo?.color ?? '#666';
+const venueLabel = `${pub.venue} '${String(pub.year).slice(2)}`;
+const isBestPaper = pub.award === 'Best Paper';
+const isHonorableMention = pub.award === 'Best Paper Honorable Mention';
+---
+
+<button
+  class="pub-card"
+  data-category={pub.category}
+  data-slug={pub.slug}
+  aria-label={`View details: ${pub.title}`}
+>
+  <div class="pub-card-header">
+    <span class="venue-badge" style={`background:${venueColor}`}>{venueLabel}</span>
+    {isBestPaper ? (
+      <span class="trophy-badge" aria-label="Best Paper" title="Best Paper"> {pub.award}</span>
+    ) : isHonorableMention ? (
+      <span class="award-badge">{pub.award}</span>
+    ) : null}
+  </div>
+  <h3 class="pub-card-title">{pub.title}</h3>
+</button>
+
+<style lang="scss">
+  .pub-card {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: var(--bg-surface);
+    border: 1px solid var(--bg-surface-border);
+    border-radius: var(--radius-md);
+    padding: 0.85rem 1rem;
+    cursor: pointer;
+    transition: transform var(--transition-fast),
+                box-shadow var(--transition-fast),
+                border-color var(--transition-fast);
+
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    }
+
+    // Glow state set by JS when keyword is hovered
+    &.glow {
+      border-color: var(--color-secondary);
+      box-shadow: 0 0 16px var(--color-highlight-glow);
+      transform: scale(1.03);
+    }
+  }
+
+  .pub-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.45rem;
+    flex-wrap: wrap;
+  }
+
+  .venue-badge {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.1em 0.55em;
+    border-radius: 999px;
+    color: #fff;
+    line-height: 1.4;
+    white-space: nowrap;
+  }
+
+  .award-badge {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--color-accent);
+  }
+
+  .trophy-badge {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--color-accent);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+
+    &::before {
+      content: '🏆';
+      font-size: 0.9rem;
+      line-height: 1;
+    }
+  }
+
+  .pub-card-title {
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 500;
+    line-height: 1.4;
+    color: var(--color-text);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+</style>

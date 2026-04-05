@@ -1,0 +1,175 @@
+---
+/**
+ * TreeRing — generates an SVG tree-ring visualization for a paper.
+ * Each ring = one keyword, center = core concept.
+ * Rings have organic wobble via sine perturbation.
+ */
+import type { Publication } from '../lib/data';
+
+interface Props {
+  pub: Publication;
+}
+
+const { pub } = Astro.props;
+
+const size = 400;
+const cx = size / 2;
+const cy = size / 2;
+const ringCount = pub.ring_keywords.length;
+const minRadius = 40;
+const maxRadius = (size / 2) - 25;
+const ringGap = (maxRadius - minRadius) / Math.max(ringCount, 1);
+
+// Green palette shades for rings
+const ringColors = [
+  'rgba(45, 95, 45, 0.35)',
+  'rgba(123, 160, 91, 0.3)',
+  'rgba(166, 124, 82, 0.25)',
+  'rgba(75, 130, 60, 0.3)',
+  'rgba(100, 145, 80, 0.28)',
+  'rgba(55, 110, 55, 0.32)',
+];
+
+// Generate a wobbled circle path
+function wobblePath(r: number, seed: number): string {
+  const points = 120;
+  const parts: string[] = [];
+  for (let i = 0; i <= points; i++) {
+    const angle = (i / points) * Math.PI * 2;
+    const wobble = Math.sin(angle * 3 + seed) * 2.5
+                 + Math.sin(angle * 5 + seed * 1.7) * 1.5
+                 + Math.sin(angle * 7 + seed * 0.3) * 0.8;
+    const dr = r + wobble;
+    const x = cx + dr * Math.cos(angle);
+    const y = cy + dr * Math.sin(angle);
+    parts.push(`${i === 0 ? 'M' : 'L'}${x.toFixed(2)},${y.toFixed(2)}`);
+  }
+  return parts.join(' ') + ' Z';
+}
+
+// Generate text path (a smooth circle for text to follow)
+function textCirclePath(r: number): string {
+  return `M ${cx - r},${cy} A ${r},${r} 0 1,1 ${cx + r},${cy} A ${r},${r} 0 1,1 ${cx - r},${cy}`;
+}
+
+const rings = pub.ring_keywords.map((kw, i) => {
+  const r = minRadius + ringGap * (i + 1);
+  return {
+    keyword: kw,
+    radius: r,
+    path: wobblePath(r, i * 2.1 + 0.5),
+    textPath: textCirclePath(r - 2),
+    color: ringColors[i % ringColors.length],
+    id: `ring-${pub.slug}-${i}`,
+    textId: `ringtext-${pub.slug}-${i}`,
+  };
+});
+---
+
+<svg
+  class="tree-ring-svg"
+  data-slug={pub.slug}
+  viewBox={`0 0 ${size} ${size}`}
+  width={size}
+  height={size}
+  xmlns="http://www.w3.org/2000/svg"
+  role="img"
+  aria-label={`Concept visualization for: ${pub.ring_concept}`}
+>
+  <defs>
+    {rings.map(ring => (
+      <path id={ring.textId} d={ring.textPath} fill="none" />
+    ))}
+  </defs>
+
+  <!-- Rings: outermost first so inner rings draw on top -->
+  {[...rings].reverse().map(ring => (
+    <g class="ring-group" data-keyword={ring.keyword}>
+      <path
+        d={ring.path}
+        fill={ring.color}
+        stroke="var(--color-primary)"
+        stroke-width="0.8"
+        stroke-opacity="0.3"
+        class="ring-path"
+      />
+    </g>
+  ))}
+
+  <!-- Labels on rings -->
+  {rings.map(ring => (
+    <text class="ring-label" font-size="13" fill="var(--color-text-muted)" font-family="'JetBrains Mono', monospace">
+      <textPath href={`#${ring.textId}`} startOffset="15%">
+        {ring.keyword}
+      </textPath>
+    </text>
+  ))}
+
+  <!-- Center concept -->
+  <text
+    x={cx}
+    y={cy - 4}
+    text-anchor="middle"
+    font-size="15"
+    font-weight="600"
+    fill="var(--color-primary)"
+    font-family="'DM Sans', sans-serif"
+    class="center-label"
+  >
+    {pub.ring_concept.split(' ').length > 2
+      ? pub.ring_concept.split(' ').reduce((acc: string[][], word: string) => {
+          const last = acc[acc.length - 1];
+          if (last.join(' ').length + word.length < 18) {
+            last.push(word);
+          } else {
+            acc.push([word]);
+          }
+          return acc;
+        }, [[]] as string[][]).map((line: string[], i: number) => (
+          <tspan x={cx} dy={i === 0 ? '0' : '1.2em'}>{line.join(' ')}</tspan>
+        ))
+      : pub.ring_concept
+    }
+  </text>
+</svg>
+
+<style lang="scss">
+  .tree-ring-svg {
+    max-width: 100%;
+    height: auto;
+  }
+
+  .ring-group {
+    transition: filter var(--transition-fast);
+
+    &:hover {
+      filter: drop-shadow(0 0 6px var(--color-highlight-glow));
+
+      .ring-path {
+        stroke-opacity: 0.8;
+        stroke-width: 1.5;
+      }
+    }
+  }
+
+  .ring-path {
+    transition: stroke-opacity var(--transition-fast), stroke-width var(--transition-fast);
+  }
+
+  .ring-label {
+    pointer-events: none;
+    opacity: 0.7;
+    transition: opacity var(--transition-fast);
+  }
+
+  .ring-group:hover ~ .ring-label {
+    opacity: 1;
+  }
+
+  .center-label {
+    pointer-events: none;
+  }
+
+  // Counteract the rotation for text readability
+  // Actually, rotating text is part of the design — labels rotate with the rings
+</style>

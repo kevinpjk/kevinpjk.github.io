@@ -1,0 +1,58 @@
+---
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="footer-inner container">
+    <p class="footer-text">
+      &copy; {year} Kevin Pu &middot; Built with <a href="https://astro.build" target="_blank" rel="noopener noreferrer">Astro</a>
+    </p>
+    <div class="footer-links">
+      <a href="https://scholar.google.com/citations?user=TsENWEIAAAAJ" target="_blank" rel="noopener noreferrer" aria-label="Google Scholar">Scholar</a>
+      <a href="https://twitter.com/kevpjk" target="_blank" rel="noopener noreferrer" aria-label="Twitter">Twitter</a>
+      <a href="mailto:jpu@dgp.toronto.edu" aria-label="Email">Email</a>
+    </div>
+  </div>
+</footer>
+
+<style lang="scss">
+  .site-footer {
+    border-top: 1px solid var(--bg-surface-border);
+    padding: 2rem 0;
+    transition: border-color var(--transition-normal);
+  }
+
+  .footer-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .footer-text {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+  }
+
+  .footer-links {
+    display: flex;
+    gap: 1.25rem;
+
+    a {
+      font-size: 0.85rem;
+      color: var(--color-text-muted);
+
+      &:hover {
+        color: var(--color-primary);
+      }
+    }
+  }
+
+  @media (max-width: 768px) {
+    .footer-inner {
+      flex-direction: column;
+      text-align: center;
+    }
+  }
+</style>

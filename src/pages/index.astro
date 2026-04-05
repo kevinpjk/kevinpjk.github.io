@@ -1,0 +1,389 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import NewsSection from '../components/NewsSection.astro';
+import PublicationCard from '../components/PublicationCard.astro';
+import PaperDetail from '../components/PaperDetail.astro';
+import TreeRing from '../components/TreeRing.astro';
+import { getSelectedPublications, getVenues } from '../lib/data';
+
+const pubs = getSelectedPublications();
+const venues = getVenues();
+
+// Group selected pubs by category
+const categories = [
+  { key: 'mixed-initiative', label: 'Mixed-Initiative Interaction' },
+  { key: 'human-ai-collaboration', label: 'Human-AI Collaboration' },
+  { key: 'neurosymbolic', label: 'Neurosymbolic Program Synthesis' },
+];
+
+const pubsByCategory = categories
+  .map(cat => ({
+    ...cat,
+    pubs: pubs.filter(p => p.category === cat.key),
+  }))
+  .filter(cat => cat.pubs.length > 0);
+---
+
+<BaseLayout title="Kevin Pu">
+  <!-- Landing page content -->
+  <div class="landing container" id="landing-content">
+    <div class="landing-grid">
+      <!-- Left column -->
+      <div class="landing-left">
+        <div class="hero-row stagger-in stagger-delay-1">
+          <div class="hero-text">
+            <h1 class="display-name">Kevin Pu</h1>
+            <p class="title-line">PhD Candidate &middot; Computer Science &middot; University of Toronto</p>
+            <p class="affiliations">
+              Advised by Prof.&nbsp;<a href="https://www.tovigrossman.com/" target="_blank" rel="noopener noreferrer">Tovi Grossman</a>
+              at the <a href="https://www.dgp.toronto.edu/" target="_blank" rel="noopener noreferrer">Dynamic Graphics Group</a>
+              and Prof.&nbsp;<a href="https://chensivan.github.io/" target="_blank" rel="noopener noreferrer">Yan Chen</a>
+            </p>
+          </div>
+          <img
+            src="/assets/img/profile.jpg"
+            alt="Kevin Pu"
+            class="profile-photo float-bob"
+            width="160"
+            height="160"
+          />
+        </div>
+
+        <div class="bio stagger-in stagger-delay-2">
+          <p>
+            My research interests lie in human-computer interaction, artificial intelligence, and their intersection.
+            My past works have focused on aligning AI support with human capabilities to build harmonious
+            <span class="keyword" data-category="mixed-initiative"><strong>mixed-initiative interaction</strong></span>,
+            <span class="keyword" data-category="human-ai-collaboration"><strong>human-AI collaboration</strong></span>, and
+            <span class="keyword" data-category="neurosymbolic"><strong>neurosymbolic program synthesis</strong></span>
+            workflows for automation, programming, and ideation.
+          </p>
+        </div>
+
+        <div class="stagger-in stagger-delay-4">
+          <NewsSection />
+        </div>
+      </div>
+
+      <!-- Right column -->
+      <div class="landing-right stagger-in stagger-delay-5">
+        <div class="selected-pubs-header">
+          <h2 class="section-heading">Selected Publications</h2>
+          <a href="/publications/" class="show-all-link">Show all &rarr;</a>
+        </div>
+
+        {pubsByCategory.map(cat => (
+          <div class="pub-category-group">
+            <span class="category-label">{cat.label}</span>
+            <div class="pub-cards">
+              {cat.pubs.map(pub => (
+                <PublicationCard pub={pub} venueInfo={venues[pub.venue]} />
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+
+  <!-- Paper detail overlays (one per selected pub) -->
+  {pubs.map(pub => (
+    <PaperDetail pub={pub} venueInfo={venues[pub.venue]} />
+  ))}
+
+  <!-- Pre-rendered tree ring SVGs (injected into detail views by JS) -->
+  <div id="tree-ring-store" style="display:none">
+    {pubs.map(pub => (
+      <TreeRing pub={pub} />
+    ))}
+  </div>
+</BaseLayout>
+
+<style lang="scss">
+  .landing-grid {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 3rem;
+    align-items: start;
+  }
+
+  // Left column
+  .landing-left {
+    min-width: 0;
+  }
+
+  .hero-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 2rem;
+  }
+
+  .hero-text {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .display-name {
+    font-family: 'Fraunces', serif;
+    font-size: 2.8rem;
+    font-weight: 700;
+    line-height: 1.15;
+    margin-bottom: 0.3rem;
+  }
+
+  .title-line {
+    font-size: 1.05rem;
+    color: var(--color-text-muted);
+    margin-bottom: 0.5rem;
+  }
+
+  .affiliations {
+    font-size: 0.95rem;
+    color: var(--color-text-muted);
+    line-height: 1.55;
+  }
+
+  .profile-photo {
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--bg-surface-border);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    flex-shrink: 0;
+  }
+
+  .bio {
+    margin-top: 1.5rem;
+    font-size: 1rem;
+    line-height: 1.7;
+  }
+
+  .keyword {
+    cursor: default;
+    padding: 0.05em 0.15em;
+    border-radius: var(--radius-sm);
+    transition: background-color var(--transition-fast);
+
+    &:hover,
+    &.highlighted {
+      background-color: var(--color-highlight-glow);
+    }
+
+    strong {
+      font-weight: 600;
+      color: var(--color-primary);
+    }
+  }
+
+  // Right column
+  .landing-right {
+    position: sticky;
+    top: calc(var(--header-height) + 2rem);
+  }
+
+  .selected-pubs-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 1.25rem;
+  }
+
+  .section-heading {
+    font-size: 1.15rem;
+    color: var(--color-primary);
+  }
+
+  .show-all-link {
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--color-text-muted);
+
+    &:hover {
+      color: var(--color-primary);
+    }
+  }
+
+  .pub-category-group {
+    margin-bottom: 1.25rem;
+  }
+
+  .category-label {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-text-muted);
+    margin-bottom: 0.5rem;
+    padding-left: 0.15rem;
+  }
+
+  .pub-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  // Responsive
+  @media (max-width: 1024px) {
+    .landing-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .landing-right {
+      position: static;
+    }
+
+    // On tablet: horizontal scrollable row
+    .pub-cards {
+      flex-direction: row;
+      overflow-x: auto;
+      padding-bottom: 0.5rem;
+      scroll-snap-type: x mandatory;
+
+      :global(.pub-card) {
+        min-width: 260px;
+        flex-shrink: 0;
+        scroll-snap-align: start;
+      }
+    }
+  }
+
+  @media (max-width: 768px) {
+    .hero-row {
+      gap: 1.25rem;
+    }
+
+    .display-name {
+      font-size: 2.2rem;
+    }
+
+    .profile-photo {
+      width: 110px;
+      height: 110px;
+    }
+  }
+</style>
+
+<script>
+  // =========================================================================
+  // Keyword ↔ Publication bidirectional highlighting
+  // =========================================================================
+  function initHighlighting() {
+    const keywords = document.querySelectorAll<HTMLElement>('.keyword');
+    const cards = document.querySelectorAll<HTMLElement>('.pub-card');
+
+    // Keyword hover → glow matching cards
+    keywords.forEach(kw => {
+      const cat = kw.dataset.category;
+      kw.addEventListener('mouseenter', () => {
+        cards.forEach(card => {
+          if (card.dataset.category === cat) card.classList.add('glow');
+        });
+      });
+      kw.addEventListener('mouseleave', () => {
+        cards.forEach(card => card.classList.remove('glow'));
+      });
+    });
+
+    // Card hover → highlight matching keyword
+    cards.forEach(card => {
+      const cat = card.dataset.category;
+      card.addEventListener('mouseenter', () => {
+        keywords.forEach(kw => {
+          if (kw.dataset.category === cat) kw.classList.add('highlighted');
+        });
+      });
+      card.addEventListener('mouseleave', () => {
+        keywords.forEach(kw => kw.classList.remove('highlighted'));
+      });
+    });
+  }
+
+  // =========================================================================
+  // Paper detail view transitions
+  // =========================================================================
+  function initPaperDetail() {
+    const cards = document.querySelectorAll<HTMLElement>('.pub-card');
+    const backBtns = document.querySelectorAll<HTMLElement>('[data-action="close-detail"]');
+    const landing = document.getElementById('landing-content');
+
+    // Move tree-ring SVGs into their containers
+    const store = document.getElementById('tree-ring-store');
+    if (store) {
+      store.querySelectorAll<SVGElement>('.tree-ring-svg').forEach(svg => {
+        const slug = svg.dataset.slug;
+        const container = document.querySelector<HTMLElement>(
+          `.paper-detail[data-slug="${slug}"] .tree-ring-container`
+        );
+        if (container) container.appendChild(svg);
+      });
+      store.remove();
+    }
+
+    function openDetail(slug: string) {
+      const detail = document.querySelector<HTMLElement>(`.paper-detail[data-slug="${slug}"]`);
+      if (!detail || !landing) return;
+
+      // Fade out landing
+      landing.style.transition = 'opacity 200ms ease';
+      landing.style.opacity = '0';
+      landing.style.pointerEvents = 'none';
+
+      // Show detail
+      detail.classList.add('visible');
+      // Force reflow then animate in
+      void detail.offsetHeight;
+      detail.classList.add('active');
+      detail.setAttribute('aria-hidden', 'false');
+
+      // Scroll to top
+      window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeDetail() {
+      const active = document.querySelector<HTMLElement>('.paper-detail.active');
+      if (!active || !landing) return;
+
+      // Fade out detail
+      active.classList.remove('active');
+      active.setAttribute('aria-hidden', 'true');
+
+      setTimeout(() => {
+        active.classList.remove('visible');
+        document.body.style.overflow = '';
+
+        // Fade in landing
+        landing.style.opacity = '1';
+        landing.style.pointerEvents = '';
+      }, 400);
+    }
+
+    cards.forEach(card => {
+      card.addEventListener('click', () => {
+        const slug = card.dataset.slug;
+        if (slug) openDetail(slug);
+      });
+    });
+
+    backBtns.forEach(btn => {
+      btn.addEventListener('click', closeDetail);
+    });
+
+    // ESC key closes detail
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeDetail();
+    });
+  }
+
+  // Init
+  initHighlighting();
+  initPaperDetail();
+  document.addEventListener('astro:after-swap', () => {
+    initHighlighting();
+    initPaperDetail();
+  });
+</script>

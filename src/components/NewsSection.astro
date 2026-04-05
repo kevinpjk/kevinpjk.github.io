@@ -1,0 +1,100 @@
+---
+import { getNews } from '../lib/data';
+
+const news = getNews();
+
+// Simple markdown-to-HTML: links, bold, italic
+function renderMarkdown(text: string): string {
+  return text
+    // links: [text](url)
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
+    // bold: **text**
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    // italic: _text_
+    .replace(/_([^_]+)_/g, '<em>$1</em>');
+}
+
+function formatDate(dateStr: string): string {
+  const d = new Date(dateStr + 'T00:00:00');
+  return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+}
+---
+
+<section class="news-section">
+  <h2 class="section-heading">News</h2>
+  <div class="news-scroll">
+    {news.map(item => (
+      <div class="news-item">
+        <span class="news-date mono">{formatDate(item.date)}</span>
+        <span class="news-content" set:html={renderMarkdown(item.content)} />
+      </div>
+    ))}
+  </div>
+</section>
+
+<style lang="scss">
+  .news-section {
+    margin-top: 2.5rem;
+  }
+
+  .section-heading {
+    font-size: 1.15rem;
+    margin-bottom: 1rem;
+    color: var(--color-primary);
+  }
+
+  .news-scroll {
+    max-height: 320px;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+
+    // Subtle scrollbar
+    &::-webkit-scrollbar {
+      width: 4px;
+    }
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    &::-webkit-scrollbar-thumb {
+      background: var(--bg-surface-border);
+      border-radius: 2px;
+    }
+  }
+
+  .news-item {
+    display: flex;
+    gap: 1rem;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid var(--bg-surface-border);
+    font-size: 0.9rem;
+    line-height: 1.5;
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  .news-date {
+    flex-shrink: 0;
+    width: 5.5rem;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    padding-top: 0.1rem;
+  }
+
+  .news-content {
+    color: var(--color-text);
+
+    :global(a) {
+      color: var(--color-primary);
+      &:hover {
+        color: var(--color-secondary);
+      }
+    }
+
+    :global(em) {
+      font-style: italic;
+      color: var(--color-accent);
+    }
+  }
+</style>

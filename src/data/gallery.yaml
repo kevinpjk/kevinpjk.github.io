@@ -1,0 +1,57 @@
+# =============================================================================
+# gallery.yml — Conference trip gallery
+# Placeholder photos — swap with real photos later
+# =============================================================================
+
+- event: "UIST 2025"
+  location: "Busan, South Korea"
+  date: "2025-09"
+  cover: gallery/uist2025/cover.jpg
+  photos:
+    - { src: "gallery/uist2025/IMG_001.jpg", thumb: "gallery/uist2025/thumb_IMG_001.jpg", caption: "Conference venue in Busan" }
+    - { src: "gallery/uist2025/IMG_002.jpg", thumb: "gallery/uist2025/thumb_IMG_002.jpg", caption: "Presenting ProMemAssist" }
+    - { src: "gallery/uist2025/IMG_003.jpg", thumb: "gallery/uist2025/thumb_IMG_003.jpg", caption: "Team dinner" }
+
+- event: "CHI 2025"
+  location: "Yokohama, Japan"
+  date: "2025-04"
+  cover: gallery/chi2025/cover.jpg
+  photos:
+    - { src: "gallery/chi2025/IMG_001.jpg", thumb: "gallery/chi2025/thumb_IMG_001.jpg", caption: "Yokohama waterfront" }
+    - { src: "gallery/chi2025/IMG_002.jpg", thumb: "gallery/chi2025/thumb_IMG_002.jpg", caption: "Paper presentation" }
+    - { src: "gallery/chi2025/IMG_003.jpg", thumb: "gallery/chi2025/thumb_IMG_003.jpg", caption: "Conference center" }
+    - { src: "gallery/chi2025/IMG_004.jpg", thumb: "gallery/chi2025/thumb_IMG_004.jpg", caption: "Exploring the city" }
+
+- event: "UIST 2024"
+  location: "Pittsburgh, PA, USA"
+  date: "2024-10"
+  cover: gallery/uist2024/cover.jpg
+  photos:
+    - { src: "gallery/uist2024/IMG_001.jpg", thumb: "gallery/uist2024/thumb_IMG_001.jpg", caption: "Pittsburgh skyline" }
+    - { src: "gallery/uist2024/IMG_002.jpg", thumb: "gallery/uist2024/thumb_IMG_002.jpg", caption: "Student volunteer duties" }
+
+- event: "CHI 2024"
+  location: "Honolulu, HI, USA"
+  date: "2024-05"
+  cover: gallery/chi2024/cover.jpg
+  photos:
+    - { src: "gallery/chi2024/IMG_001.jpg", thumb: "gallery/chi2024/thumb_IMG_001.jpg", caption: "Waikiki Beach" }
+    - { src: "gallery/chi2024/IMG_002.jpg", thumb: "gallery/chi2024/thumb_IMG_002.jpg", caption: "Conference venue" }
+    - { src: "gallery/chi2024/IMG_003.jpg", thumb: "gallery/chi2024/thumb_IMG_003.jpg", caption: "Diamond Head hike" }
+
+- event: "UIST 2023"
+  location: "San Francisco, CA, USA"
+  date: "2023-10"
+  cover: gallery/uist2023/cover.jpg
+  photos:
+    - { src: "gallery/uist2023/IMG_001.jpg", thumb: "gallery/uist2023/thumb_IMG_001.jpg", caption: "Golden Gate Bridge" }
+    - { src: "gallery/uist2023/IMG_002.jpg", thumb: "gallery/uist2023/thumb_IMG_002.jpg", caption: "Presenting DiLogics" }
+
+- event: "UIST 2022"
+  location: "Bend, OR, USA"
+  date: "2022-10"
+  cover: gallery/uist2022/cover.jpg
+  photos:
+    - { src: "gallery/uist2022/000688660005.jpg", thumb: "gallery/uist2022/000688660005.jpg", caption: "Bend, Oregon scenery" }
+    - { src: "gallery/uist2022/IMG_002.jpg", thumb: "gallery/uist2022/thumb_IMG_002.jpg", caption: "SemanticOn demo" }
+    - { src: "gallery/uist2022/IMG_003.jpg", thumb: "gallery/uist2022/thumb_IMG_003.jpg", caption: "Honorable Mention celebration" }

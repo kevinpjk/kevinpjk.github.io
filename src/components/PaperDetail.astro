@@ -1,0 +1,254 @@
+---
+/**
+ * PaperDetail — rendered once per selected publication, hidden by default.
+ * JavaScript shows/hides with animated transitions.
+ */
+import type { Publication, VenueInfo } from '../lib/data';
+
+interface Props {
+  pub: Publication;
+  venueInfo: VenueInfo | undefined;
+}
+
+const { pub, venueInfo } = Astro.props;
+const venueColor = venueInfo?.color ?? '#666';
+const venueLabel = `${pub.venue} ${pub.year}`;
+
+// Build link items — only show those that exist
+const linkItems = [
+  { label: 'PDF', url: pub.links.pdf, icon: '📄' },
+  { label: 'Video', url: pub.links.video, icon: '🎬' },
+  { label: 'arXiv', url: pub.links.arxiv, icon: '📝' },
+  { label: 'Website', url: pub.links.website, icon: '🌐' },
+  { label: 'Code', url: pub.links.code, icon: '💻' },
+].filter(l => l.url);
+---
+
+<article class="paper-detail" data-slug={pub.slug} aria-hidden="true">
+  <div class="paper-detail-inner">
+    <!-- Left: paper metadata -->
+    <div class="paper-meta">
+      <button class="back-btn" data-action="close-detail" aria-label="Back to landing page">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        Back
+      </button>
+
+      <div class="paper-venue-row">
+        <span class="venue-badge" style={`background:${venueColor}`}>{venueLabel}</span>
+        {pub.award && <span class="award-badge">{pub.award}</span>}
+      </div>
+
+      <h2 class="paper-title">{pub.title}</h2>
+
+      <p class="paper-authors">
+        {pub.authors.map((a, i) => (
+          <span>
+            {a.url ? (
+              <a href={a.url} target="_blank" rel="noopener noreferrer" class:list={{ highlight: a.highlight }}>
+                {a.name}
+              </a>
+            ) : (
+              <span class:list={{ highlight: a.highlight }}>{a.name}</span>
+            )}
+            {i < pub.authors.length - 1 && ', '}
+          </span>
+        ))}
+      </p>
+
+      <p class="paper-abstract">{pub.abstract}</p>
+
+      {linkItems.length > 0 && (
+        <div class="paper-links">
+          {linkItems.map(l => (
+            <a href={l.url!} class="link-pill" target="_blank" rel="noopener noreferrer">
+              <span class="link-icon">{l.icon}</span> {l.label}
+            </a>
+          ))}
+        </div>
+      )}
+    </div>
+
+    <!-- Right: teaser + tree ring -->
+    <div class="paper-visuals">
+      <div class="paper-image-wrap">
+        <img
+          src={`/assets/img/papers/${pub.teaser}`}
+          alt={`Teaser figure for ${pub.title}`}
+          loading="lazy"
+        />
+      </div>
+      <div class="tree-ring-container" data-slug={pub.slug}></div>
+    </div>
+  </div>
+</article>
+
+<style lang="scss">
+  .paper-detail {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 300;
+    background: var(--bg-primary);
+    overflow-y: auto;
+    opacity: 0;
+    transition: opacity var(--transition-slow);
+
+    &.visible {
+      display: block;
+    }
+
+    &.active {
+      opacity: 1;
+    }
+  }
+
+  .paper-detail-inner {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: calc(var(--header-height) + 2rem) 1.5rem 4rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: start;
+  }
+
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--color-text-muted);
+    margin-bottom: 1.5rem;
+    padding: 0.35em 0.7em;
+    border-radius: var(--radius-md);
+    transition: all var(--transition-fast);
+
+    &:hover {
+      color: var(--color-primary);
+      background: var(--color-highlight-glow);
+    }
+  }
+
+  .paper-venue-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .venue-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.15em 0.65em;
+    border-radius: 999px;
+    color: #fff;
+  }
+
+  .award-badge {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-accent);
+  }
+
+  .paper-title {
+    font-size: 1.6rem;
+    line-height: 1.3;
+    margin-bottom: 1rem;
+  }
+
+  .paper-authors {
+    font-size: 0.95rem;
+    color: var(--color-text-muted);
+    margin-bottom: 1.25rem;
+    line-height: 1.6;
+
+    .highlight {
+      font-weight: 600;
+      color: var(--color-text);
+    }
+
+    a {
+      color: var(--color-primary);
+      &:hover { color: var(--color-secondary); }
+    }
+  }
+
+  .paper-abstract {
+    font-size: 0.92rem;
+    line-height: 1.7;
+    color: var(--color-text);
+    margin-bottom: 1.5rem;
+  }
+
+  .paper-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .link-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3em;
+    font-size: 0.82rem;
+    font-weight: 500;
+    padding: 0.35em 0.85em;
+    border-radius: 999px;
+    border: 1px solid var(--bg-surface-border);
+    color: var(--color-text-muted);
+    transition: all var(--transition-fast);
+
+    &:hover {
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+      background: var(--color-highlight-glow);
+    }
+  }
+
+  .link-icon {
+    font-size: 0.9em;
+  }
+
+  // Visuals column
+  .paper-visuals {
+    position: sticky;
+    top: calc(var(--header-height) + 2rem);
+  }
+
+  .paper-image-wrap {
+    background: #fff;
+    border-radius: var(--radius-md);
+    padding: 8px;
+    margin-bottom: 2rem;
+
+    img {
+      border-radius: var(--radius-sm);
+    }
+  }
+
+  .tree-ring-container {
+    display: flex;
+    justify-content: center;
+  }
+
+  // Responsive
+  @media (max-width: 768px) {
+    .paper-detail-inner {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+
+    .paper-visuals {
+      position: static;
+    }
+
+    .paper-title {
+      font-size: 1.3rem;
+    }
+  }
+</style>

@@ -1,0 +1,40 @@
+# =============================================================================
+# gallery.yml — Conference trip gallery
+# Template entries — PHOTOS DO NOT EXIST YET, fill in real file paths later
+# =============================================================================
+
+- event: "UIST 2025"
+  location: "Busan, South Korea"
+  date: "2025-09"
+  cover: gallery/uist2025/cover.jpg
+  photos: []  # TODO: add photos from trip
+
+- event: "CHI 2025"
+  location: "Yokohama, Japan"
+  date: "2025-04"
+  cover: gallery/chi2025/cover.jpg
+  photos: []  # TODO: add photos from trip
+
+- event: "UIST 2024"
+  location: "Pittsburgh, PA, USA"
+  date: "2024-10"
+  cover: gallery/uist2024/cover.jpg
+  photos: []  # TODO: add photos from trip
+
+- event: "CHI 2024"
+  location: "Honolulu, HI, USA"
+  date: "2024-05"
+  cover: gallery/chi2024/cover.jpg
+  photos: []  # TODO: add photos from trip
+
+- event: "UIST 2023"
+  location: "San Francisco, CA, USA"
+  date: "2023-10"
+  cover: gallery/uist2023/cover.jpg
+  photos: []  # TODO: add photos from trip
+
+- event: "UIST 2022"
+  location: "Bend, OR, USA"
+  date: "2022-10"
+  cover: gallery/uist2022/cover.jpg
+  photos: []  # TODO: add photos from trip

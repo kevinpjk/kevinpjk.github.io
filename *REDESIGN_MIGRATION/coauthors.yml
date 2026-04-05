@@ -1,0 +1,36 @@
+# =============================================================================
+# coauthors.yml — Frequent collaborators with URLs
+# Migrated from _data/coauthors.yml for site redesign
+# =============================================================================
+
+- name: "Tovi Grossman"
+  url: "https://www.tovigrossman.com/"
+  role: "PhD Advisor"
+
+- name: "Yan Chen"
+  url: "https://chensivan.github.io/"
+  role: "PhD Co-Advisor"
+
+- name: "Bjoern Hartmann"
+  url: "https://people.eecs.berkeley.edu/~bjoern/"
+  role: "Visiting Scholar Host"
+
+- name: "K. J. Kevin Feng"
+  url: "https://kjfeng.me/#/"
+  role: "Collaborator"
+
+- name: "Pao Siangliulue"
+  url: null
+  role: "Ai2 Mentor"
+
+- name: "Joseph Chee Chang"
+  url: null
+  role: "Collaborator"
+
+- name: "Jonathan Bragg"
+  url: null
+  role: "Collaborator"
+
+- name: "Nikola Banovic"
+  url: "http://www.nikolabanovic.net/index.html"
+  role: "Undergrad Research Advisor"

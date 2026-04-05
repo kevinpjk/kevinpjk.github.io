@@ -1,0 +1,66 @@
+---
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import '../styles/global.scss';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = 'Kevin Pu',
+  description = 'PhD Candidate in Computer Science at the University of Toronto. Research in HCI and AI.',
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <meta name="generator" content={Astro.generator} />
+
+    <title>{title === 'Kevin Pu' ? title : `${title} — Kevin Pu`}</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:wght@400;600;700&family=JetBrains+Mono:wght@400;500;600&family=Source+Sans+3:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Content Security Policy -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' 'unsafe-inline' https://gc.zgo.at; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; media-src 'self'; frame-src https://www.youtube.com https://youtube.com;"
+    />
+
+    <!-- GoatCounter analytics -->
+    <script data-goatcounter="https://kevinpjk.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+    
+    <!-- Theme: prevent flash of wrong theme -->
+    <script is:inline>
+      (function() {
+        const saved = localStorage.getItem('theme');
+        if (saved) {
+          document.documentElement.setAttribute('data-theme', saved);
+        } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <Header />
+    <main class="page-content">
+      <slot />
+    </main>
+    <Footer />
+  </body>
+</html>
