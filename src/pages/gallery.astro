@@ -7,41 +7,80 @@ const events = getGallery();
 
 <BaseLayout title="Gallery">
   <div class="container">
-    <h1 class="page-title stagger-in stagger-delay-1">Gallery</h1>
-    <p class="page-subtitle stagger-in stagger-delay-2">I take (film) photos at conference trips &amp; travels</p>
+    <div class="gallery-header stagger-in stagger-delay-1">
+      <div>
+        <h1 class="page-title">Gallery</h1>
+        <p class="page-subtitle">I take (film) photos at conference trips &amp; travels</p>
+      </div>
+      <button class="expand-all-btn" id="expand-all-btn">Expand all</button>
+    </div>
 
-    <div class="timeline">
-      <div class="timeline-line" aria-hidden="true"></div>
+    <div class="tree-timeline" id="tree-timeline">
+      <div class="trunk" aria-hidden="true">
+        <div class="trunk-roots" aria-hidden="true"></div>
+      </div>
+      <div class="canopy" aria-hidden="true"></div>
 
       {events.map((ev, idx) => {
-        const side = idx % 2 === 0 ? 'left' : 'right';
         const dateLabel = new Date(ev.date + '-01').toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+        const side = idx % 2 === 0 ? 'left' : 'right';
 
         return (
-          <div class={`timeline-node ${side}`} data-event-index={idx}>
-            <button class="timeline-dot" aria-label={`Expand ${ev.event} photos`} aria-expanded="false">
-              <span class="dot-inner"></span>
-            </button>
-
-            <div class="timeline-card">
-              <h3 class="event-name">{ev.event}</h3>
-              <p class="event-meta">{ev.location} &middot; {dateLabel}</p>
+          <div class={`branch branch--${side} stagger-in`} data-event-index={idx} style={`animation-delay: ${(idx + 2) * 60}ms`}>
+            <div class="branch-arm" aria-hidden="true">
+              <svg class="branch-svg" viewBox="0 0 80 30" preserveAspectRatio="none">
+                <path d={side === 'left'
+                  ? "M80,15 C60,15 40,8 0,12"
+                  : "M0,15 C20,15 40,8 80,12"
+                } stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+              </svg>
             </div>
 
-            <div class="photo-grid-wrapper" aria-hidden="true">
-              <div class="photo-grid">
-                {ev.photos.map(photo => (
+            <button
+              class="branch-node"
+              aria-label={`Expand ${ev.event} photos`}
+              aria-expanded="false"
+            >
+              <span class="node-ring"></span>
+            </button>
+
+            <div class="leaf-card">
+              <h3 class="event-name">{ev.event}</h3>
+              <p class="event-meta">{ev.location} &middot; {dateLabel}</p>
+              <span class="photo-count">{ev.photos.length} photos</span>
+            </div>
+
+            <div class="collage-wrapper" aria-hidden="true">
+              <div class="collage">
+                {ev.photos.map((photo, pi) => (
                   <button
-                    class="photo-thumb"
+                    class:list={['photo-cell', { 'live-photo': photo.type === 'live' }]}
                     data-full={`/assets/img/${photo.src}`}
                     data-caption={photo.caption ?? ''}
+                    data-video={photo.video ? `/assets/img/${photo.video}` : ''}
+                    data-type={photo.type ?? 'image'}
                     aria-label={photo.caption ?? 'Gallery photo'}
+                    style={`--leaf-delay: ${pi * 60}ms`}
                   >
                     <img
                       src={`/assets/img/${photo.thumb}`}
                       alt={photo.caption ?? `Photo from ${ev.event}`}
                       loading="lazy"
+                      class="photo-thumb"
                     />
+                    {photo.type === 'live' && (
+                      <>
+                        <video
+                          src={`/assets/img/${photo.video}`}
+                          muted
+                          loop
+                          playsinline
+                          preload="none"
+                          class="photo-video"
+                        ></video>
+                        <span class="live-badge">LIVE</span>
+                      </>
+                    )}
                   </button>
                 ))}
               </div>
@@ -49,6 +88,8 @@ const events = getGallery();
           </div>
         );
       })}
+
+      <div class="trunk-base" aria-hidden="true"></div>
     </div>
   </div>
 
@@ -59,12 +100,20 @@ const events = getGallery();
     <button class="lightbox-next" aria-label="Next photo">&#8250;</button>
     <div class="lightbox-content">
       <img class="lightbox-img" src="" alt="" />
+      <video class="lightbox-video" src="" muted loop playsinline style="display:none"></video>
       <p class="lightbox-caption"></p>
     </div>
   </div>
 </BaseLayout>
 
 <style lang="scss">
+  .gallery-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 2.5rem;
+  }
+
   .page-title {
     font-family: 'Fraunces', serif;
     font-size: 2.2rem;
@@ -74,174 +123,306 @@ const events = getGallery();
   .page-subtitle {
     font-size: 1rem;
     color: var(--color-text-muted);
-    margin-bottom: 3rem;
+  }
+
+  .expand-all-btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    font-weight: 500;
+    padding: 0.45em 1em;
+    border-radius: 999px;
+    border: 1px solid var(--bg-surface-border);
+    color: var(--color-text-muted);
+    background: var(--bg-surface);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    white-space: nowrap;
+    margin-top: 0.5rem;
+
+    &:hover {
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+    }
   }
 
   // =========================================================================
-  // Timeline
+  // Tree Timeline
   // =========================================================================
-  .timeline {
+  .tree-timeline {
     position: relative;
-    max-width: 800px;
+    max-width: 750px;
     margin: 0 auto;
     padding-bottom: 3rem;
+    padding-top: 1.5rem;
   }
 
-  .timeline-line {
+  // Trunk — the main tree stem
+  .trunk {
     position: absolute;
     left: 50%;
     top: 0;
     bottom: 0;
-    width: 2px;
-    background: var(--bg-surface-border);
+    width: 4px;
     transform: translateX(-50%);
+    background: var(--color-primary);
+    border-radius: 2px;
+    // Bark-like texture via gradient
+    background-image: linear-gradient(
+      to bottom,
+      var(--color-primary) 0%,
+      var(--color-secondary) 30%,
+      var(--color-primary) 50%,
+      var(--color-secondary) 70%,
+      var(--color-accent) 100%
+    );
   }
 
-  .timeline-node {
+  // Small canopy circle at top of tree
+  .canopy {
+    position: absolute;
+    left: 50%;
+    top: -12px;
+    width: 24px;
+    height: 24px;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background: var(--color-secondary);
+    opacity: 0.6;
+    box-shadow: 0 0 12px var(--color-highlight-glow);
+  }
+
+  // Roots at bottom
+  .trunk-base {
     position: relative;
-    margin-bottom: 2.5rem;
-    display: flex;
-    align-items: flex-start;
+    margin-top: 1rem;
+    height: 20px;
+    &::before, &::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      width: 30px;
+      height: 2px;
+      background: var(--color-accent);
+      border-radius: 2px;
+      opacity: 0.4;
+    }
+    &::before {
+      left: calc(50% - 20px);
+      transform: rotate(30deg);
+    }
+    &::after {
+      left: calc(50% - 10px);
+      transform: rotate(-25deg);
+    }
+  }
 
-    &.left {
-      flex-direction: row;
-      padding-right: calc(50% + 2rem);
+  // =========================================================================
+  // Branch
+  // =========================================================================
+  .branch {
+    position: relative;
+    margin-bottom: 2rem;
 
-      .timeline-card {
+    &--left {
+      .leaf-card {
         text-align: right;
+        margin-right: calc(50% + 2.5rem);
       }
 
-      .timeline-dot {
+      .branch-arm {
         position: absolute;
-        left: 50%;
-        transform: translateX(-50%);
+        right: calc(50% - 2rem);
+        top: 6px;
+        width: 4.5rem;
+        height: 30px;
       }
 
-      .photo-grid-wrapper {
+      .branch-node {
         position: absolute;
-        left: 0;
-        right: 0;
-        top: 100%;
+        right: calc(50% + 2.2rem);
+        top: 4px;
       }
     }
 
-    &.right {
-      flex-direction: row-reverse;
-      padding-left: calc(50% + 2rem);
-
-      .timeline-card {
+    &--right {
+      .leaf-card {
         text-align: left;
+        margin-left: calc(50% + 2.5rem);
       }
 
-      .timeline-dot {
+      .branch-arm {
         position: absolute;
-        left: 50%;
-        transform: translateX(-50%);
+        left: calc(50% - 2rem);
+        top: 6px;
+        width: 4.5rem;
+        height: 30px;
       }
 
-      .photo-grid-wrapper {
+      .branch-node {
         position: absolute;
-        left: 0;
-        right: 0;
-        top: 100%;
+        left: calc(50% + 2.2rem);
+        top: 4px;
       }
     }
   }
 
-  .timeline-dot {
+  .branch-arm {
+    color: var(--color-secondary);
+    opacity: 0.7;
+  }
+
+  .branch-svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .branch-node {
     width: 20px;
     height: 20px;
     border-radius: 50%;
-    background: var(--bg-surface);
-    border: 2px solid var(--color-primary);
+    background: var(--bg-primary);
+    border: 2.5px solid var(--color-secondary);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 2;
-    flex-shrink: 0;
+    cursor: pointer;
     transition: all var(--transition-fast);
     padding: 0;
 
-    &:hover, &[aria-expanded="true"] {
-      background: var(--color-primary);
-      transform: translateX(-50%) scale(1.2);
-    }
-
-    .dot-inner {
+    .node-ring {
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      background: var(--color-primary);
-      transition: background var(--transition-fast);
+      background: var(--color-secondary);
+      transition: all var(--transition-fast);
     }
 
-    &:hover .dot-inner,
-    &[aria-expanded="true"] .dot-inner {
-      background: var(--bg-surface);
+    &:hover, &[aria-expanded="true"] {
+      background: var(--color-secondary);
+      transform: scale(1.3);
+      box-shadow: 0 0 10px var(--color-highlight-glow);
+
+      .node-ring {
+        background: var(--bg-primary);
+      }
     }
   }
 
-  .timeline-card {
-    flex: 1;
+  // Leaf-shaped card
+  .leaf-card {
     cursor: pointer;
+    padding: 0.65rem 1rem;
+    background: var(--bg-surface);
+    border: 1px solid var(--bg-surface-border);
+    border-radius: 20px 6px 20px 6px;
+    transition: all var(--transition-fast);
+    position: relative;
+
+    &:hover {
+      border-color: var(--color-secondary);
+      box-shadow: 0 2px 12px var(--color-highlight-glow);
+    }
   }
 
   .event-name {
     font-family: 'DM Sans', sans-serif;
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 600;
-    margin-bottom: 0.15rem;
+    margin-bottom: 0.1rem;
+    line-height: 1.3;
+    color: var(--color-primary);
   }
 
   .event-meta {
-    font-size: 0.82rem;
+    font-size: 0.8rem;
     color: var(--color-text-muted);
+    margin-bottom: 0.1rem;
+  }
+
+  .photo-count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--color-secondary);
   }
 
   // =========================================================================
-  // Photo grid (expand/collapse)
+  // Collage (inline expand)
   // =========================================================================
-  .photo-grid-wrapper {
+  .collage-wrapper {
     max-height: 0;
     overflow: hidden;
-    transition: max-height 400ms cubic-bezier(0.4, 0, 0.2, 1),
-                opacity 300ms ease;
     opacity: 0;
+    transition: max-height 500ms cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 350ms ease;
 
     &.expanded {
       opacity: 1;
     }
   }
 
-  .photo-grid {
+  .collage {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
     gap: 0.5rem;
-    padding: 1rem 0;
+    padding: 0.75rem 0 1.25rem;
   }
 
-  .photo-thumb {
+  .photo-cell {
+    position: relative;
     aspect-ratio: 4 / 3;
     overflow: hidden;
     border-radius: var(--radius-md);
     cursor: pointer;
     padding: 0;
     border: 2px solid transparent;
-    transition: border-color var(--transition-fast), transform var(--transition-fast);
+    background: var(--bg-surface-border);
+    clip-path: inset(0 0 100% 0);
+    transition: clip-path 400ms cubic-bezier(0.4, 0, 0.2, 1) var(--leaf-delay, 0ms),
+                border-color var(--transition-fast),
+                transform var(--transition-fast);
+
+    .expanded & {
+      clip-path: inset(0 0 0 0);
+    }
 
     &:hover {
       border-color: var(--color-primary);
-      transform: scale(1.03);
+      transform: scale(1.04);
     }
 
-    img {
+    img, video {
       width: 100%;
       height: 100%;
       object-fit: cover;
       display: block;
-      // Placeholder background for missing images
-      background: var(--bg-surface-border);
     }
+
+    .photo-video {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity 200ms ease;
+    }
+
+    &.live-photo:hover .photo-video {
+      opacity: 1;
+    }
+  }
+
+  .live-badge {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    font-weight: 600;
+    padding: 0.1em 0.4em;
+    border-radius: var(--radius-sm);
+    background: rgba(0, 0, 0, 0.55);
+    color: #fff;
+    letter-spacing: 0.04em;
+    pointer-events: none;
   }
 
   // =========================================================================
@@ -306,12 +487,12 @@ const events = getGallery();
     max-height: 85vh;
   }
 
-  .lightbox-img {
+  .lightbox-img,
+  .lightbox-video {
     max-width: 90vw;
     max-height: 80vh;
     object-fit: contain;
     border-radius: var(--radius-md);
-    // Placeholder for missing images
     background: #333;
     min-width: 300px;
     min-height: 200px;
@@ -325,118 +506,154 @@ const events = getGallery();
   }
 
   // =========================================================================
-  // Responsive
+  // Responsive — collapse to single-column
   // =========================================================================
   @media (max-width: 768px) {
-    .timeline-line {
+    .trunk {
       left: 1.25rem;
+      transform: none;
     }
 
-    .timeline-node {
-      padding-right: 0 !important;
-      padding-left: 3rem !important;
-      flex-direction: row !important;
+    .canopy {
+      left: 1.25rem;
+      transform: translateX(-50%);
+    }
 
-      .timeline-card {
+    .trunk-base {
+      &::before { left: 0; }
+      &::after { left: 0.5rem; }
+    }
+
+    .branch {
+      margin-bottom: 1.5rem;
+
+      .leaf-card {
         text-align: left !important;
+        margin-left: 3.5rem !important;
+        margin-right: 0 !important;
       }
 
-      .timeline-dot {
-        left: 1.25rem !important;
-      }
-
-      .photo-grid-wrapper {
-        position: relative !important;
-        top: auto !important;
-        left: auto !important;
+      .branch-arm {
+        position: absolute;
+        left: 0 !important;
         right: auto !important;
+        top: 8px;
+        width: 3rem;
+      }
+
+      .branch-node {
+        position: absolute;
+        left: 2.8rem !important;
+        right: auto !important;
+        top: 4px;
+      }
+
+      // Flip right-side branch SVGs for mobile
+      &--left .branch-svg {
+        transform: scaleX(-1);
       }
     }
 
-    .photo-grid {
+    .collage {
       grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    }
+
+    .gallery-header {
+      flex-direction: column;
+      gap: 0.75rem;
     }
   }
 </style>
 
 <script>
-  // =========================================================================
-  // Timeline expand/collapse
-  // =========================================================================
-  function initTimeline() {
-    const nodes = document.querySelectorAll<HTMLElement>('.timeline-node');
+  function initGallery() {
+    const branches = document.querySelectorAll<HTMLElement>('.branch');
+    const expandAllBtn = document.getElementById('expand-all-btn');
+    let allExpanded = false;
 
-    nodes.forEach(node => {
-      const dot = node.querySelector<HTMLButtonElement>('.timeline-dot');
-      const card = node.querySelector<HTMLElement>('.timeline-card');
-      const wrapper = node.querySelector<HTMLElement>('.photo-grid-wrapper');
-      if (!dot || !card || !wrapper) return;
+    function toggleBranch(branch: HTMLElement, forceOpen?: boolean) {
+      const node = branch.querySelector<HTMLButtonElement>('.branch-node');
+      const wrapper = branch.querySelector<HTMLElement>('.collage-wrapper');
+      if (!node || !wrapper) return;
 
-      function toggle() {
-        const isExpanded = dot!.getAttribute('aria-expanded') === 'true';
+      const isExpanded = node.getAttribute('aria-expanded') === 'true';
+      const shouldOpen = forceOpen !== undefined ? forceOpen : !isExpanded;
 
-        if (!isExpanded) {
-          // Collapse any other open nodes
-          nodes.forEach(other => {
-            if (other === node) return;
-            const otherDot = other.querySelector<HTMLButtonElement>('.timeline-dot');
-            const otherWrapper = other.querySelector<HTMLElement>('.photo-grid-wrapper');
-            if (otherDot && otherWrapper) {
-              otherDot.setAttribute('aria-expanded', 'false');
-              otherWrapper.style.maxHeight = '0';
-              otherWrapper.classList.remove('expanded');
-              otherWrapper.setAttribute('aria-hidden', 'true');
-            }
-          });
+      if (shouldOpen && !isExpanded) {
+        node.setAttribute('aria-expanded', 'true');
+        wrapper.classList.add('expanded');
+        wrapper.setAttribute('aria-hidden', 'false');
 
-          // Expand this one
-          dot!.setAttribute('aria-expanded', 'true');
-          wrapper!.classList.add('expanded');
-          wrapper!.setAttribute('aria-hidden', 'false');
-          // Measure content height
-          const grid = wrapper!.querySelector<HTMLElement>('.photo-grid');
-          if (grid) {
-            wrapper!.style.maxHeight = grid.scrollHeight + 32 + 'px';
-          }
-        } else {
-          dot!.setAttribute('aria-expanded', 'false');
-          wrapper!.style.maxHeight = '0';
-          wrapper!.classList.remove('expanded');
-          wrapper!.setAttribute('aria-hidden', 'true');
+        const collage = wrapper.querySelector<HTMLElement>('.collage');
+        if (collage) {
+          wrapper.style.maxHeight = collage.scrollHeight + 32 + 'px';
         }
-      }
 
-      dot.addEventListener('click', toggle);
-      card.addEventListener('click', toggle);
+        // Auto-play live photo videos on hover
+        wrapper.querySelectorAll<HTMLElement>('.live-photo').forEach(cell => {
+          const video = cell.querySelector<HTMLVideoElement>('video');
+          if (!video) return;
+          cell.addEventListener('mouseenter', () => {
+            video.currentTime = 0;
+            video.play().catch(() => {});
+          });
+          cell.addEventListener('mouseleave', () => {
+            video.pause();
+          });
+        });
+      } else if (!shouldOpen && isExpanded) {
+        node.setAttribute('aria-expanded', 'false');
+        wrapper.style.maxHeight = '0';
+        wrapper.classList.remove('expanded');
+        wrapper.setAttribute('aria-hidden', 'true');
+      }
+    }
+
+    branches.forEach(branch => {
+      const toggle = () => toggleBranch(branch);
+      branch.querySelector<HTMLButtonElement>('.branch-node')?.addEventListener('click', toggle);
+      branch.querySelector<HTMLElement>('.leaf-card')?.addEventListener('click', toggle);
+    });
+
+    // Expand all / Collapse all
+    expandAllBtn?.addEventListener('click', () => {
+      allExpanded = !allExpanded;
+      branches.forEach((branch, i) => {
+        setTimeout(() => {
+          toggleBranch(branch, allExpanded);
+        }, i * 80);
+      });
+      expandAllBtn.textContent = allExpanded ? 'Collapse all' : 'Expand all';
     });
   }
 
   // =========================================================================
   // Lightbox
   // =========================================================================
-  function initLightbox() {
+  function initGalleryLightbox() {
     const lightbox = document.getElementById('lightbox');
     const lbImg = lightbox?.querySelector<HTMLImageElement>('.lightbox-img');
+    const lbVideo = lightbox?.querySelector<HTMLVideoElement>('.lightbox-video');
     const lbCaption = lightbox?.querySelector<HTMLElement>('.lightbox-caption');
     const closeBtn = lightbox?.querySelector<HTMLElement>('.lightbox-close');
     const prevBtn = lightbox?.querySelector<HTMLElement>('.lightbox-prev');
     const nextBtn = lightbox?.querySelector<HTMLElement>('.lightbox-next');
 
-    if (!lightbox || !lbImg || !lbCaption) return;
+    if (!lightbox || !lbImg || !lbVideo || !lbCaption) return;
 
-    let allPhotos: { src: string; caption: string }[] = [];
+    let allPhotos: { src: string; caption: string; video: string; type: string }[] = [];
     let currentIndex = 0;
 
-    // Collect all photo buttons
-    const thumbs = document.querySelectorAll<HTMLButtonElement>('.photo-thumb');
-
-    thumbs.forEach((thumb, i) => {
+    const cells = document.querySelectorAll<HTMLButtonElement>('.photo-cell');
+    cells.forEach((cell, i) => {
       allPhotos.push({
-        src: thumb.dataset.full ?? '',
-        caption: thumb.dataset.caption ?? '',
+        src: cell.dataset.full ?? '',
+        caption: cell.dataset.caption ?? '',
+        video: cell.dataset.video ?? '',
+        type: cell.dataset.type ?? 'image',
       });
 
-      thumb.addEventListener('click', () => {
+      cell.addEventListener('click', () => {
         currentIndex = i;
         showPhoto();
         openLightbox();
@@ -446,8 +663,19 @@ const events = getGallery();
     function showPhoto() {
       const photo = allPhotos[currentIndex];
       if (!photo) return;
-      lbImg!.src = photo.src;
-      lbImg!.alt = photo.caption;
+
+      if (photo.type === 'live' && photo.video) {
+        lbImg!.style.display = 'none';
+        lbVideo!.style.display = 'block';
+        lbVideo!.src = photo.video;
+        lbVideo!.play().catch(() => {});
+      } else {
+        lbVideo!.style.display = 'none';
+        lbVideo!.pause();
+        lbImg!.style.display = 'block';
+        lbImg!.src = photo.src;
+        lbImg!.alt = photo.caption;
+      }
       lbCaption!.textContent = photo.caption;
     }
 
@@ -460,6 +688,7 @@ const events = getGallery();
     }
 
     function closeLightbox() {
+      lbVideo!.pause();
       lightbox!.classList.remove('active');
       setTimeout(() => {
         lightbox!.classList.remove('visible');
@@ -482,14 +711,12 @@ const events = getGallery();
     prevBtn?.addEventListener('click', prevPhoto);
     nextBtn?.addEventListener('click', nextPhoto);
 
-    // Click backdrop to close
     lightbox.addEventListener('click', (e) => {
       if (e.target === lightbox || e.target === lightbox.querySelector('.lightbox-content')) {
         closeLightbox();
       }
     });
 
-    // Keyboard navigation
     document.addEventListener('keydown', (e) => {
       if (!lightbox.classList.contains('active')) return;
       if (e.key === 'Escape') closeLightbox();
@@ -498,11 +725,10 @@ const events = getGallery();
     });
   }
 
-  // Init
-  initTimeline();
-  initLightbox();
+  initGallery();
+  initGalleryLightbox();
   document.addEventListener('astro:after-swap', () => {
-    initTimeline();
-    initLightbox();
+    initGallery();
+    initGalleryLightbox();
   });
 </script>

@@ -5,6 +5,9 @@
 
 - slug: cocoa
   title: "Cocoa: Co-Planning and Co-Execution with AI Agents"
+  short_name: "Cocoa"
+  short_desc: "Co-planning & co-executing tasks with AI agents"
+  emoji: "\U0001F36B"
   authors:
     - { name: "K. J. Kevin Feng", url: "https://kjfeng.me/#/" }
     - { name: "Kevin Pu", url: null, highlight: true }
@@ -34,6 +37,9 @@
 
 - slug: promemassist
   title: "ProMemAssist: Exploring Timely Proactive Assistance Through Working Memory Modeling in Multi-Modal Wearable Devices"
+  short_name: "ProMemAssist"
+  short_desc: "Proactive AI assistance via working memory modeling"
+  emoji: "\U0001F9E0"
   authors:
     - { name: "Kevin Pu", url: null, highlight: true }
     - { name: "Ting Zhang", url: null }
@@ -85,6 +91,9 @@
 
 - slug: codellaborator
   title: "Assistance or Disruption? Exploring and Evaluating the Design and Trade-offs of Proactive AI Programming Support"
+  short_name: "Codellaborator"
+  short_desc: "Exploring trade-offs of proactive AI programming agents"
+  emoji: "\U0001F4BB"
   authors:
     - { name: "Kevin Pu", url: null, highlight: true }
     - { name: "Daniel Lazaro", url: null }
@@ -112,6 +121,9 @@
 
 - slug: ideasynth
   title: "IdeaSynth: Iterative Research Idea Development Through Evolving and Composing Idea Facets with Literature-Grounded Feedback"
+  short_name: "IdeaSynth"
+  short_desc: "Iterative research ideation with AI grounded in literature"
+  emoji: "\U0001F4A1"
   authors:
     - { name: "Kevin Pu", url: null, highlight: true }
     - { name: "K. J. Kevin Feng", url: "https://kjfeng.me/#/" }
@@ -218,6 +230,9 @@
 
 - slug: semanticon
   title: "SemanticOn: Specifying Content-Based Semantic Conditions for Web Automation Programs"
+  short_name: "SemanticOn"
+  short_desc: "Semantic conditions for web automation programs"
+  emoji: "\U0001F310"
   authors:
     - { name: "Kevin Pu", url: null, highlight: true }
     - { name: "Rainey Fu", url: null }

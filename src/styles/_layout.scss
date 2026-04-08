@@ -10,7 +10,14 @@
 }
 
 .page-content {
-  padding-top: calc(var(--header-height) + 2rem);
+  padding-top: 3rem;
   padding-bottom: 4rem;
-  min-height: calc(100vh - var(--header-height));
+  min-height: 100vh;
+  // Leave space for floating nav on desktop
+  padding-left: 4.5rem;
+
+  @media (max-width: 768px) {
+    padding-left: 0;
+    padding-bottom: 5rem; // space for bottom nav
+  }
 }

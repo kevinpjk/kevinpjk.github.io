@@ -35,6 +35,9 @@ export interface Publication {
   links: PubLinks;
   abstract: string;
   selected: boolean;
+  short_name?: string;
+  short_desc?: string;
+  emoji?: string;
   teaser: string;
   teaser_type: string;
   ring_concept: string;
@@ -67,6 +70,8 @@ export interface GalleryPhoto {
   src: string;
   thumb: string;
   caption?: string;
+  video?: string;
+  type?: 'live' | 'image';
 }
 
 export interface GalleryEvent {

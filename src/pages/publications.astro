@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import PaperDetailOverlays from '../components/PaperDetailOverlays.astro';
 import { getPublications, getVenues } from '../lib/data';
 
 const pubs = getPublications();
@@ -18,12 +19,10 @@ const pubsByYear = years.map(year => ({
     <h1 class="page-title stagger-in stagger-delay-1">Publications</h1>
 
     {pubsByYear.map(group => (
-      <section class="year-group">
+      <section class="year-group stagger-in" style={`animation-delay: ${120}ms`}>
         <h2 class="year-heading">{group.year}</h2>
         <div class="pub-list">
           {group.pubs.map(pub => {
-            const vi = venues[pub.venue];
-            const venueColor = vi?.color ?? '#666';
             const venueLabel = `${pub.venue} '${String(pub.year).slice(2)}`;
 
             const linkItems = [
@@ -35,36 +34,55 @@ const pubsByYear = years.map(year => ({
             ].filter(l => l.url);
 
             return (
-              <article class="pub-entry">
-                <div class="pub-entry-top">
-                  <span class="venue-badge" style={`background:${venueColor}`}>{venueLabel}</span>
-                  {pub.selected && <span class="selected-marker" title="Selected publication">&#9733;</span>}
-                  {pub.award && <span class="award-badge">{pub.award}</span>}
-                </div>
-                <h3 class="pub-entry-title">{pub.title}</h3>
-                <p class="pub-entry-authors">
-                  {pub.authors.map((a, i) => (
-                    <span>
-                      {a.url ? (
-                        <a href={a.url} target="_blank" rel="noopener noreferrer" class:list={{ highlight: a.highlight }}>
-                          {a.name}
-                        </a>
-                      ) : (
-                        <span class:list={{ highlight: a.highlight }}>{a.name}</span>
-                      )}
-                      {i < pub.authors.length - 1 && ', '}
-                    </span>
-                  ))}
-                </p>
-                {linkItems.length > 0 && (
-                  <div class="pub-entry-links">
-                    {linkItems.map(l => (
-                      <a href={l.url!} class="link-pill" target="_blank" rel="noopener noreferrer">
-                        {l.label}
-                      </a>
-                    ))}
+              <article class="pub-entry" id={`pub-${pub.slug}`} data-slug={pub.slug} role="button" tabindex="0">
+                <div class="pub-entry-body">
+                  <div class="pub-entry-text">
+                    <div class="pub-entry-top">
+                      <span class="venue-label">{venueLabel}</span>
+                      {pub.selected && <span class="selected-marker" title="Selected publication">&#9733;</span>}
+                      {pub.award === 'Best Paper' ? (
+                        <span class="award-badge">🏆 {pub.award}</span>
+                      ) : pub.award ? (
+                        <span class="award-badge">{pub.award}</span>
+                      ) : null}
+                    </div>
+                    <h3 class="pub-entry-title">{pub.title}</h3>
+                    <p class="pub-entry-authors">
+                      {pub.authors.map((a, i) => (
+                        <span>
+                          {a.url ? (
+                            <a href={a.url} target="_blank" rel="noopener noreferrer" class:list={{ highlight: a.highlight }}
+                               onclick="event.stopPropagation()">
+                              {a.name}
+                            </a>
+                          ) : (
+                            <span class:list={{ highlight: a.highlight }}>{a.name}</span>
+                          )}
+                          {i < pub.authors.length - 1 && ', '}
+                        </span>
+                      ))}
+                    </p>
+                    {linkItems.length > 0 && (
+                      <div class="pub-entry-links">
+                        {linkItems.map(l => (
+                          <a href={l.url!} class="link-pill" target="_blank" rel="noopener noreferrer"
+                             onclick="event.stopPropagation()">
+                            {l.label}
+                          </a>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                )}
+                  {pub.teaser && (
+                    <div class="pub-entry-teaser">
+                      <img
+                        src={`/assets/img/papers/${pub.teaser}`}
+                        alt={`Teaser for ${pub.title}`}
+                        loading="lazy"
+                      />
+                    </div>
+                  )}
+                </div>
               </article>
             );
           })}
@@ -72,6 +90,7 @@ const pubsByYear = years.map(year => ({
       </section>
     ))}
   </div>
+  <PaperDetailOverlays />
 </BaseLayout>
 
 <style lang="scss">
@@ -106,10 +125,44 @@ const pubsByYear = years.map(year => ({
     background: var(--bg-surface);
     border: 1px solid var(--bg-surface-border);
     border-radius: var(--radius-md);
-    transition: border-color var(--transition-fast);
+    cursor: pointer;
+    transition: transform var(--transition-fast),
+                box-shadow var(--transition-fast),
+                border-color var(--transition-fast);
 
     &:hover {
       border-color: var(--color-secondary);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+    }
+  }
+
+  .pub-entry-body {
+    display: flex;
+    gap: 1.25rem;
+    align-items: flex-start;
+  }
+
+  .pub-entry-text {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .pub-entry-teaser {
+    flex-shrink: 0;
+    width: 160px;
+    max-height: 200px;
+    overflow: hidden;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--bg-surface-border);
+    background: var(--bg-surface-border);
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      max-height: 160px;
     }
   }
 
@@ -121,15 +174,13 @@ const pubsByYear = years.map(year => ({
     flex-wrap: wrap;
   }
 
-  .venue-badge {
-    display: inline-block;
+  .venue-label {
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.72rem;
     font-weight: 600;
-    padding: 0.12em 0.55em;
-    border-radius: 999px;
-    color: #fff;
-    white-space: nowrap;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
   }
 
   .selected-marker {
@@ -160,6 +211,10 @@ const pubsByYear = years.map(year => ({
     .highlight {
       font-weight: 600;
       color: var(--color-text);
+      text-decoration: underline;
+      text-decoration-color: var(--color-secondary);
+      text-underline-offset: 2px;
+      text-decoration-thickness: 1.5px;
     }
 
     a {
@@ -191,4 +246,11 @@ const pubsByYear = years.map(year => ({
       background: var(--color-highlight-glow);
     }
   }
+
+  @media (max-width: 600px) {
+    .pub-entry-teaser {
+      display: none;
+    }
+  }
 </style>
+

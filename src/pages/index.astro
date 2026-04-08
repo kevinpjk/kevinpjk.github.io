@@ -2,14 +2,12 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import NewsSection from '../components/NewsSection.astro';
 import PublicationCard from '../components/PublicationCard.astro';
-import PaperDetail from '../components/PaperDetail.astro';
-import TreeRing from '../components/TreeRing.astro';
+import PaperDetailOverlays from '../components/PaperDetailOverlays.astro';
 import { getSelectedPublications, getVenues } from '../lib/data';
 
-const pubs = getSelectedPublications();
+const selectedPubs = getSelectedPublications();
 const venues = getVenues();
 
-// Group selected pubs by category
 const categories = [
   { key: 'mixed-initiative', label: 'Mixed-Initiative Interaction' },
   { key: 'human-ai-collaboration', label: 'Human-AI Collaboration' },
@@ -19,16 +17,14 @@ const categories = [
 const pubsByCategory = categories
   .map(cat => ({
     ...cat,
-    pubs: pubs.filter(p => p.category === cat.key),
+    pubs: selectedPubs.filter(p => p.category === cat.key),
   }))
   .filter(cat => cat.pubs.length > 0);
 ---
 
 <BaseLayout title="Kevin Pu">
-  <!-- Landing page content -->
   <div class="landing container" id="landing-content">
     <div class="landing-grid">
-      <!-- Left column -->
       <div class="landing-left">
         <div class="hero-row stagger-in stagger-delay-1">
           <div class="hero-text">
@@ -38,6 +34,19 @@ const pubsByCategory = categories
               Advised by Prof.&nbsp;<a href="https://www.tovigrossman.com/" target="_blank" rel="noopener noreferrer">Tovi Grossman</a>
               at the <a href="https://www.dgp.toronto.edu/" target="_blank" rel="noopener noreferrer">Dynamic Graphics Group</a>
               and Prof.&nbsp;<a href="https://chensivan.github.io/" target="_blank" rel="noopener noreferrer">Yan Chen</a>
+            </p>
+            <p class="contact-line">
+              <a href="mailto:jpu@dgp.toronto.edu">jpu@dgp.toronto.edu</a>
+              &middot;
+              <a href="https://scholar.google.com/citations?user=TsENWEIAAAAJ" target="_blank" rel="noopener noreferrer" aria-label="Google Scholar">
+                <svg class="contact-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M5.242 13.769L0 9.5 12 0l12 9.5-5.242 4.269C17.548 11.249 14.978 9.5 12 9.5c-2.977 0-5.548 1.748-6.758 4.269zM12 10a7 7 0 1 0 0 14 7 7 0 0 0 0-14z"/></svg>
+                Scholar
+              </a>
+              &middot;
+              <a href="https://twitter.com/kevpjk" target="_blank" rel="noopener noreferrer" aria-label="Twitter / X">
+                <svg class="contact-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M23.954 4.569c-.885.389-1.83.654-2.825.775 1.014-.602 1.794-1.556 2.163-2.69-.949.555-2.005.959-3.127 1.184-.897-.949-2.178-1.54-3.594-1.54-2.723 0-4.928 2.174-4.928 4.857 0 .38.045.75.127 1.106-4.094-.203-7.725-2.139-10.157-5.082-.424.722-.666 1.561-.666 2.457 0 1.694.871 3.188 2.188 4.065-.807-.026-1.566-.245-2.228-.616v.061c0 2.367 1.717 4.342 3.995 4.793-.417.11-.856.171-1.309.171-.319 0-.63-.03-.932-.086.631 1.942 2.445 3.357 4.604 3.399-1.68 1.301-3.809 2.077-6.115 2.077-.398 0-.79-.023-1.175-.067 2.189 1.383 4.768 2.19 7.549 2.19 9.058 0 14.01-7.387 14.01-13.79 0-.21 0-.42-.015-.63.962-.689 1.8-1.56 2.46-2.548z"/></svg>
+                Twitter
+              </a>
             </p>
           </div>
           <img
@@ -51,12 +60,13 @@ const pubsByCategory = categories
 
         <div class="bio stagger-in stagger-delay-2">
           <p>
-            My research interests lie in human-computer interaction, artificial intelligence, and their intersection.
+            My research interests lie in intersection of human-computer interaction and AI.
             My past works have focused on aligning AI support with human capabilities to build harmonious
-            <span class="keyword" data-category="mixed-initiative"><strong>mixed-initiative interaction</strong></span>,
-            <span class="keyword" data-category="human-ai-collaboration"><strong>human-AI collaboration</strong></span>, and
-            <span class="keyword" data-category="neurosymbolic"><strong>neurosymbolic program synthesis</strong></span>
-            workflows for automation, programming, and ideation.
+            <span class="keyword" data-category="mixed-initiative"><strong>mixed-initiative interaction</strong></span>, enhancing
+            <span class="keyword" data-category="human-ai-collaboration"><strong>human-AI collaboration</strong></span>
+            <!-- <span class="keyword" data-category="neurosymbolic"><strong>neurosymbolic program synthesis</strong></span> -->
+            workflows while balancing automation and human agency.
+             <!-- for automation, programming, and ideation. -->
           </p>
         </div>
 
@@ -65,7 +75,6 @@ const pubsByCategory = categories
         </div>
       </div>
 
-      <!-- Right column -->
       <div class="landing-right stagger-in stagger-delay-5">
         <div class="selected-pubs-header">
           <h2 class="section-heading">Selected Publications</h2>
@@ -86,17 +95,7 @@ const pubsByCategory = categories
     </div>
   </div>
 
-  <!-- Paper detail overlays (one per selected pub) -->
-  {pubs.map(pub => (
-    <PaperDetail pub={pub} venueInfo={venues[pub.venue]} />
-  ))}
-
-  <!-- Pre-rendered tree ring SVGs (injected into detail views by JS) -->
-  <div id="tree-ring-store" style="display:none">
-    {pubs.map(pub => (
-      <TreeRing pub={pub} />
-    ))}
-  </div>
+  <PaperDetailOverlays />
 </BaseLayout>
 
 <style lang="scss">
@@ -107,10 +106,7 @@ const pubsByCategory = categories
     align-items: start;
   }
 
-  // Left column
-  .landing-left {
-    min-width: 0;
-  }
+  .landing-left { min-width: 0; }
 
   .hero-row {
     display: flex;
@@ -118,10 +114,7 @@ const pubsByCategory = categories
     gap: 2rem;
   }
 
-  .hero-text {
-    flex: 1;
-    min-width: 0;
-  }
+  .hero-text { flex: 1; min-width: 0; }
 
   .display-name {
     font-family: 'Fraunces', serif;
@@ -141,6 +134,30 @@ const pubsByCategory = categories
     font-size: 0.95rem;
     color: var(--color-text-muted);
     line-height: 1.55;
+    margin-bottom: 0.35rem;
+  }
+
+  .contact-line {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    display: flex;
+    align-items: center;
+    gap: 0.3em;
+    flex-wrap: wrap;
+
+    a {
+      color: var(--color-text-muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25em;
+      &:hover { color: var(--color-primary); }
+    }
+  }
+
+  .contact-icon {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
   }
 
   .profile-photo {
@@ -165,21 +182,16 @@ const pubsByCategory = categories
     border-radius: var(--radius-sm);
     transition: background-color var(--transition-fast);
 
-    &:hover,
-    &.highlighted {
+    &:hover, &.highlighted {
       background-color: var(--color-highlight-glow);
     }
 
-    strong {
-      font-weight: 600;
-      color: var(--color-primary);
-    }
+    strong { font-weight: 600; color: var(--color-primary); }
   }
 
-  // Right column
   .landing-right {
     position: sticky;
-    top: calc(var(--header-height) + 2rem);
+    top: 2rem;
   }
 
   .selected-pubs-header {
@@ -198,15 +210,10 @@ const pubsByCategory = categories
     font-size: 0.82rem;
     font-weight: 500;
     color: var(--color-text-muted);
-
-    &:hover {
-      color: var(--color-primary);
-    }
+    &:hover { color: var(--color-primary); }
   }
 
-  .pub-category-group {
-    margin-bottom: 1.25rem;
-  }
+  .pub-category-group { margin-bottom: 1.25rem; }
 
   .category-label {
     display: block;
@@ -226,23 +233,14 @@ const pubsByCategory = categories
     gap: 0.6rem;
   }
 
-  // Responsive
   @media (max-width: 1024px) {
-    .landing-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .landing-right {
-      position: static;
-    }
-
-    // On tablet: horizontal scrollable row
+    .landing-grid { grid-template-columns: 1fr; }
+    .landing-right { position: static; }
     .pub-cards {
       flex-direction: row;
       overflow-x: auto;
       padding-bottom: 0.5rem;
       scroll-snap-type: x mandatory;
-
       :global(.pub-card) {
         min-width: 260px;
         flex-shrink: 0;
@@ -252,49 +250,31 @@ const pubsByCategory = categories
   }
 
   @media (max-width: 768px) {
-    .hero-row {
-      gap: 1.25rem;
-    }
-
-    .display-name {
-      font-size: 2.2rem;
-    }
-
-    .profile-photo {
-      width: 110px;
-      height: 110px;
-    }
+    .hero-row { gap: 1.25rem; }
+    .display-name { font-size: 2.2rem; }
+    .profile-photo { width: 110px; height: 110px; }
   }
 </style>
 
 <script>
-  // =========================================================================
-  // Keyword ↔ Publication bidirectional highlighting
-  // =========================================================================
   function initHighlighting() {
     const keywords = document.querySelectorAll<HTMLElement>('.keyword');
     const cards = document.querySelectorAll<HTMLElement>('.pub-card');
 
-    // Keyword hover → glow matching cards
     keywords.forEach(kw => {
       const cat = kw.dataset.category;
       kw.addEventListener('mouseenter', () => {
-        cards.forEach(card => {
-          if (card.dataset.category === cat) card.classList.add('glow');
-        });
+        cards.forEach(card => { if (card.dataset.category === cat) card.classList.add('glow'); });
       });
       kw.addEventListener('mouseleave', () => {
         cards.forEach(card => card.classList.remove('glow'));
       });
     });
 
-    // Card hover → highlight matching keyword
     cards.forEach(card => {
       const cat = card.dataset.category;
       card.addEventListener('mouseenter', () => {
-        keywords.forEach(kw => {
-          if (kw.dataset.category === cat) kw.classList.add('highlighted');
-        });
+        keywords.forEach(kw => { if (kw.dataset.category === cat) kw.classList.add('highlighted'); });
       });
       card.addEventListener('mouseleave', () => {
         keywords.forEach(kw => kw.classList.remove('highlighted'));
@@ -302,88 +282,6 @@ const pubsByCategory = categories
     });
   }
 
-  // =========================================================================
-  // Paper detail view transitions
-  // =========================================================================
-  function initPaperDetail() {
-    const cards = document.querySelectorAll<HTMLElement>('.pub-card');
-    const backBtns = document.querySelectorAll<HTMLElement>('[data-action="close-detail"]');
-    const landing = document.getElementById('landing-content');
-
-    // Move tree-ring SVGs into their containers
-    const store = document.getElementById('tree-ring-store');
-    if (store) {
-      store.querySelectorAll<SVGElement>('.tree-ring-svg').forEach(svg => {
-        const slug = svg.dataset.slug;
-        const container = document.querySelector<HTMLElement>(
-          `.paper-detail[data-slug="${slug}"] .tree-ring-container`
-        );
-        if (container) container.appendChild(svg);
-      });
-      store.remove();
-    }
-
-    function openDetail(slug: string) {
-      const detail = document.querySelector<HTMLElement>(`.paper-detail[data-slug="${slug}"]`);
-      if (!detail || !landing) return;
-
-      // Fade out landing
-      landing.style.transition = 'opacity 200ms ease';
-      landing.style.opacity = '0';
-      landing.style.pointerEvents = 'none';
-
-      // Show detail
-      detail.classList.add('visible');
-      // Force reflow then animate in
-      void detail.offsetHeight;
-      detail.classList.add('active');
-      detail.setAttribute('aria-hidden', 'false');
-
-      // Scroll to top
-      window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
-      document.body.style.overflow = 'hidden';
-    }
-
-    function closeDetail() {
-      const active = document.querySelector<HTMLElement>('.paper-detail.active');
-      if (!active || !landing) return;
-
-      // Fade out detail
-      active.classList.remove('active');
-      active.setAttribute('aria-hidden', 'true');
-
-      setTimeout(() => {
-        active.classList.remove('visible');
-        document.body.style.overflow = '';
-
-        // Fade in landing
-        landing.style.opacity = '1';
-        landing.style.pointerEvents = '';
-      }, 400);
-    }
-
-    cards.forEach(card => {
-      card.addEventListener('click', () => {
-        const slug = card.dataset.slug;
-        if (slug) openDetail(slug);
-      });
-    });
-
-    backBtns.forEach(btn => {
-      btn.addEventListener('click', closeDetail);
-    });
-
-    // ESC key closes detail
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeDetail();
-    });
-  }
-
-  // Init
   initHighlighting();
-  initPaperDetail();
-  document.addEventListener('astro:after-swap', () => {
-    initHighlighting();
-    initPaperDetail();
-  });
+  document.addEventListener('astro:after-swap', initHighlighting);
 </script>

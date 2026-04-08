@@ -1,0 +1,146 @@
+---
+/**
+ * PaperDetailOverlays — renders all paper detail overlays + tree-ring store
+ * and wires up open/close interactions via event delegation.
+ *
+ * Used on any page that has elements with [data-slug] (e.g. PublicationCard
+ * on index, .pub-entry on publications). The overlay appears in-place; no
+ * cross-page navigation, no URL pathname change — only the hash updates so
+ * the detail is linkable.
+ */
+import PaperDetail from './PaperDetail.astro';
+import TreeRing from './TreeRing.astro';
+import { getPublications, getVenues } from '../lib/data';
+
+const allPubs = getPublications();
+const venues = getVenues();
+---
+
+{allPubs.map(pub => (
+  <PaperDetail pub={pub} venueInfo={venues[pub.venue]} />
+))}
+
+<div id="tree-ring-store" style="display:none">
+  {allPubs.map(pub => (
+    <TreeRing pub={pub} />
+  ))}
+</div>
+
+<script>
+  function initPaperDetailOverlays() {
+    // Move .paper-detail elements to <body> so they're siblings of
+    // #main-content. Otherwise fading #main-content on open hides them too.
+    document.querySelectorAll<HTMLElement>('.paper-detail').forEach(d => {
+      if (d.parentElement !== document.body) document.body.appendChild(d);
+    });
+
+    // Move each tree-ring SVG into its paper-detail container (once)
+    const store = document.getElementById('tree-ring-store');
+    if (store) {
+      store.querySelectorAll<SVGElement>('.tree-ring-svg').forEach(svg => {
+        const slug = svg.dataset.slug;
+        const container = document.querySelector<HTMLElement>(
+          `.paper-detail[data-slug="${slug}"] .tree-ring-container`
+        );
+        if (container) container.appendChild(svg);
+      });
+      store.remove();
+    }
+
+    const mainContent = document.getElementById('main-content');
+
+    function openDetail(slug: string) {
+      const detail = document.querySelector<HTMLElement>(`.paper-detail[data-slug="${slug}"]`);
+      if (!detail) return;
+
+      if (mainContent) {
+        mainContent.style.transition = 'opacity 150ms ease';
+        mainContent.style.opacity = '0';
+        mainContent.style.pointerEvents = 'none';
+      }
+
+      detail.classList.add('visible');
+      void detail.offsetHeight; // reflow so the animation kicks in
+      detail.classList.add('active');
+      detail.setAttribute('aria-hidden', 'false');
+      window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+      document.body.style.overflow = 'hidden';
+
+      // Update hash so detail is linkable / back-button closeable
+      if (window.location.hash !== `#paper-${slug}`) {
+        history.pushState(null, '', `#paper-${slug}`);
+      }
+    }
+
+    function closeDetail(updateHistory = true) {
+      const active = document.querySelector<HTMLElement>('.paper-detail.active');
+      if (!active) return;
+
+      active.classList.remove('active');
+      active.setAttribute('aria-hidden', 'true');
+
+      setTimeout(() => {
+        active.classList.remove('visible');
+        document.body.style.overflow = '';
+        if (mainContent) {
+          mainContent.style.opacity = '1';
+          mainContent.style.pointerEvents = '';
+        }
+      }, 200);
+
+      if (updateHistory && window.location.hash.startsWith('#paper-')) {
+        history.pushState(null, '', window.location.pathname + window.location.search);
+      }
+    }
+
+    // Delegate clicks on any element with [data-slug] that isn't the overlay itself
+    document.querySelectorAll<HTMLElement>('[data-slug]').forEach(el => {
+      if (el.classList.contains('paper-detail')) return;
+      el.addEventListener('click', (e) => {
+        // Don't hijack link clicks inside the trigger (e.g. PDF/Video pills)
+        if ((e.target as Element).closest('a, button.link-pill')) return;
+        const slug = el.dataset.slug;
+        if (slug) openDetail(slug);
+      });
+      el.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          const slug = el.dataset.slug;
+          if (slug) openDetail(slug);
+        }
+      });
+    });
+
+    // Close buttons / margin clicks
+    document.querySelectorAll<HTMLElement>('[data-action="close-detail"]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        closeDetail();
+      });
+    });
+
+    // Escape key closes
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeDetail();
+    });
+
+    // Back/forward button support — sync with hash
+    window.addEventListener('popstate', () => {
+      const hash = window.location.hash;
+      if (hash.startsWith('#paper-')) {
+        openDetail(hash.slice(7));
+      } else {
+        closeDetail(false);
+      }
+    });
+
+    // If page loads with a paper hash, open that detail
+    const hash = window.location.hash;
+    if (hash.startsWith('#paper-')) {
+      openDetail(hash.slice(7));
+    }
+  }
+
+  initPaperDetailOverlays();
+  document.addEventListener('astro:after-swap', initPaperDetailOverlays);
+</script>

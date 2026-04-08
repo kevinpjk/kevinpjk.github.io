@@ -1,6 +1,6 @@
 ---
-import Header from '../components/Header.astro';
-import Footer from '../components/Footer.astro';
+import FloatingNav from '../components/FloatingNav.astro';
+import { ClientRouter } from 'astro:transitions';
 import '../styles/global.scss';
 
 interface Props {
@@ -24,10 +24,9 @@ const {
 
     <title>{title === 'Kevin Pu' ? title : `${title} — Kevin Pu`}</title>
 
-    <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <ClientRouter />
 
-    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -35,17 +34,15 @@ const {
       rel="stylesheet"
     />
 
-    <!-- Content Security Policy -->
     <meta
       http-equiv="Content-Security-Policy"
       content="default-src 'self'; script-src 'self' 'unsafe-inline' https://gc.zgo.at; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; media-src 'self'; frame-src https://www.youtube.com https://youtube.com;"
     />
 
-    <!-- GoatCounter analytics -->
     <script data-goatcounter="https://kevinpjk.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
-    
-    <!-- Theme: prevent flash of wrong theme -->
+
     <script is:inline>
+      // Blocking theme init — runs before first paint on hard loads.
       (function() {
         const saved = localStorage.getItem('theme');
         if (saved) {
@@ -55,12 +52,41 @@ const {
         }
       })();
     </script>
+    <script>
+      // Carry state across Astro view transitions BEFORE the DOM swap,
+      // so the new page paints with correct theme & nav active state — no flash.
+      document.addEventListener('astro:before-swap', (ev: any) => {
+        const incoming = ev.newDocument.documentElement;
+
+        // 1. Preserve theme
+        const theme = document.documentElement.getAttribute('data-theme');
+        if (theme) incoming.setAttribute('data-theme', theme);
+        else incoming.removeAttribute('data-theme');
+
+        // 2. Sync floating nav active state to the destination URL.
+        const activeHref = ev.to.pathname;
+        incoming.querySelectorAll('.fnav-item').forEach((item: Element) => {
+          item.classList.remove('active');
+          const href = item.getAttribute('href');
+          if (href && href === activeHref) item.classList.add('active');
+        });
+      });
+    </script>
+    <style is:global>
+      /* Instant view transitions — skip the default 300ms crossfade.
+         The browser still runs the swap, but both halves fade in ~80ms. */
+      ::view-transition-old(root),
+      ::view-transition-new(root) {
+        animation-duration: 80ms;
+        animation-timing-function: linear;
+      }
+    </style>
   </head>
   <body>
-    <Header />
-    <main class="page-content">
+    <a href="#main-content" class="skip-to-content">Skip to content</a>
+    <FloatingNav />
+    <main id="main-content" class="page-content">
       <slot />
     </main>
-    <Footer />
   </body>
 </html>

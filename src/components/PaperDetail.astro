@@ -1,7 +1,7 @@
 ---
 /**
- * PaperDetail — rendered once per selected publication, hidden by default.
- * JavaScript shows/hides with animated transitions.
+ * PaperDetail — rendered once per publication, hidden by default.
+ * Content elements stream in top-to-bottom using stagger-in keyframes.
  */
 import type { Publication, VenueInfo } from '../lib/data';
 
@@ -10,11 +10,9 @@ interface Props {
   venueInfo: VenueInfo | undefined;
 }
 
-const { pub, venueInfo } = Astro.props;
-const venueColor = venueInfo?.color ?? '#666';
+const { pub } = Astro.props;
 const venueLabel = `${pub.venue} ${pub.year}`;
 
-// Build link items — only show those that exist
 const linkItems = [
   { label: 'PDF', url: pub.links.pdf, icon: '📄' },
   { label: 'Video', url: pub.links.video, icon: '🎬' },
@@ -25,10 +23,13 @@ const linkItems = [
 ---
 
 <article class="paper-detail" data-slug={pub.slug} aria-hidden="true">
+  <!-- Click left/right margins to close -->
+  <div class="paper-detail-margin paper-detail-margin--left" data-action="close-detail"></div>
+  <div class="paper-detail-margin paper-detail-margin--right" data-action="close-detail"></div>
+
   <div class="paper-detail-inner">
-    <!-- Left: paper metadata -->
     <div class="paper-meta">
-      <button class="back-btn" data-action="close-detail" aria-label="Back to landing page">
+      <button class="back-btn pd-stagger" data-action="close-detail" aria-label="Back" style="--pd-i:0">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <line x1="19" y1="12" x2="5" y2="12"></line>
           <polyline points="12 19 5 12 12 5"></polyline>
@@ -36,14 +37,18 @@ const linkItems = [
         Back
       </button>
 
-      <div class="paper-venue-row">
-        <span class="venue-badge" style={`background:${venueColor}`}>{venueLabel}</span>
-        {pub.award && <span class="award-badge">{pub.award}</span>}
+      <div class="paper-venue-row pd-stagger" style="--pd-i:1">
+        <span class="venue-label">{venueLabel}</span>
+        {pub.award === 'Best Paper' ? (
+          <span class="award-badge">🏆 {pub.award}</span>
+        ) : pub.award ? (
+          <span class="award-badge">{pub.award}</span>
+        ) : null}
       </div>
 
-      <h2 class="paper-title">{pub.title}</h2>
+      <h2 class="paper-title pd-stagger" style="--pd-i:2">{pub.title}</h2>
 
-      <p class="paper-authors">
+      <p class="paper-authors pd-stagger" style="--pd-i:3">
         {pub.authors.map((a, i) => (
           <span>
             {a.url ? (
@@ -58,10 +63,10 @@ const linkItems = [
         ))}
       </p>
 
-      <p class="paper-abstract">{pub.abstract}</p>
+      <p class="paper-abstract pd-stagger" style="--pd-i:4">{pub.abstract}</p>
 
       {linkItems.length > 0 && (
-        <div class="paper-links">
+        <div class="paper-links pd-stagger" style="--pd-i:5">
           {linkItems.map(l => (
             <a href={l.url!} class="link-pill" target="_blank" rel="noopener noreferrer">
               <span class="link-icon">{l.icon}</span> {l.label}
@@ -71,44 +76,110 @@ const linkItems = [
       )}
     </div>
 
-    <!-- Right: teaser + tree ring -->
     <div class="paper-visuals">
-      <div class="paper-image-wrap">
+      <div class="paper-image-wrap pd-stagger" style="--pd-i:1">
         <img
           src={`/assets/img/papers/${pub.teaser}`}
           alt={`Teaser figure for ${pub.title}`}
           loading="lazy"
         />
       </div>
-      <div class="tree-ring-container" data-slug={pub.slug}></div>
+      <div class="tree-ring-container pd-stagger" data-slug={pub.slug} style="--pd-i:3"></div>
     </div>
   </div>
+  <div class="ring-tooltip" role="tooltip" aria-hidden="true"></div>
 </article>
+
+<script>
+  function initRingTooltips() {
+    const details = document.querySelectorAll<HTMLElement>('.paper-detail');
+    details.forEach(detail => {
+      const tooltip = detail.querySelector<HTMLElement>('.ring-tooltip');
+      const container = detail.querySelector<HTMLElement>('.tree-ring-container');
+      if (!tooltip || !container) return;
+      if ((container as any).__ringTipInit) return;
+      (container as any).__ringTipInit = true;
+
+      const show = (e: MouseEvent, text: string) => {
+        tooltip.textContent = text;
+        tooltip.setAttribute('aria-hidden', 'false');
+        tooltip.classList.add('visible');
+        const rect = detail.getBoundingClientRect();
+        tooltip.style.left = `${e.clientX - rect.left + 14}px`;
+        tooltip.style.top = `${e.clientY - rect.top + 14}px`;
+      };
+      const hide = () => {
+        tooltip.classList.remove('visible');
+        tooltip.setAttribute('aria-hidden', 'true');
+      };
+
+      container.addEventListener('mousemove', (e) => {
+        const target = (e.target as Element).closest('.ring-group') as HTMLElement | null;
+        if (target?.dataset.keyword) show(e, target.dataset.keyword);
+        else hide();
+      });
+      container.addEventListener('mouseleave', hide);
+    });
+  }
+
+  initRingTooltips();
+  document.addEventListener('astro:after-swap', initRingTooltips);
+</script>
 
 <style lang="scss">
   .paper-detail {
     display: none;
     position: fixed;
-    inset: 0;
-    z-index: 300;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 4.5rem;
+    z-index: 90;
     background: var(--bg-primary);
     overflow-y: auto;
-    opacity: 0;
-    transition: opacity var(--transition-slow);
 
     &.visible {
       display: block;
     }
+  }
 
-    &.active {
-      opacity: 1;
+  @media (max-width: 768px) {
+    .paper-detail {
+      left: 0;
+    }
+  }
+
+  .paper-detail-margin {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    width: calc((100vw - 4.5rem - var(--max-width)) / 2);
+    cursor: pointer;
+    z-index: 5;
+    min-width: 40px;
+
+    &--left { left: 4.5rem; }
+    &--right { right: 0; }
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.02);
+    }
+
+    [data-theme="dark"] &:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .paper-detail-margin {
+      &--left { left: 0; }
     }
   }
 
   .paper-detail-inner {
     max-width: var(--max-width);
     margin: 0 auto;
-    padding: calc(var(--header-height) + 2rem) 1.5rem 4rem;
+    padding: 3rem 1.5rem 4rem;
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 3rem;
@@ -140,13 +211,13 @@ const linkItems = [
     margin-bottom: 0.75rem;
   }
 
-  .venue-badge {
+  .venue-label {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.8rem;
+    font-size: 0.82rem;
     font-weight: 600;
-    padding: 0.15em 0.65em;
-    border-radius: 999px;
-    color: #fff;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
   }
 
   .award-badge {
@@ -170,12 +241,12 @@ const linkItems = [
     .highlight {
       font-weight: 600;
       color: var(--color-text);
+      text-decoration: underline;
+      text-decoration-color: var(--color-secondary);
+      text-underline-offset: 2px;
+      text-decoration-thickness: 1.5px;
     }
-
-    a {
-      color: var(--color-primary);
-      &:hover { color: var(--color-secondary); }
-    }
+    a { color: var(--color-primary); &:hover { color: var(--color-secondary); } }
   }
 
   .paper-abstract {
@@ -210,25 +281,33 @@ const linkItems = [
     }
   }
 
-  .link-icon {
-    font-size: 0.9em;
-  }
+  .link-icon { font-size: 0.9em; }
 
-  // Visuals column
   .paper-visuals {
     position: sticky;
-    top: calc(var(--header-height) + 2rem);
+    top: 2rem;
   }
 
   .paper-image-wrap {
-    background: #fff;
-    border-radius: var(--radius-md);
-    padding: 8px;
+    border-radius: var(--radius-lg);
+    padding: 10px;
     margin-bottom: 2rem;
+    max-height: 45vh;
+    overflow: hidden;
+    border: 1.5px solid rgba(123, 160, 91, 0.25);
+    background: rgba(245, 242, 235, 0.5);
 
     img {
-      border-radius: var(--radius-sm);
+      border-radius: var(--radius-md);
+      max-height: calc(45vh - 20px);
+      width: 100%;
+      object-fit: contain;
     }
+  }
+
+  [data-theme="dark"] .paper-image-wrap {
+    border-color: rgba(143, 191, 106, 0.2);
+    background: rgba(36, 43, 30, 0.7);
   }
 
   .tree-ring-container {
@@ -236,19 +315,59 @@ const linkItems = [
     justify-content: center;
   }
 
-  // Responsive
+  .ring-tooltip {
+    position: absolute;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 150ms ease, transform 150ms ease;
+    background: var(--color-primary);
+    color: var(--bg-primary);
+    padding: 0.35em 0.7em;
+    border-radius: var(--radius-md);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 500;
+    white-space: nowrap;
+    z-index: 10;
+    box-shadow: 0 4px 12px var(--color-highlight-glow);
+
+    &.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
   @media (max-width: 768px) {
     .paper-detail-inner {
       grid-template-columns: 1fr;
       gap: 2rem;
+      padding-top: 2rem;
     }
+    .paper-visuals { position: static; }
+    .paper-title { font-size: 1.3rem; }
+    .paper-detail-margin { display: none; }
+  }
+</style>
 
-    .paper-visuals {
-      position: static;
+<style is:global>
+  @keyframes pd-fade-in-down {
+    from {
+      opacity: 0;
+      transform: translateY(-18px);
     }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 
-    .paper-title {
-      font-size: 1.3rem;
-    }
+  .paper-detail .pd-stagger {
+    opacity: 0;
+  }
+
+  .paper-detail.active .pd-stagger {
+    animation: pd-fade-in-down 400ms ease-out forwards;
+    animation-delay: calc(var(--pd-i, 0) * 80ms + 100ms);
   }
 </style>

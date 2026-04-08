@@ -1,0 +1,169 @@
+---
+import ThemeToggle from './ThemeToggle.astro';
+
+const currentPath = Astro.url.pathname;
+
+const navItems = [
+  { label: 'About', href: '/', icon: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>` },
+  { label: 'Publications', href: '/publications/', icon: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>` },
+  { label: 'Gallery', href: '/gallery/', icon: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>` },
+  { label: 'CV', href: '/assets/pdf/Kevin_Jiankai_Pu_Research_CV.pdf', icon: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>`, external: true },
+];
+---
+
+<nav class="floating-nav" aria-label="Main navigation">
+  <div class="fnav-items">
+    {navItems.map(item => (
+      <a
+        href={item.href}
+        class:list={['fnav-item', { active: !item.external && currentPath === item.href }]}
+        {...(item.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+        aria-label={item.label}
+      >
+        <span class="fnav-icon" set:html={item.icon} />
+        <span class="fnav-label">{item.label}</span>
+      </a>
+    ))}
+    <div class="fnav-divider"></div>
+    <div class="fnav-item fnav-theme-wrap">
+      <ThemeToggle />
+    </div>
+  </div>
+</nav>
+
+<style lang="scss">
+  .floating-nav {
+    position: fixed;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .fnav-items {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    background: var(--bg-surface);
+    border: 1px solid var(--bg-surface-border);
+    border-radius: var(--radius-lg);
+    padding: 0.5rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    opacity: 0.45;
+    transition: opacity 300ms ease, box-shadow 300ms ease;
+
+    &:hover {
+      opacity: 1;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    }
+  }
+
+  .fnav-item {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    padding: 0.55rem;
+    border-radius: var(--radius-md);
+    color: var(--color-text-muted);
+    transition: all 200ms ease;
+    overflow: hidden;
+    white-space: nowrap;
+    max-width: 40px; // icon-only by default
+
+    .fnav-label {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 500;
+      opacity: 0;
+      max-width: 0;
+      overflow: hidden;
+      transition: opacity 200ms ease, max-width 200ms ease, margin 200ms ease;
+      margin-left: 0;
+    }
+
+    &:hover {
+      background: var(--bg-surface-border);
+      color: var(--color-text);
+      max-width: 200px;
+
+      .fnav-label {
+        opacity: 1;
+        max-width: 120px;
+        margin-left: 0.5rem;
+      }
+    }
+
+    // Scale up the hovered icon
+    &:hover .fnav-icon {
+      transform: scale(1.15);
+    }
+
+    &.active {
+      color: var(--color-primary);
+      background: var(--color-highlight-glow);
+    }
+  }
+
+  .fnav-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    transition: transform 200ms ease;
+  }
+
+  .fnav-divider {
+    height: 1px;
+    background: var(--bg-surface-border);
+    margin: 0.25rem 0.3rem;
+  }
+
+  .fnav-theme-wrap {
+    padding: 0.15rem;
+
+    :global(.theme-toggle) {
+      width: 34px;
+      height: 34px;
+    }
+  }
+
+  // Mobile: bottom bar
+  @media (max-width: 768px) {
+    .floating-nav {
+      left: 50%;
+      top: auto;
+      bottom: 1rem;
+      transform: translateX(-50%);
+    }
+
+    .fnav-items {
+      flex-direction: row;
+      opacity: 0.7;
+      padding: 0.4rem;
+      gap: 0.15rem;
+    }
+
+    .fnav-item {
+      max-width: 40px;
+
+      .fnav-label {
+        display: none;
+      }
+
+      &:hover {
+        max-width: 40px;
+      }
+    }
+
+    .fnav-divider {
+      width: 1px;
+      height: auto;
+      margin: 0.15rem;
+    }
+  }
+</style>

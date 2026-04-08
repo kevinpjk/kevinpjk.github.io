@@ -6,8 +6,7 @@ interface Props {
   venueInfo: VenueInfo | undefined;
 }
 
-const { pub, venueInfo } = Astro.props;
-const venueColor = venueInfo?.color ?? '#666';
+const { pub } = Astro.props;
 const venueLabel = `${pub.venue} '${String(pub.year).slice(2)}`;
 const isBestPaper = pub.award === 'Best Paper';
 const isHonorableMention = pub.award === 'Best Paper Honorable Mention';
@@ -20,14 +19,24 @@ const isHonorableMention = pub.award === 'Best Paper Honorable Mention';
   aria-label={`View details: ${pub.title}`}
 >
   <div class="pub-card-header">
-    <span class="venue-badge" style={`background:${venueColor}`}>{venueLabel}</span>
+    <span class="venue-label">{venueLabel}</span>
     {isBestPaper ? (
-      <span class="trophy-badge" aria-label="Best Paper" title="Best Paper"> {pub.award}</span>
+      <span class="trophy-badge" aria-label="Best Paper" title="Best Paper">🏆 {pub.award}</span>
     ) : isHonorableMention ? (
       <span class="award-badge">{pub.award}</span>
     ) : null}
   </div>
-  <h3 class="pub-card-title">{pub.title}</h3>
+  {pub.short_name ? (
+    <div class="pub-card-body">
+      <div class="pub-card-name-row">
+        <span class="pub-emoji">{pub.emoji}</span>
+        <strong class="pub-short-name">{pub.short_name}</strong>
+      </div>
+      <p class="pub-short-desc">{pub.short_desc}</p>
+    </div>
+  ) : (
+    <h3 class="pub-card-title">{pub.title}</h3>
+  )}
 </button>
 
 <style lang="scss">
@@ -49,7 +58,6 @@ const isHonorableMention = pub.award === 'Best Paper Honorable Mention';
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
     }
 
-    // Glow state set by JS when keyword is hovered
     &.glow {
       border-color: var(--color-secondary);
       box-shadow: 0 0 16px var(--color-highlight-glow);
@@ -65,16 +73,13 @@ const isHonorableMention = pub.award === 'Best Paper Honorable Mention';
     flex-wrap: wrap;
   }
 
-  .venue-badge {
-    display: inline-block;
+  .venue-label {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.7rem;
+    font-size: 0.72rem;
     font-weight: 600;
-    padding: 0.1em 0.55em;
-    border-radius: 999px;
-    color: #fff;
-    line-height: 1.4;
-    white-space: nowrap;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
   }
 
   .award-badge {
@@ -90,12 +95,6 @@ const isHonorableMention = pub.award === 'Best Paper Honorable Mention';
     display: inline-flex;
     align-items: center;
     gap: 0.25rem;
-
-    &::before {
-      content: '🏆';
-      font-size: 0.9rem;
-      line-height: 1;
-    }
   }
 
   .pub-card-title {
@@ -104,9 +103,30 @@ const isHonorableMention = pub.award === 'Best Paper Honorable Mention';
     font-weight: 500;
     line-height: 1.4;
     color: var(--color-text);
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+  }
+
+  .pub-card-name-row {
+    display: flex;
+    align-items: center;
+    gap: 0.25em;
+    margin-bottom: 0.2rem;
+  }
+
+  .pub-emoji {
+    font-size: 1rem;
+  }
+
+  .pub-short-name {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--color-primary);
+  }
+
+  .pub-short-desc {
+    color: var(--color-text-muted);
+    font-size: 0.82rem;
+    line-height: 1.4;
+    margin: 0;
   }
 </style>

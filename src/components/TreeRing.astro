@@ -84,7 +84,7 @@ const rings = pub.ring_keywords.map((kw, i) => {
 
   <!-- Rings: outermost first so inner rings draw on top -->
   {[...rings].reverse().map(ring => (
-    <g class="ring-group" data-keyword={ring.keyword}>
+    <g class="ring-group" data-keyword={ring.keyword} data-radius={ring.radius}>
       <path
         d={ring.path}
         fill={ring.color}
