@@ -97,4 +97,17 @@ function formatDate(dateStr: string): string {
       color: var(--color-accent);
     }
   }
+
+  @media (max-width: 480px) {
+    .news-item {
+      flex-direction: column;
+      gap: 0.15rem;
+      font-size: 0.85rem;
+    }
+
+    .news-date {
+      width: auto;
+      font-size: 0.75rem;
+    }
+  }
 </style>

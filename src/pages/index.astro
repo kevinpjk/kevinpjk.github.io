@@ -236,23 +236,39 @@ const pubsByCategory = categories
   @media (max-width: 1024px) {
     .landing-grid { grid-template-columns: 1fr; }
     .landing-right { position: static; }
-    .pub-cards {
-      flex-direction: row;
-      overflow-x: auto;
-      padding-bottom: 0.5rem;
-      scroll-snap-type: x mandatory;
-      :global(.pub-card) {
-        min-width: 260px;
-        flex-shrink: 0;
-        scroll-snap-align: start;
-      }
-    }
   }
 
   @media (max-width: 768px) {
     .hero-row { gap: 1.25rem; }
     .display-name { font-size: 2.2rem; }
     .profile-photo { width: 110px; height: 110px; }
+  }
+
+  @media (max-width: 480px) {
+    .hero-row {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 1rem;
+    }
+
+    .hero-text { text-align: center; }
+
+    .contact-line { justify-content: center; }
+
+    .display-name { font-size: 1.8rem; }
+
+    .title-line { font-size: 0.92rem; }
+
+    .affiliations { font-size: 0.88rem; }
+
+    .profile-photo { width: 100px; height: 100px; }
+
+    .bio { font-size: 0.92rem; }
+
+    .selected-pubs-header { margin-top: 0.5rem; }
+
+    .section-heading { font-size: 1.05rem; }
   }
 </style>
 
