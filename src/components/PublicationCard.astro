@@ -23,7 +23,7 @@ const isHonorableMention = pub.award === 'Best Paper Honorable Mention';
     {isBestPaper ? (
       <span class="trophy-badge" aria-label="Best Paper" title="Best Paper">🏆 {pub.award}</span>
     ) : isHonorableMention ? (
-      <span class="award-badge">{pub.award}</span>
+      <span class="award-badge">🥇 {pub.award}</span>
     ) : null}
   </div>
   {pub.short_name ? (
