@@ -6,12 +6,12 @@ const news = getNews();
 // Simple markdown-to-HTML: links, bold, italic
 function renderMarkdown(text: string): string {
   return text
-    // links: [text](url)
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
     // bold: **text**
     .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-    // italic: _text_
-    .replace(/_([^_]+)_/g, '<em>$1</em>');
+    // italic: _text_ (must run before link replacement to avoid matching _blank in href attributes)
+    .replace(/_([^_]+)_/g, '<em>$1</em>')
+    // links: [text](url)
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
 }
 
 function formatDate(dateStr: string): string {
