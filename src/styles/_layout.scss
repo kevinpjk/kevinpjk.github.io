@@ -17,7 +17,10 @@
   padding-top: 3rem;
   padding-bottom: 4rem;
   min-height: 100vh;
-  overflow-x: hidden;
+  // `clip` not `hidden`: hidden makes this a scroll container, which breaks
+  // position:sticky for every descendant (it silently killed the sidebar).
+  // clip gives the same overflow protection without creating a scrollport.
+  overflow-x: clip;
   // Leave space for floating nav on desktop
   padding-left: 4.5rem;
 

@@ -1,7 +1,14 @@
 ---
 import { getNews } from '../lib/data';
 
-const news = getNews();
+interface Props {
+  /** Show only the most recent N entries. Omit for all. */
+  limit?: number;
+}
+
+const { limit } = Astro.props;
+const allNews = getNews();
+const news = limit ? allNews.slice(0, limit) : allNews;
 
 // Simple markdown-to-HTML: links, bold, italic
 function renderMarkdown(text: string): string {
@@ -34,40 +41,29 @@ function formatDate(dateStr: string): string {
 
 <style lang="scss">
   .news-section {
-    margin-top: 2.5rem;
+    margin-top: 2rem;
   }
 
   .section-heading {
-    font-size: 1.15rem;
-    margin-bottom: 1rem;
-    color: var(--color-primary);
+    font-family: 'Fraunces', serif;
+    font-size: 1.05rem;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    margin-bottom: 0.6rem;
+    color: var(--color-text-muted);
   }
 
-  .news-scroll {
-    max-height: 320px;
-    overflow-y: auto;
-    padding-right: 0.5rem;
-
-    // Subtle scrollbar
-    &::-webkit-scrollbar {
-      width: 4px;
-    }
-    &::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    &::-webkit-scrollbar-thumb {
-      background: var(--bg-surface-border);
-      border-radius: 2px;
-    }
-  }
+  // No max-height / overflow: the homepage passes a fixed `limit`, and an
+  // overflow container here would be another sticky-breaking scrollport.
+  .news-scroll { padding-right: 0; }
 
   .news-item {
     display: flex;
     gap: 1rem;
-    padding: 0.6rem 0;
+    padding: 0.55rem 0;
     border-bottom: 1px solid var(--bg-surface-border);
-    font-size: 0.9rem;
-    line-height: 1.5;
+    font-size: 0.88rem;
+    line-height: 1.55;
 
     &:last-child {
       border-bottom: none;
@@ -77,9 +73,12 @@ function formatDate(dateStr: string): string {
   .news-date {
     flex-shrink: 0;
     width: 5.5rem;
-    font-size: 0.8rem;
-    color: var(--color-text-muted);
-    padding-top: 0.1rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-secondary);
+    padding-top: 0.2rem;
   }
 
   .news-content {

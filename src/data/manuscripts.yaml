@@ -18,10 +18,14 @@
 # "accepted", or "forthcoming".
 # =============================================================================
 
+# `selected` and `category` place a manuscript in the Selected Work themes,
+# but only once manuscripts_under_review.enabled is true in site.yaml.
 - slug: sidecar
   title: "Too Long to Watch, Too Short to Leave: Designing for Agent Micro-Waits"
   short_name: "Sidecar"
   short_desc: "A side channel that surfaces what a running agent decided on its own"
+  selected: true
+  category: when-ai-acts
   authors:
     - { name: "Kevin Pu", url: null, highlight: true }
     - { name: "Anh Truong", url: null }
@@ -32,6 +36,8 @@
   year: 2026
 
 - slug: helm
+  selected: false
+  category: null
   title: "Helm: Turning Situated Feedback into Reusable Guidance for Steering Multi-Agent Workflows"
   short_name: "Helm"
   short_desc: "Turns situated corrections into scoped, reusable guidelines with provenance"
@@ -44,6 +50,8 @@
   year: 2026
 
 - slug: weavechat
+  selected: false
+  category: null
   title: "Who Shapes What Persists? Negotiating Personal Context Across LLM Conversations"
   short_name: "WeaveChat"
   short_desc: "How personal context is negotiated and carried across LLM conversations"

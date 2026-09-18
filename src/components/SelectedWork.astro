@@ -1,75 +1,77 @@
 ---
 /**
- * SelectedWork — a wide row for one selected paper: citation on the left,
+ * SelectedWork — a wide row for one featured item: citation on the left,
  * scripted demo on the right.
  *
- * No teaser thumbnail here by design. The teaser belongs to the full
- * publication list and the detail overlay; this row leads with the demo.
+ * Renders either a published paper or a manuscript under review, via the
+ * normalized SelectedItem shape. No teaser thumbnail by design; the teaser
+ * belongs to the full publication list and the detail overlay.
  */
 import PaperDemo from './PaperDemo.astro';
-import type { Publication } from '../lib/data';
+import type { SelectedItem } from '../lib/data';
 
 interface Props {
-  pub: Publication;
+  item: SelectedItem;
 }
 
-const { pub } = Astro.props;
-const venueLabel = `${pub.venue} ${pub.year}`;
-
-const links = [
-  { label: 'PDF', url: pub.links.pdf },
-  { label: 'Video', url: pub.links.video },
-  { label: 'arXiv', url: pub.links.arxiv },
-  { label: 'ACM DL', url: pub.links.doi },
-  { label: 'Code', url: pub.links.code },
-].filter(l => l.url);
+const { item } = Astro.props;
 ---
 
-<article class="selected-work" data-category={pub.category} data-slug={pub.slug}>
+<article class="sw" data-slug={item.slug}>
   <div class="sw-cite">
-    <div class="sw-meta">
-      <span class="sw-venue">{venueLabel}</span>
-      {pub.award && (
-        <span class="sw-award">{pub.award === 'Best Paper' ? '🏆' : '🥇'} {pub.award}</span>
+    <p class="sw-meta">
+      <span class:list={['sw-venue', { 'sw-venue--review': item.underReview }]}>{item.venueLabel}</span>
+      {item.award && (
+        <span class="sw-award">{item.award === 'Best Paper' ? '🏆' : '🥇'} {item.award}</span>
       )}
-    </div>
+    </p>
 
-    <h3 class="sw-title">
-      <button class="sw-open" data-open-paper={pub.slug}>{pub.title}</button>
-    </h3>
+    <h4 class="sw-name">
+      {item.emoji && <span class="sw-emoji" aria-hidden="true">{item.emoji}</span>}
+      {item.underReview ? (
+        <span class="sw-name-text">{item.shortName ?? item.title}</span>
+      ) : (
+        <button class="sw-open" data-open-paper={item.slug}>
+          <span class="sw-name-text">{item.shortName ?? item.title}</span>
+        </button>
+      )}
+    </h4>
+
+    {item.shortDesc && <p class="sw-desc">{item.shortDesc}</p>}
+
+    <p class="sw-title">{item.title}</p>
 
     <p class="sw-authors">
-      {pub.authors.map((a, i) => (
+      {item.authors.map((a, i) => (
         <span class:list={{ highlight: a.highlight }}>
-          {a.name}{i < pub.authors.length - 1 ? ', ' : ''}
+          {a.name}{i < item.authors.length - 1 ? ', ' : ''}
         </span>
       ))}
     </p>
 
-    {pub.short_desc && <p class="sw-desc">{pub.short_desc}</p>}
-
-    {links.length > 0 && (
+    {item.links.length > 0 && (
       <p class="sw-links">
-        {links.map(l => (
-          <a href={l.url!} target="_blank" rel="noopener noreferrer">{l.label}</a>
+        {item.links.map(l => (
+          <a href={l.url} target="_blank" rel="noopener noreferrer">{l.label}</a>
         ))}
       </p>
     )}
   </div>
 
   <div class="sw-demo">
-    <PaperDemo slug={pub.slug} size="compact" />
+    <PaperDemo slug={item.slug} size="compact" />
   </div>
 </article>
 
 <style lang="scss">
-  .selected-work {
+  .sw {
+    position: relative;
     display: grid;
-    // ~34% citation / ~66% demo, per the demo's minimum comfortable width.
-    grid-template-columns: minmax(0, 0.52fr) minmax(0, 1fr);
-    gap: 1.5rem;
-    padding: 1.25rem 0;
-    border-top: 1px solid var(--bg-surface-border);
+    grid-template-columns: minmax(0, 0.58fr) minmax(0, 1fr);
+    gap: 2rem;
+    padding: 1.6rem 0;
+
+    & + & { border-top: 1px solid var(--bg-surface-border); }
   }
 
   .sw-cite { min-width: 0; }
@@ -77,9 +79,9 @@ const links = [
   .sw-meta {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.6rem;
     flex-wrap: wrap;
-    margin-bottom: 0.35rem;
+    margin: 0 0 0.45rem;
   }
 
   .sw-venue {
@@ -87,40 +89,82 @@ const links = [
     font-size: 0.68rem;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.07em;
+    color: var(--color-secondary);
+  }
+
+  .sw-venue--review {
     color: var(--color-text-muted);
+    text-transform: none;
+    letter-spacing: 0.03em;
+    font-style: italic;
   }
 
   .sw-award {
-    font-size: 0.68rem;
+    font-size: 0.7rem;
     font-weight: 600;
     color: var(--color-accent);
+    letter-spacing: 0.01em;
   }
 
-  .sw-title {
+  .sw-name {
+    display: flex;
+    align-items: baseline;
+    gap: 0.35em;
     margin: 0 0 0.3rem;
-    font-size: 0.98rem;
-    font-weight: 600;
-    line-height: 1.35;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1.22rem;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+  }
+
+  .sw-emoji {
+    font-size: 1.05rem;
+    line-height: 1;
   }
 
   .sw-open {
     padding: 0;
     text-align: left;
     font: inherit;
-    color: var(--color-text);
+    letter-spacing: inherit;
+    color: var(--color-primary);
 
-    &:hover {
-      color: var(--color-primary);
+    // Whole row activates the detail, while staying one real control.
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+    }
+
+    &:hover .sw-name-text {
       text-decoration: underline;
-      text-underline-offset: 0.15em;
+      text-underline-offset: 0.16em;
+      text-decoration-thickness: 2px;
     }
   }
 
-  .sw-authors {
-    margin: 0 0 0.4rem;
-    font-size: 0.78rem;
+  .sw-name-text { color: var(--color-primary); }
+
+  .sw-desc {
+    margin: 0 0 0.55rem;
+    font-size: 0.92rem;
+    line-height: 1.55;
+    color: var(--color-text);
+  }
+
+  .sw-title {
+    margin: 0 0 0.35rem;
+    font-size: 0.82rem;
     line-height: 1.5;
+    color: var(--color-text-muted);
+  }
+
+  .sw-authors {
+    margin: 0 0 0.6rem;
+    font-size: 0.78rem;
+    line-height: 1.55;
     color: var(--color-text-muted);
 
     .highlight {
@@ -129,24 +173,21 @@ const links = [
     }
   }
 
-  .sw-desc {
-    margin: 0 0 0.5rem;
-    font-size: 0.82rem;
-    line-height: 1.55;
-    color: var(--color-text);
-  }
-
   .sw-links {
     display: flex;
-    gap: 0.75rem;
+    gap: 0.9rem;
     flex-wrap: wrap;
     margin: 0;
-    font-size: 0.76rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.02em;
 
     a {
+      position: relative;
+      z-index: 1;
       color: var(--color-text-muted);
       text-decoration: underline;
-      text-underline-offset: 0.2em;
+      text-underline-offset: 0.22em;
       text-decoration-color: var(--bg-surface-border);
 
       &:hover {
@@ -158,10 +199,15 @@ const links = [
 
   .sw-demo { min-width: 0; }
 
-  @media (max-width: 860px) {
-    .selected-work {
+  @media (max-width: 880px) {
+    .sw {
       grid-template-columns: 1fr;
-      gap: 1rem;
+      gap: 1.1rem;
     }
+  }
+
+  @media (max-width: 480px) {
+    .sw-name { font-size: 1.1rem; }
+    .sw-desc { font-size: 0.88rem; }
   }
 </style>

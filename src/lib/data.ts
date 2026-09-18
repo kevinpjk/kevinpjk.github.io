@@ -81,6 +81,64 @@ export interface Manuscript {
   short_desc: string;
   authors: Author[];
   year: number;
+  /** Feature this manuscript in Selected Work (only when the flag is on). */
+  selected?: boolean;
+  category?: string | null;
+}
+
+/**
+ * Normalized shape for a Selected Work row, so the same component can render
+ * a published paper and a manuscript under review without either leaking into
+ * the other's data file.
+ */
+export interface SelectedItem {
+  slug: string;
+  title: string;
+  shortName: string | null;
+  shortDesc: string | null;
+  emoji: string | null;
+  authors: Author[];
+  venueLabel: string;
+  award: string | null;
+  links: { label: string; url: string }[];
+  underReview: boolean;
+}
+
+export function publicationToItem(pub: Publication): SelectedItem {
+  return {
+    slug: pub.slug,
+    title: pub.title,
+    shortName: pub.short_name ?? null,
+    shortDesc: pub.short_desc ?? null,
+    emoji: pub.emoji ?? null,
+    authors: pub.authors,
+    venueLabel: `${pub.venue} ${pub.year}`,
+    award: pub.award,
+    links: [
+      { label: 'PDF', url: pub.links.pdf },
+      { label: 'Video', url: pub.links.video },
+      { label: 'arXiv', url: pub.links.arxiv },
+      { label: 'ACM DL', url: pub.links.doi },
+      { label: 'Code', url: pub.links.code },
+    ].filter((l): l is { label: string; url: string } => Boolean(l.url)),
+    underReview: false,
+  };
+}
+
+export function manuscriptToItem(m: Manuscript, label: string): SelectedItem {
+  return {
+    slug: m.slug,
+    title: m.title,
+    shortName: m.short_name ?? null,
+    shortDesc: m.short_desc ?? null,
+    emoji: null,
+    authors: m.authors,
+    venueLabel: label,
+    award: null,
+    // Anonymized submissions carry no links.
+    links: [],
+    underReview: true,
+  };
 }
 
 export interface SiteConfig {

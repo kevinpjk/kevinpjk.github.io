@@ -12,19 +12,21 @@ import {
   getConferencePublications,
   getWorkshopPublications,
   getManuscriptsUnderReview,
+  getSiteConfig,
+  publicationToItem,
+  manuscriptToItem,
 } from '../lib/data';
 
 const selectedPubs = getSelectedPublications();
 const conferencePubs = getConferencePublications();
 const workshopPubs = getWorkshopPublications();
 const manuscripts = getManuscriptsUnderReview();
+const reviewLabel = getSiteConfig().manuscripts_under_review.label;
 
 /**
- * Selected-work themes, mirroring the research statement.
- *
- * A theme whose work is all under review renders with its heading and gloss
- * but no papers, so the structure stays visible without naming unpublished
- * manuscripts. Enabling `manuscripts_under_review` in site.yaml fills it in.
+ * Selected-work themes, mirroring the research statement. A theme renders
+ * only when it has at least one item, so the set of headings follows from
+ * which papers are marked `selected`.
  */
 const themes = [
   {
@@ -49,9 +51,20 @@ const themes = [
   },
 ];
 
+// Each theme collects published papers plus any featured manuscript. A
+// manuscript only appears once the disclosure flag is on, so a theme whose
+// work is all under review simply does not render until then.
 const themed = themes
-  .map(t => ({ ...t, pubs: selectedPubs.filter(p => p.category === t.key) }))
-  .filter(t => t.pubs.length > 0 || t.key === 'where-direction-applies');
+  .map(t => ({
+    ...t,
+    items: [
+      ...selectedPubs.filter(p => p.category === t.key).map(publicationToItem),
+      ...manuscripts
+        .filter(m => m.selected && m.category === t.key)
+        .map(m => manuscriptToItem(m, reviewLabel)),
+    ],
+  }))
+  .filter(t => t.items.length > 0);
 
 // Full list, newest first.
 const years = [...new Set(conferencePubs.map(p => p.year))].sort((a, b) => b - a);
@@ -118,7 +131,7 @@ const contactLinks = [
           </p>
         </section>
 
-        <NewsSection />
+        <NewsSection limit={3} />
 
         <section class="home-section" id="selected" aria-labelledby="selected-heading">
           <h2 class="section-title" id="selected-heading">Selected Work</h2>
@@ -129,21 +142,7 @@ const contactLinks = [
                 <h3 class="theme-label">{theme.label}</h3>
                 <p class="theme-gloss">{theme.gloss}</p>
               </div>
-
-              {theme.pubs.length > 0 ? (
-                theme.pubs.map(pub => <SelectedWork pub={pub} />)
-              ) : manuscripts.length > 0 ? (
-                <ul class="theme-manuscripts">
-                  {manuscripts.map(m => (
-                    <li>
-                      <span class="tm-title">{m.title}</span>
-                      <span class="tm-status">Manuscript under review, {m.year}</span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p class="theme-pending">Current work, under review.</p>
-              )}
+              {theme.items.map(item => <SelectedWork item={item} />)}
             </div>
           ))}
         </section>
@@ -177,8 +176,8 @@ const contactLinks = [
 
   .home-grid {
     display: grid;
-    grid-template-columns: 220px minmax(0, 1fr);
-    gap: 3rem;
+    grid-template-columns: 224px minmax(0, 1fr);
+    gap: 3.5rem;
     align-items: start;
   }
 
@@ -201,31 +200,44 @@ const contactLinks = [
 
   .side-name {
     font-family: 'Fraunces', serif;
-    font-size: 1.6rem;
+    font-size: 2rem;
     font-weight: 700;
-    line-height: 1.2;
-    margin: 0 0 0.3rem;
+    line-height: 1.12;
+    letter-spacing: -0.015em;
+    margin: 0 0 0.4rem;
   }
 
   .side-role {
-    margin: 0 0 0.5rem;
-    font-size: 0.82rem;
+    margin: 0 0 0.55rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.84rem;
+    font-weight: 500;
     line-height: 1.5;
-    color: var(--color-text-muted);
+    color: var(--color-text);
   }
 
   .side-affil {
     margin: 0;
-    font-size: 0.78rem;
-    line-height: 1.55;
+    font-size: 0.8rem;
+    line-height: 1.6;
     color: var(--color-text-muted);
+
+    a {
+      color: var(--color-text-muted);
+      text-decoration: underline;
+      text-underline-offset: 0.18em;
+      text-decoration-color: var(--bg-surface-border);
+      &:hover { color: var(--color-primary); text-decoration-color: currentColor; }
+    }
   }
 
   .side-links {
     display: flex;
     flex-direction: column;
-    gap: 0.3rem;
-    font-size: 0.8rem;
+    gap: 0.35rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.02em;
 
     a {
       color: var(--color-text-muted);
@@ -246,92 +258,73 @@ const contactLinks = [
 
   .home-bio p {
     margin: 0;
-    font-size: 1rem;
-    line-height: 1.7;
+    font-size: 1.06rem;
+    line-height: 1.72;
 
-    strong { color: var(--color-primary); font-weight: 600; }
+    strong {
+      color: var(--color-primary);
+      font-weight: 600;
+    }
   }
 
-  .home-section { margin-top: 3rem; }
+  .home-section { margin-top: 3.25rem; }
 
   .section-title {
     font-family: 'Fraunces', serif;
-    font-size: 1.35rem;
+    font-size: 1.5rem;
     font-weight: 600;
-    margin: 0 0 0.25rem;
-    padding-bottom: 0.4rem;
+    letter-spacing: -0.01em;
+    color: var(--color-primary);
+    margin: 0;
+    padding-bottom: 0.5rem;
     border-bottom: 2px solid var(--color-primary);
   }
 
   // --- Themes --------------------------------------------------------------
-  .theme-group { margin-top: 1.75rem; }
+  .theme-group { margin-top: 2rem; }
 
-  .theme-head { margin-bottom: 0.25rem; }
+  .theme-head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--bg-surface-border);
+  }
 
   .theme-label {
     margin: 0;
-    font-size: 0.98rem;
-    font-weight: 600;
-    color: var(--color-primary);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--color-text);
+    white-space: nowrap;
   }
 
   .theme-gloss {
-    margin: 0.15rem 0 0;
-    font-size: 0.84rem;
+    margin: 0;
+    font-size: 0.85rem;
     line-height: 1.5;
     color: var(--color-text-muted);
   }
 
-  .theme-pending {
-    margin: 0.75rem 0 0;
-    padding-top: 0.75rem;
-    border-top: 1px dashed var(--bg-surface-border);
-    font-size: 0.84rem;
-    font-style: italic;
-    color: var(--color-text-muted);
-  }
 
-  .theme-manuscripts {
-    list-style: none;
-    margin: 0.75rem 0 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.6rem;
 
-    li {
-      padding-top: 0.6rem;
-      border-top: 1px solid var(--bg-surface-border);
-    }
-  }
 
-  .tm-title {
-    display: block;
-    font-size: 0.9rem;
-    font-weight: 600;
-    line-height: 1.4;
-  }
-
-  .tm-status {
-    display: block;
-    margin-top: 0.15rem;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.66rem;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: var(--color-text-muted);
-  }
 
   // --- Year groups ---------------------------------------------------------
-  .year-group { margin-top: 1.5rem; }
+  .year-group { margin-top: 1.75rem; }
 
   .year-label {
-    margin: 0;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.8rem;
+    margin: 0 0 0.5rem;
+    padding-bottom: 0.35rem;
+    border-bottom: 1px solid var(--bg-surface-border);
+    font-family: 'Fraunces', serif;
+    font-size: 1rem;
     font-weight: 600;
     color: var(--color-text-muted);
-    letter-spacing: 0.04em;
+    letter-spacing: 0.01em;
   }
 
   // --- Responsive ----------------------------------------------------------
@@ -362,9 +355,10 @@ const contactLinks = [
   }
 
   @media (max-width: 480px) {
-    .side-name { font-size: 1.4rem; }
-    .home-bio p { font-size: 0.94rem; }
-    .section-title { font-size: 1.2rem; }
+    .side-name { font-size: 1.6rem; }
+    .home-bio p { font-size: 0.96rem; }
+    .section-title { font-size: 1.25rem; }
+    .theme-label { font-size: 0.98rem; white-space: normal; }
   }
 </style>
 
