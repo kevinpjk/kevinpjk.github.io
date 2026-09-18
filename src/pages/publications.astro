@@ -37,7 +37,7 @@ const pubsByYear = years.map(year => ({
             ].filter(l => l.url);
 
             return (
-              <article class="pub-entry" id={`pub-${pub.slug}`} data-slug={pub.slug} role="button" tabindex="0">
+              <article class="pub-entry" id={`pub-${pub.slug}`} data-slug={pub.slug}>
                 <div class="pub-entry-body">
                   <div class="pub-entry-text">
                     <div class="pub-entry-top">
@@ -49,7 +49,9 @@ const pubsByYear = years.map(year => ({
                         <span class="award-badge">🥇 {pub.award}</span>
                       ) : null}
                     </div>
-                    <h3 class="pub-entry-title">{pub.title}</h3>
+                    <h3 class="pub-entry-title">
+                      <button class="pub-entry-open" data-open-paper={pub.slug}>{pub.title}</button>
+                    </h3>
                     <p class="pub-entry-authors">
                       {pub.authors.map((a, i) => (
                         <span>
@@ -142,6 +144,30 @@ const pubsByYear = years.map(year => ({
 
   .year-group {
     margin-bottom: 2.5rem;
+  }
+
+  .pub-entry { position: relative; }
+
+  .pub-entry-open {
+    padding: 0;
+    text-align: left;
+    font: inherit;
+    color: inherit;
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+    }
+
+    &:hover { text-decoration: underline; text-underline-offset: 0.15em; }
+  }
+
+  // Links inside the row must sit above the title button's overlay.
+  .pub-entry-links,
+  .pub-entry-authors a {
+    position: relative;
+    z-index: 1;
   }
 
   .pub-entry-venue-full {

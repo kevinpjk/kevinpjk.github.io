@@ -28,7 +28,7 @@
     - { name: "Joseph Chee Chang", url: null }
   venue: CHI
   year: 2026
-  category: human-ai-collaboration
+  category: what-it-shows
   award: "Best Paper"
   links:
     pdf: /assets/pdf/cocoa_chi_2026.pdf
@@ -58,7 +58,7 @@
     - { name: "Tanya R. Jonker", url: null }
   venue: UIST
   year: 2025
-  category: mixed-initiative
+  category: when-ai-acts
   award: null
   links:
     pdf: /assets/pdf/promemassist_uist_2025.pdf
@@ -115,7 +115,7 @@
     - { name: "Yan Chen", url: "https://chensivan.github.io/" }
   venue: CHI
   year: 2025
-  category: mixed-initiative
+  category: when-ai-acts
   award: null
   links:
     pdf: /assets/pdf/codellaborator_chi_2025.pdf
@@ -148,7 +148,7 @@
     - { name: "Pao Siangliulue", url: null }
   venue: CHI
   year: 2025
-  category: human-ai-collaboration
+  category: what-it-shows
   award: null
   links:
     pdf: /assets/pdf/ideasynth_chi_2025.pdf
@@ -228,7 +228,7 @@
     - { name: "Tovi Grossman", url: "https://www.tovigrossman.com/" }
   venue: UIST
   year: 2023
-  category: neurosymbolic
+  category: foundations
   award: null
   links:
     pdf: /assets/pdf/Dilogics_UIST_2023.pdf
@@ -238,7 +238,7 @@
     doi: https://doi.org/10.1145/3586183.3606822
     code: null
   summary: "DiLogics is a programming-by-demonstration system for building web automation programs that handle varied input conditions, rather than repeating one fixed sequence of UI actions. It uses NLP to segment input data into structured task steps, then records a user demonstration for each step and generalizes those recordings to novel but semantically similar task requirements."
-  selected: false
+  selected: true
   teaser: dilogics.png
   teaser_type: image
   ring_concept: "neurosymbolic web automation"
@@ -258,7 +258,7 @@
     - { name: "Tovi Grossman", url: "https://www.tovigrossman.com/" }
   venue: UIST
   year: 2022
-  category: neurosymbolic
+  category: foundations
   award: "Best Paper Honorable Mention"
   links:
     pdf: /assets/pdf/Semanticon_UIST_2022.pdf

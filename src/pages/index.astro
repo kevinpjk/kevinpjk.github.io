@@ -2,6 +2,7 @@
 import { Image } from 'astro:assets';
 import profilePhoto from '../assets/profile.jpg';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import JobMarketBanner from '../components/JobMarketBanner.astro';
 import NewsSection from '../components/NewsSection.astro';
 import PublicationCard from '../components/PublicationCard.astro';
 import PaperDetailOverlays from '../components/PaperDetailOverlays.astro';
@@ -10,10 +11,35 @@ import { getSelectedPublications, getVenues } from '../lib/data';
 const selectedPubs = getSelectedPublications();
 const venues = getVenues();
 
+/**
+ * Selected-work themes, mirroring the structure of the research statement.
+ *
+ * `pending` marks a theme whose work is still under review. It renders with
+ * its heading and gloss but no paper list, so the three-part structure stays
+ * visible without naming unpublished manuscripts. Enabling
+ * `manuscripts_under_review` in site.yaml fills it in.
+ */
 const categories = [
-  { key: 'mixed-initiative', label: 'Mixed-Initiative Interaction' },
-  { key: 'human-ai-collaboration', label: 'Human-AI Collaboration' },
-  { key: 'neurosymbolic', label: 'Neurosymbolic Program Synthesis' },
+  {
+    key: 'when-ai-acts',
+    label: 'When AI should act',
+    gloss: 'Deciding when an AI system should interrupt, and what that costs.',
+  },
+  {
+    key: 'what-it-shows',
+    label: 'What it should show you',
+    gloss: "Making an agent's plans and decisions into things you can edit.",
+  },
+  {
+    key: 'where-direction-applies',
+    label: 'Where your direction applies',
+    gloss: 'Carrying a correction across tasks, agents, and sessions.',
+  },
+  {
+    key: 'foundations',
+    label: 'Foundations',
+    gloss: 'Specifying intent for automation.',
+  },
 ];
 
 const pubsByCategory = categories
@@ -21,11 +47,13 @@ const pubsByCategory = categories
     ...cat,
     pubs: selectedPubs.filter(p => p.category === cat.key),
   }))
-  .filter(cat => cat.pubs.length > 0);
+  // A theme with no published work still appears, as a heading and gloss.
+  .filter(cat => cat.pubs.length > 0 || cat.key === 'where-direction-applies');
 ---
 
 <BaseLayout title="Kevin Pu">
   <div class="landing container" id="landing-content">
+    <JobMarketBanner />
     <div class="landing-grid">
       <div class="landing-left">
         <div class="hero-row stagger-in stagger-delay-1">
@@ -68,8 +96,8 @@ const pubsByCategory = categories
           <p>
             My research interests lie in intersection of human-computer interaction and AI.
             My past works have focused on aligning AI support with human capabilities to build harmonious
-            <span class="keyword" data-category="mixed-initiative"><strong>mixed-initiative interaction</strong></span>, enhancing
-            <span class="keyword" data-category="human-ai-collaboration"><strong>human-AI collaboration</strong></span>
+            <span class="keyword" data-category="when-ai-acts"><strong>mixed-initiative interaction</strong></span>, enhancing
+            <span class="keyword" data-category="what-it-shows"><strong>human-AI collaboration</strong></span>
             <!-- <span class="keyword" data-category="neurosymbolic"><strong>neurosymbolic program synthesis</strong></span> -->
             workflows while balancing automation and human agency.
              <!-- for automation, programming, and ideation. -->
@@ -90,11 +118,16 @@ const pubsByCategory = categories
         {pubsByCategory.map(cat => (
           <div class="pub-category-group">
             <span class="category-label">{cat.label}</span>
-            <div class="pub-cards">
-              {cat.pubs.map(pub => (
-                <PublicationCard pub={pub} venueInfo={venues[pub.venue]} />
-              ))}
-            </div>
+            <p class="category-gloss">{cat.gloss}</p>
+            {cat.pubs.length > 0 ? (
+              <div class="pub-cards">
+                {cat.pubs.map(pub => (
+                  <PublicationCard pub={pub} venueInfo={venues[pub.venue]} />
+                ))}
+              </div>
+            ) : (
+              <p class="category-pending">Current work, under review.</p>
+            )}
           </div>
         ))}
       </div>
@@ -219,7 +252,24 @@ const pubsByCategory = categories
     &:hover { color: var(--color-primary); }
   }
 
-  .pub-category-group { margin-bottom: 1.25rem; }
+  .pub-category-group { margin-bottom: 1.5rem; }
+
+  .category-gloss {
+    font-size: 0.82rem;
+    line-height: 1.5;
+    color: var(--color-text-muted);
+    margin: 0 0 0.6rem;
+    padding-left: 0.15rem;
+  }
+
+  .category-pending {
+    font-size: 0.82rem;
+    color: var(--color-text-muted);
+    font-style: italic;
+    margin: 0;
+    padding: 0.6rem 0.15rem;
+    border-top: 1px dashed var(--bg-surface-border);
+  }
 
   .category-label {
     display: block;

@@ -93,22 +93,18 @@ const venues = getVenues();
       }
     }
 
-    // Delegate clicks on any element with [data-slug] that isn't the overlay itself
-    document.querySelectorAll<HTMLElement>('[data-slug]').forEach(el => {
-      if (el.classList.contains('paper-detail')) return;
+    // Bind only explicit triggers. Binding every [data-slug] element also
+    // caught descendants and containers, which made it impossible to nest
+    // other controls (links, demo buttons) inside a card.
+    document.querySelectorAll<HTMLElement>('[data-open-paper]').forEach(el => {
       el.addEventListener('click', (e) => {
-        // Don't hijack link clicks inside the trigger (e.g. PDF/Video pills)
-        if ((e.target as Element).closest('a, button.link-pill')) return;
-        const slug = el.dataset.slug;
+        // Let a nested link or other control handle its own click.
+        if ((e.target as Element).closest('a, button') !== el) return;
+        const slug = el.dataset.openPaper;
         if (slug) openDetail(slug);
       });
-      el.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          const slug = el.dataset.slug;
-          if (slug) openDetail(slug);
-        }
-      });
+      // Native <button> elements already fire click on Enter and Space, so
+      // no key handling is needed here.
     });
 
     // Close buttons / margin clicks
