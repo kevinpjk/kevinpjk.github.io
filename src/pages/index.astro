@@ -6,6 +6,7 @@ import JobMarketBanner from '../components/JobMarketBanner.astro';
 import NewsSection from '../components/NewsSection.astro';
 import SelectedWork from '../components/SelectedWork.astro';
 import PublicationEntry from '../components/PublicationEntry.astro';
+import ManuscriptEntry from '../components/ManuscriptEntry.astro';
 import PaperDetailOverlays from '../components/PaperDetailOverlays.astro';
 import {
   getSelectedPublications,
@@ -21,7 +22,8 @@ const selectedPubs = getSelectedPublications();
 const conferencePubs = getConferencePublications();
 const workshopPubs = getWorkshopPublications();
 const manuscripts = getManuscriptsUnderReview();
-const reviewLabel = getSiteConfig().manuscripts_under_review.label;
+const reviewCfg = getSiteConfig().manuscripts_under_review;
+const reviewLabel = reviewCfg.label;
 
 /**
  * Selected-work themes, mirroring the research statement. A theme renders
@@ -104,8 +106,8 @@ const contactLinks = [
           <h1 class="side-name">Kevin Pu</h1>
           <p class="side-role">PhD Candidate, Computer Science<br />University of Toronto</p>
           <p class="side-affil">
-            Advised by <a href="https://www.tovigrossman.com/" target="_blank" rel="noopener noreferrer">Tovi Grossman</a>
-            and <a href="https://chensivan.github.io/" target="_blank" rel="noopener noreferrer">Yan Chen</a>
+            Advised by <a href="https://www.tovigrossman.com/" target="_blank" rel="noopener noreferrer">Tovi Grossman</a>{' '}
+            and <a href="https://chensivan.github.io/" target="_blank" rel="noopener noreferrer">Yan Chen</a>{' '}
             at the <a href="https://www.dgp.toronto.edu/" target="_blank" rel="noopener noreferrer">DGP Lab</a>.
           </p>
         </div>
@@ -131,7 +133,7 @@ const contactLinks = [
           </p>
         </section>
 
-        <NewsSection limit={3} />
+        <NewsSection visibleRows={3} />
 
         <section class="home-section" id="selected" aria-labelledby="selected-heading">
           <h2 class="section-title" id="selected-heading">Selected Work</h2>
@@ -161,6 +163,13 @@ const contactLinks = [
             <div class="year-group">
               <h3 class="year-label">Workshop Papers</h3>
               {workshopPubs.map(pub => <PublicationEntry pub={pub} />)}
+            </div>
+          )}
+
+          {manuscripts.length > 0 && (
+            <div class="year-group">
+              <h3 class="year-label">{reviewCfg.heading}</h3>
+              {manuscripts.map(m => <ManuscriptEntry manuscript={m} label={reviewLabel} />)}
             </div>
           )}
         </section>

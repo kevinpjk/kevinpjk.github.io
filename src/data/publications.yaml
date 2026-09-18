@@ -39,6 +39,7 @@
     code: null
   summary: "Cocoa is a system for collaborating with AI agents on research tasks, taking design inspiration from computational notebooks. Work is represented as a collaborative plan whose individual steps can be assigned to either the user or the agent, and planning and execution are interleaved so a plan can be adjusted after it has partly run. The design grew out of a formative study with nine researchers using AI in their work, and was evaluated in a lab study and a week-long field deployment."
   selected: true
+  selected_order: 4
   teaser: cocoa.png
   teaser_type: image
   ring_concept: "co-planning with agents"
@@ -69,6 +70,7 @@
     code: null
   summary: "ProMemAssist is a smart glasses system that models a wearer's working memory in real time from multi-modal sensor signals. Grounded in cognitive theories of working memory, it represents perceived information as memory items and episodes with encoding mechanisms such as displacement and interference. That model feeds a timing predictor which weighs the value of offering assistance against the cost of interrupting. It was evaluated with twelve participants against an LLM baseline."
   selected: true
+  selected_order: 2
   teaser: promemassist.png
   teaser_type: image
   ring_concept: "working memory model"
@@ -126,6 +128,7 @@
     code: null
   summary: "Codellaborator is a design probe for proactive AI programming assistance: an LLM agent that initiates help based on editor activity and task context rather than waiting to be prompted. The work compares three interface variants of increasing salience — prompt-only, a proactive agent, and a proactive agent with presence indicators and interaction context — to examine the trade-offs proactive support creates around user control, ownership, and code understanding. It was evaluated in a within-subjects study with eighteen participants."
   selected: true
+  selected_order: 1
   teaser: cody.png
   teaser_type: image
   ring_concept: "proactive code agents"
@@ -159,6 +162,7 @@
     code: null
   summary: "IdeaSynth supports the development of research ideas by representing facets of an idea — problem, solution, evaluation, contribution — as nodes on a canvas, with LLM-generated feedback grounded in the literature. Researchers refine ideas by creating and exploring variations and combinations of those facets. It was evaluated in a lab study with twenty participants and a deployment study with seven researchers working on real projects, from developing initial ideas to revising the framing of mature manuscripts."
   selected: true
+  selected_order: 3
   teaser: ideasynth.jpg
   teaser_type: image
   ring_concept: "literature-grounded ideation"

@@ -65,6 +65,8 @@ export interface Publication {
   links: PubLinks;
   summary: string;
   selected: boolean;
+  /** Sort position within Selected Work. Lower first; unset sorts last. */
+  selected_order?: number;
   short_name?: string;
   short_desc?: string;
   emoji?: string;
@@ -84,6 +86,9 @@ export interface Manuscript {
   /** Feature this manuscript in Selected Work (only when the flag is on). */
   selected?: boolean;
   category?: string | null;
+  /** Placeholder until Kevin supplies a figure. */
+  teaser?: string | null;
+  links?: { pdf: string | null; arxiv: string | null; website: string | null };
 }
 
 /**
@@ -125,6 +130,14 @@ export function publicationToItem(pub: Publication): SelectedItem {
   };
 }
 
+export function manuscriptLinks(m: Manuscript): { label: string; url: string }[] {
+  return [
+    { label: 'PDF', url: m.links?.pdf },
+    { label: 'arXiv', url: m.links?.arxiv },
+    { label: 'Website', url: m.links?.website },
+  ].filter((l): l is { label: string; url: string } => Boolean(l.url));
+}
+
 export function manuscriptToItem(m: Manuscript, label: string): SelectedItem {
   return {
     slug: m.slug,
@@ -135,8 +148,7 @@ export function manuscriptToItem(m: Manuscript, label: string): SelectedItem {
     authors: m.authors,
     venueLabel: label,
     award: null,
-    // Anonymized submissions carry no links.
-    links: [],
+    links: manuscriptLinks(m),
     underReview: true,
   };
 }
@@ -195,7 +207,9 @@ export function getWorkshopPublications(): Publication[] {
 }
 
 export function getSelectedPublications(): Publication[] {
-  return getPublications().filter(p => p.selected);
+  return getPublications()
+    .filter(p => p.selected)
+    .sort((a, b) => (a.selected_order ?? 99) - (b.selected_order ?? 99));
 }
 
 export function getNews(): NewsItem[] {

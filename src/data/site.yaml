@@ -18,12 +18,12 @@ job_market_banner:
   # Lets a visitor dismiss the banner for their own browser only.
   dismissible: true
 
-# Manuscripts under review (src/data/manuscripts.yaml).
+# Manuscripts under submission (src/data/manuscripts.yaml).
 #
-# LEAVE THIS FALSE until Kevin confirms author lists, venue anonymity policies,
-# and employer/host approval. See the header of manuscripts.yaml.
+# Kevin enabled these deliberately. Setting `enabled: false` hides them again
+# everywhere in one edit.
 manuscripts_under_review:
-  enabled: false
-  heading: "Manuscripts under review"
+  enabled: true
+  heading: "Manuscripts Under Submission"
   # Fixed label. Never "to appear", "accepted", or "forthcoming".
-  label: "Manuscript under review, 2026"
+  label: "Manuscript under submission, 2026"

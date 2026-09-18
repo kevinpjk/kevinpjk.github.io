@@ -29,7 +29,7 @@ const links = [
 ---
 
 <article class="pub-row" id={`pub-${pub.slug}`} data-slug={pub.slug}>
-  <div class="pub-row-thumb">
+  <div class:list={['pub-row-thumb', { 'pub-row-thumb--empty': !teaser }]}>
     {teaser ? (
       <Image
         src={teaser}
@@ -42,7 +42,7 @@ const links = [
         decoding="async"
       />
     ) : (
-      <span class="pub-row-thumb-empty" aria-hidden="true"></span>
+      <span class="pub-row-thumb-placeholder" aria-hidden="true">Figure<br />to come</span>
     )}
   </div>
 
@@ -90,27 +90,39 @@ const links = [
     &:focus-within { background: var(--bg-surface); }
   }
 
+  // Fixed box for a standardized size and aspect ratio, but the figure is
+  // fitted rather than cropped. Paper teasers are white-backed, so padding
+  // the leftover space with white reads as part of the figure.
   .pub-row-thumb {
     width: 104px;
     height: 72px;
     border-radius: var(--radius-sm);
     overflow: hidden;
     border: 1px solid var(--bg-surface-border);
-    background: var(--bg-surface);
+    background: #fff;
 
     :global(img) {
       width: 100%;
       height: 100%;
-      object-fit: cover;
+      object-fit: contain;
       display: block;
     }
   }
 
-  .pub-row-thumb-empty {
-    display: block;
+  .pub-row-thumb--empty { background: var(--bg-surface); }
+
+  .pub-row-thumb-placeholder {
+    display: grid;
+    place-items: center;
     width: 100%;
     height: 100%;
-    background: var(--bg-primary);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55rem;
+    line-height: 1.4;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-text-muted);
   }
 
   .pub-row-body { min-width: 0; }

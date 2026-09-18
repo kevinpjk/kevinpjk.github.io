@@ -3,18 +3,15 @@
 #
 # DELIBERATELY SEPARATE FROM publications.yaml.
 #
-# These are anonymized submissions. Keeping them in their own file guarantees
-# they can never be counted among published papers by any code path that reads
-# the publication list.
+# Keeping these in their own file guarantees they can never be counted among
+# published papers by any code path that reads the publication list.
 #
-# Nothing here is rendered unless `manuscripts_under_review.enabled` is set to
-# true in src/data/site.yaml. Before flipping that flag, Kevin must confirm:
-#   (a) the exact author list and order,
-#   (b) that each venue's anonymity policy permits listing, and
-#   (c) employer/host approval — Google for Sidecar, Berkeley for Helm.
+# Titles and author lists are transcribed from _new_material/references.bib.
+# Kevin will supply final titles, author lists, PDFs and teaser figures; the
+# `links` and `teaser` fields below are placeholders for those.
 #
-# Author lists below are transcribed from _new_material/references.bib.
-# The label is fixed at "Manuscript under review, 2026" — never "to appear",
+# Venue names are deliberately absent: these are anonymized submissions, so
+# only the fixed label from site.yaml is shown — never "to appear",
 # "accepted", or "forthcoming".
 # =============================================================================
 
@@ -34,6 +31,12 @@
     - { name: "Michael Xieyang Liu", url: null }
     - { name: "Savvas Petridis", url: null }
   year: 2026
+  # Placeholders — fill in when the material is ready.
+  teaser: null
+  links:
+    pdf: null
+    arxiv: null
+    website: null
 
 - slug: helm
   selected: false
@@ -48,6 +51,12 @@
     - { name: "Tovi Grossman", url: "https://www.tovigrossman.com/" }
     - { name: "Bjoern Hartmann", url: "https://people.eecs.berkeley.edu/~bjoern/" }
   year: 2026
+  # Placeholders — fill in when the material is ready.
+  teaser: null
+  links:
+    pdf: null
+    arxiv: null
+    website: null
 
 - slug: weavechat
   selected: false
@@ -60,3 +69,9 @@
     - { name: "Kevin Pu", url: null, highlight: true }
     - { name: "Tovi Grossman", url: "https://www.tovigrossman.com/" }
   year: 2026
+  # Placeholders — fill in when the material is ready.
+  teaser: null
+  links:
+    pdf: null
+    arxiv: null
+    website: null

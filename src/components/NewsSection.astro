@@ -2,13 +2,15 @@
 import { getNews } from '../lib/data';
 
 interface Props {
-  /** Show only the most recent N entries. Omit for all. */
-  limit?: number;
+  /**
+   * How many rows are visible before the list scrolls. All entries are
+   * rendered; this only caps the height.
+   */
+  visibleRows?: number;
 }
 
-const { limit } = Astro.props;
-const allNews = getNews();
-const news = limit ? allNews.slice(0, limit) : allNews;
+const { visibleRows } = Astro.props;
+const news = getNews();
 
 // Simple markdown-to-HTML: links, bold, italic
 function renderMarkdown(text: string): string {
@@ -29,7 +31,13 @@ function formatDate(dateStr: string): string {
 
 <section class="news-section">
   <h2 class="section-heading">News</h2>
-  <div class="news-scroll">
+  <div
+    class="news-scroll"
+    style={visibleRows ? `--news-visible-rows: ${visibleRows}` : undefined}
+    tabindex="0"
+    role="region"
+    aria-label="News, scrollable"
+  >
     {news.map(item => (
       <div class="news-item">
         <span class="news-date mono">{formatDate(item.date)}</span>
@@ -53,9 +61,32 @@ function formatDate(dateStr: string): string {
     color: var(--color-text-muted);
   }
 
-  // No max-height / overflow: the homepage passes a fixed `limit`, and an
-  // overflow container here would be another sticky-breaking scrollport.
-  .news-scroll { padding-right: 0; }
+  // Caps the height to roughly `--news-visible-rows` rows and scrolls the
+  // rest. Only this element's own descendants are affected, so it does not
+  // interfere with the sticky sidebar elsewhere on the page.
+  .news-scroll {
+    --news-row-height: 4.45rem;
+    padding-right: 0.5rem;
+
+    @supports (max-height: 1px) {
+      max-height: calc(var(--news-visible-rows, 3) * var(--news-row-height));
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 4px;
+      border-radius: var(--radius-sm);
+    }
+
+    &::-webkit-scrollbar { width: 4px; }
+    &::-webkit-scrollbar-track { background: transparent; }
+    &::-webkit-scrollbar-thumb {
+      background: var(--bg-surface-border);
+      border-radius: 2px;
+    }
+  }
 
   .news-item {
     display: flex;
