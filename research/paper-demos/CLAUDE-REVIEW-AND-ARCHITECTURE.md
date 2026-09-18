@@ -1,9 +1,13 @@
-# Paper demos: review of the prototype, and proposed production architecture
+# Paper demos: prototype review and production architecture
 
 Written 18 September 2026, after integrating the rest of the site update. This
-responds to `CLAUDE-HANDOFF.md` and to a read of the prototype source. Nothing
-here has been implemented — the demo work is deliberately unbuilt pending
-Kevin's sign-off and a second opinion from Codex.
+responds to `CLAUDE-HANDOFF.md` and to a read of the prototype source.
+
+**Status: implemented.** Kevin reviewed this document, accepted the defect
+fixes, and overrode two of its design recommendations (see "Decisions" below).
+Codellaborator is built and live on the branch; every other selected paper
+renders a placeholder. The sections below describe what was built, with the
+superseded recommendations kept for the record.
 
 ## Summary
 
@@ -12,13 +16,14 @@ HTML, a tiny always-loaded listener, and the player plus paper module imported
 only on first activation. The measured 4.2 KB gzip initial / 2.7 KB on
 activation is a good budget and worth defending.
 
-Two things need to change before this ships:
+Two things needed to change before it could ship, and both are now addressed:
 
-1. **Lifecycle is not implemented**, only described. This is a correctness bug
-   in this repo, not a style preference — see below.
-2. **Fidelity.** Kevin's own assessment is that the scenes are too static and
-   not faithful enough to the real systems. I agree, and the fix is real
-   reference material rather than a different architecture.
+1. **Lifecycle was not implemented**, only described — a correctness bug in
+   this repo, not a style preference. Fixed; see below.
+2. **Fidelity.** Kevin's assessment is that the scenes are too static and not
+   faithful enough to the real systems. I agree. The Codellaborator scene has
+   been rebuilt closer to the paper's Figure 2, but the real fix is reference
+   material, not a different architecture.
 
 ## Defects found by reading the prototype
 
@@ -77,18 +82,45 @@ now rather than rely on a convention.
 - Generating the first scene and full transcript into static HTML, so the demo
   degrades to a captioned figure with JS disabled.
 
-## Proposed production architecture
+## Decisions
+
+Kevin's calls, which override parts of this document and Codex's handoff:
+
+1. **All demos are scripted widgets.** Both tables below proposed video for
+   ProMemAssist and screenshot sequences for IdeaSynth and SemanticOn. That is
+   rejected: there is no ProMemAssist footage, and screenshots alone are not
+   wanted. Material will arrive per paper.
+2. **Demos sit beside selected work on the homepage**, in wider rows — not
+   poster-on-card with the demo in the overlay as recommended below. The
+   overlay additionally shows the larger teaser, the tree rings, *and* the
+   demo.
+3. **No teaser thumbnail on selected work.** The teaser belongs to the full
+   publication list and the overlay.
+4. **The site is now one page.** The full publication list sits directly below
+   the main content; only the gallery and the CV PDF are separate.
+5. **Decorative animation is gone**, so `prefers-reduced-motion` was audited
+   rather than removed — it still guards the remaining hover/focus
+   transitions, smooth anchor scrolling, and demo auto-advance.
+
+## Production architecture, as built
 
 Codex's file layout is sound. This adopts it with the lifecycle gap closed.
 
 ```text
 src/components/PaperDemo.astro   # static frame, first scene, transcript, controls
+src/components/SelectedWork.astro # wide row: citation + demo
+src/components/PublicationEntry.astro # full-list row: teaser + citation
 src/scripts/demo-loader.ts       # activation, lazy import, teardown registry
-src/scripts/demo-player.ts       # shared stepping/play/pause (from player.js)
-src/demos/types.ts               # shared contract, discriminated union
-src/demos/<slug>.ts              # one module per paper
+src/scripts/demo-player.ts       # shared stepping/play/pause
+src/demos/types.ts               # shared contract + esc() helper
+src/demos/registry.ts            # build-time eager registry, never shipped
+src/demos/papers/<slug>.ts       # one module per paper
 public/assets/demos/<slug>/      # optimized media only
 ```
+
+Demo modules live in `papers/` deliberately. When `types.ts` and `registry.ts`
+were siblings they matched both globs, which put an eager registry chunk into
+the browser bundle and would have pulled every demo into the first load.
 
 ### Lifecycle, concretely
 
@@ -118,49 +150,62 @@ code in `PaperDetailOverlays.astro` relocates `.paper-detail` nodes to
 
 ### Rendering
 
-Per-paper modules return DOM nodes, or clone a `<template>` and set
-`textContent`, rather than returning an HTML string. Same authoring
-ergonomics, and the injection question never arises when a demo later wants to
-show a real paper title.
+I recommended returning DOM nodes rather than HTML strings. **As built,
+`render()` returns a string** — I softened my own recommendation for a
+concrete reason: the same function has to produce the server-rendered first
+scene inside `PaperDemo.astro`'s frontmatter, where there is no `document`.
+Returning DOM would mean two renderers and two sources of truth for the
+markup.
 
-### Placement
+The injection concern is handled instead by an `esc()` helper in `types.ts`
+and a stated rule: anything that is not an authored literal goes through it.
+Every value in `codellaborator.ts` today is an authored constant.
 
-The handoff recommends wider selected-work rows and warns against squeezing a
-desktop UI into the 340px column. I agree, but note the column has since
-changed: cards now carry a 72px teaser thumbnail, an author line, and an
-explicit `[data-open-paper]` trigger.
+### Placement, as built
 
-My recommendation is **demo in the detail overlay, poster on the card**:
+I recommended poster-on-card with the demo confined to the overlay, on the
+grounds that it scopes mounting and costs nothing on first load. **Kevin chose
+inline on the homepage instead**, which is the more discoverable arrangement
+and the one the reference site uses.
 
-- The card keeps its teaser thumbnail, which already reads well at 340px.
-- Opening a paper gives the demo the full overlay width, comfortably past the
-  480px minimum, with no homepage reflow.
-- Mounting is then naturally scoped: mount on open, `destroy()` on close. That
-  is a cleaner lifecycle than "mounted but scrolled out of view", and it means
-  a visitor who never opens a paper downloads zero demo code.
+What that changed:
 
-The cost is that the demo is one click less discoverable. If Kevin would
-rather have it inline on the homepage, that is a layout change to the
-right-hand column and should be decided before any demo is built, since it
-determines the scene width budget.
+- The narrow 340px right column is gone. Selected work is now a full-width
+  row at roughly 34% citation / 66% demo, which clears the 480px minimum on
+  desktop and stacks below 860px.
+- No teaser on those rows, per Kevin's call.
+- The overlay shows teaser, tree ring and demo together, for selected papers
+  only.
+- Because demos are now on first paint, the lazy-loading discipline matters
+  more than it would have under my proposal, not less. Measured: the initial
+  payload carries only the 2.6 kB loader; the paper module and player are
+  fetched on first activation and confirmed absent before it.
 
-Note the overlay's own accessibility is currently incomplete regardless of
-demos: it sets `aria-hidden` and fades `#main-content` with opacity, but does
-not trap focus, mark the background `inert`, or restore focus on close. If
-demos go in the overlay, that needs fixing first — a keyboard user would
-otherwise tab from the demo straight into the hidden page behind it.
+**Still outstanding, and now more pressing:** the overlay does not trap focus,
+mark the background `inert`, or restore focus on close. It sets `aria-hidden`
+and fades `#main-content` with opacity, which does not remove the page behind
+it from the keyboard order. With a demo inside the overlay, a keyboard user
+can tab out of the demo and into the hidden page. This should be fixed before
+launch. It is pre-existing, not introduced by the demos.
 
-### Per-paper format
+### Per-paper format — superseded
 
-I agree with Codex's table and would not change the assignments:
+Codex's table and my agreement with it are both overridden by decision 1:
+**every demo is a scripted widget.** Recorded here for the record only.
 
-| Paper | Format | Why |
+| Paper | Was proposed | Now |
 | --- | --- | --- |
-| Codellaborator | Scripted widget | Agent presence and provenance are invisible in a still. |
-| Cocoa | Scripted widget | Assignment and interleaving need a few deterministic clicks. |
-| ProMemAssist | Short muted video, frames until footage exists | Physical context is the point; a memory meter would obscure it. |
-| IdeaSynth | Captioned screenshots | The real canvas and citations matter more than a fake graph editor. |
-| SemanticOn | Captioned screenshots | Preserves the programming-by-demonstration context. |
+| Codellaborator | Scripted widget | Scripted widget — **built** |
+| Cocoa | Scripted widget | Scripted widget — placeholder |
+| ProMemAssist | Short muted video | Scripted widget — placeholder |
+| IdeaSynth | Captioned screenshots | Scripted widget — placeholder |
+| SemanticOn | Captioned screenshots | Scripted widget — placeholder |
+
+A scripted widget for ProMemAssist is the hardest of the four remaining,
+because the paper's story is physical: a dining-table task interrupted by a
+competing one. A widget has to convey a real-world scene without footage,
+probably as a simple schematic of the task state plus the assistant's timing
+decision. Worth discussing before building.
 
 One caution on ProMemAssist: any reconstructed internal state must be labelled
 illustrative. The system estimates working memory from observable signals, and
@@ -189,12 +234,12 @@ accessible.
 
 ## Open questions
 
-1. **Placement** — demo in the overlay (my recommendation) or inline on the
-   homepage? Determines the scene width budget.
-2. **Scope** — build all five, or ship Codellaborator and Cocoa (the two
-   scripted widgets, which need no footage) and add the rest as assets arrive?
-3. **The overlay's focus handling** — worth fixing on its own merits, but it
-   becomes a blocker if demos live there.
+1. **Overlay focus handling** — now a launch blocker rather than a nicety,
+   since demos live inside the overlay too. See "Placement, as built".
+2. **ProMemAssist as a widget** — the one case where the format decision
+   fights the paper's physical framing. Needs a treatment agreed before build.
+3. **Per-paper material** — Kevin is supplying figures and demo frames one
+   paper at a time. Each arrival is one new module under `src/demos/papers/`.
 
 ## Budget
 
@@ -202,11 +247,16 @@ Codex's targets are reasonable and I would hold to them: ≤10 KB compressed for
 the shared loader and styles, ≤20 KB per scripted scene loaded only on
 activation, ≤300 KB for a screenshot sequence, ≤1 MB for a short muted video.
 
-One correction to the framing: the handoff calls the homepage figure an
-engineering target rather than a measurement, which is right. For reference,
-the homepage after the image-pipeline work now serves its profile photo at
-1.5–6 KB and teaser thumbnails at roughly 2–6 KB each, so there is real
-headroom — but the PDFs in `public/assets/pdf/` still total 70 MB, with
-`storyensemble_uist_2025.pdf` alone at 33 MB. Those are linked rather than
-embedded, so they do not affect page weight, but they are the largest
-remaining weight problem on the site.
+Measured on the built output rather than estimated:
+
+- Initial demo JavaScript: **2.6 KB** (`demo-loader`), confirmed to be the
+  only demo code requested before interaction.
+- On activation: `codellaborator` 3.7 KB + `demo-player` 1.7 KB.
+- `registry` does not appear in the client bundle at all.
+- Profile photo resolves to 1.5–6 KB; teaser thumbnails 2–6 KB each.
+
+The PDFs in `public/assets/pdf/` remain the largest weight problem on the
+site: 70 MB total, with `storyensemble_uist_2025.pdf` alone at 33 MB. They are
+linked rather than embedded, so they do not affect page weight, but they do
+affect anyone who clicks. Kevin has a 5 MB replacement for that file which has
+not yet reached the branch.

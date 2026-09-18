@@ -26,8 +26,10 @@ body {
   transition: background-color var(--transition-normal), color var(--transition-normal);
 }
 
+// Pointer affordance for elements the browser does not cover on its own.
+// Native buttons and links are handled by the rule below and by the UA.
 a, button, [role="button"], input[type="submit"], summary,
-label, select, [tabindex], .pub-card, .pub-entry, .photo-cell,
+label, select, [tabindex], .photo-cell,
 .branch-node, .branch-card, .timeline-card, .timeline-dot,
 .fnav-item, .link-pill, .back-btn, .expand-all-btn {
   cursor: pointer;
