@@ -63,7 +63,7 @@ export interface Publication {
   category: string | null;
   award: string | null;
   links: PubLinks;
-  abstract: string;
+  summary: string;
   selected: boolean;
   short_name?: string;
   short_desc?: string;

@@ -69,7 +69,7 @@ const linkItems = [
         ))}
       </p>
 
-      <p class="paper-abstract pd-stagger" style="--pd-i:4">{pub.abstract}</p>
+      <p class="paper-summary pd-stagger" style="--pd-i:4">{pub.summary}</p>
 
       {linkItems.length > 0 && (
         <div class="paper-links pd-stagger" style="--pd-i:5">
@@ -260,7 +260,7 @@ const linkItems = [
     a { color: var(--color-primary); &:hover { color: var(--color-secondary); } }
   }
 
-  .paper-abstract {
+  .paper-summary {
     font-size: 0.92rem;
     line-height: 1.7;
     color: var(--color-text);

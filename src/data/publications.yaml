@@ -1,6 +1,14 @@
 # =============================================================================
-# publications.yml — Kevin Pu's full publication list
-# Migrated from _bibliography/papers.bib for site redesign
+# publications.yaml — Kevin Pu's full publication list
+#
+# `summary` is a plain-language description of what each system does, written
+# for a general reader. It is NOT the paper's published abstract. Descriptions
+# deliberately avoid quantitative outcome claims; see the "Claims that must not
+# appear on the site" section of _new_material/website-update-brief.md. Link to
+# the DOI or PDF for the real abstract and results.
+#
+# Titles and author lists are transcribed from _new_material/references.bib.
+# Do not retype them from memory.
 # =============================================================================
 
 - slug: cocoa
@@ -29,7 +37,7 @@
     website: null
     doi: https://doi.org/10.1145/3772318.3791673
     code: null
-  abstract: "As AI agents take on increasingly long-running tasks involving sophisticated planning and execution, there is a corresponding need for novel interaction designs that enable deeper human-agent collaboration. However, most prior works leverage human interaction to fix \"autonomous\" workflows that have yet to become fully autonomous or rigidly treat planning and execution as separate stages. Based on a formative study with 9 researchers using AI to support their work, we propose a design that affords greater flexibility in collaboration, so that users can 1) delegate agency to the user or agent via a collaborative plan where individual steps can be assigned; and 2) interleave planning and execution so that plans can adjust after partial execution. We introduce Cocoa, a system that takes design inspiration from computational notebooks to support complex research tasks. A lab study (n=16) found that Cocoa enabled steerability without sacrificing ease-of-use, and a week-long field deployment (n=7) showed how researchers collaborated with Cocoa to accomplish real-world tasks."
+  summary: "Cocoa is a system for collaborating with AI agents on research tasks, taking design inspiration from computational notebooks. Work is represented as a collaborative plan whose individual steps can be assigned to either the user or the agent, and planning and execution are interleaved so a plan can be adjusted after it has partly run. The design grew out of a formative study with nine researchers using AI in their work, and was evaluated in a lab study and a week-long field deployment."
   selected: true
   teaser: cocoa.png
   teaser_type: image
@@ -59,7 +67,7 @@
     website: null
     doi: https://doi.org/10.1145/3746059.3747770
     code: null
-  abstract: "Wearable AI systems aim to provide timely assistance in daily life, but existing approaches often rely on user initiation or predefined task knowledge, neglecting users' current mental states. We introduce ProMemAssist, a smart glasses system that models a user's working memory (WM) in real-time using multi-modal sensor signals. Grounded in cognitive theories of WM, our system represents perceived information as memory items and episodes with encoding mechanisms, such as displacement and interference. This WM model informs a timing predictor that balances the value of assistance with the cost of interruption. In a user study with 12 participants completing cognitively demanding tasks, ProMemAssist delivered more selective assistance and received higher engagement compared to an LLM baseline system. Qualitative feedback highlights the benefits of WM modeling for nuanced, context-sensitive support, offering design implications for more attentive and user-aware proactive agents."
+  summary: "ProMemAssist is a smart glasses system that models a wearer's working memory in real time from multi-modal sensor signals. Grounded in cognitive theories of working memory, it represents perceived information as memory items and episodes with encoding mechanisms such as displacement and interference. That model feeds a timing predictor which weighs the value of offering assistance against the cost of interrupting. It was evaluated with twelve participants against an LLM baseline."
   selected: true
   teaser: promemassist.png
   teaser_type: image
@@ -85,7 +93,7 @@
     website: null
     doi: https://doi.org/10.1145/3746059.3747772
     code: null
-  abstract: "Design processes involve exploration, iteration, and movement across interconnected stages such as persona creation, problem framing, solution ideation, and prototyping. However, time and resource constraints often hinder designers from exploring broadly, collecting feedback, and revisiting earlier assumptions—making it difficult to uphold core design principles in practice. To better understand these challenges, we conducted a formative study with 15 participants—comprised of UX practitioners, students, and instructors. Based on the findings, we developed StoryEnsemble, a tool that integrates AI into a node-link interface and leverages forward and backward propagation to support dynamic exploration and iteration across the design process. A user study with 10 participants showed that StoryEnsemble enables rapid, multi-directional iteration and flexible navigation across design stages. This work advances our understanding of how AI can foster more iterative design practices by introducing novel interactions that make exploration and iteration more fluid, accessible, and engaging."
+  summary: "StoryEnsemble integrates AI into a node-link interface for design work, using forward and backward propagation to move between stages such as persona creation, problem framing, ideation, and prototyping. A change in one stage can propagate to the others in either direction, so designers can revisit earlier assumptions without starting over. It was developed from a formative study with fifteen UX practitioners, students, and instructors, and evaluated with ten participants."
   selected: false
   teaser: storyensemble.png
   teaser_type: image
@@ -116,7 +124,7 @@
     website: null
     doi: https://doi.org/10.1145/3706598.3713357
     code: null
-  abstract: "AI programming tools enable powerful code generation, and recent prototypes attempt to reduce user effort with proactive AI agents, but their impact on programming workflows remains unexplored. We introduce and evaluate Codellaborator, a design probe LLM agent that initiates programming assistance based on editor activities and task context. We explored three interface variants to assess trade-offs between increasingly salient AI support: prompt-only, proactive agent, and proactive agent with presence and context (Codellaborator). In a within-subject study (N = 18), we find that proactive agents increase efficiency compared to prompt-only paradigm, but also incur workflow disruptions. However, presence indicators and interaction context support alleviated disruptions and improved users' awareness of AI processes. We underscore trade-offs of Codellaborator on user control, ownership, and code understanding, emphasizing the need to adapt proactivity to programming processes. Our research contributes to the design exploration and evaluation of proactive AI systems, presenting design implications on AI-integrated programming workflow."
+  summary: "Codellaborator is a design probe for proactive AI programming assistance: an LLM agent that initiates help based on editor activity and task context rather than waiting to be prompted. The work compares three interface variants of increasing salience — prompt-only, a proactive agent, and a proactive agent with presence indicators and interaction context — to examine the trade-offs proactive support creates around user control, ownership, and code understanding. It was evaluated in a within-subjects study with eighteen participants."
   selected: true
   teaser: cody.png
   teaser_type: image
@@ -149,7 +157,7 @@
     website: null
     doi: https://doi.org/10.1145/3706598.3714057
     code: null
-  abstract: "Research ideation involves broad exploring and deep refining ideas. Both require deep engagement with literature. Existing tools focus primarily on broad idea generation, yet offer little support for iterative specification, refinement, and evaluation needed to further develop initial ideas. To bridge this gap, we introduce IdeaSynth, a research idea development system that uses LLMs to provide literature-grounded feedback for articulating research problems, solutions, evaluations, and contributions. IdeaSynth represents these idea facets as nodes on a canvas, and allow researchers to iteratively refine them by creating and exploring variations and combinations. Our lab study (N = 20) showed that participants, while using IdeaSynth, explored more alternative ideas and expanded initial ideas with more details compared to a strong LLM-based baseline. Our deployment study (N = 7) demonstrated that participants effectively used IdeaSynth for real-world research projects at various ideation stages from developing initial ideas to revising framings of mature manuscripts, highlighting the possibilities to adopt IdeaSynth in researcher's workflows."
+  summary: "IdeaSynth supports the development of research ideas by representing facets of an idea — problem, solution, evaluation, contribution — as nodes on a canvas, with LLM-generated feedback grounded in the literature. Researchers refine ideas by creating and exploring variations and combinations of those facets. It was evaluated in a lab study with twenty participants and a deployment study with seven researchers working on real projects, from developing initial ideas to revising the framing of mature manuscripts."
   selected: true
   teaser: ideasynth.jpg
   teaser_type: image
@@ -176,7 +184,7 @@
     website: null
     doi: https://doi.org/10.1145/3654777.3676347
     code: null
-  abstract: "Programming instructors often conduct collaborative learning activities, like Peer Instruction, to foster a deeper understanding in students and enhance their engagement with learning. These activities, however, may not always yield productive outcomes due to the diversity of student mental models and their ineffective collaboration. In this work, we introduce VizGroup, an AI-assisted system that enables programming instructors to easily oversee students' real-time collaborative learning behaviors during large programming courses. VizGroup leverages Large Language Models (LLMs) to recommend event specifications for instructors so that they can simultaneously track and receive alerts about key correlation patterns between various collaboration metrics and ongoing coding tasks. We evaluated VizGroup with 12 instructors in a comparison study using a dataset collected from a Peer Instruction activity that was conducted in a large programming lecture. The results showed that VizGroup helped instructors effectively overview, narrow down, and track nuances throughout students' behaviors."
+  summary: "VizGroup helps programming instructors oversee students' real-time collaborative learning behaviour during large courses. It uses LLMs to recommend event specifications, so instructors can track and receive alerts about correlation patterns between collaboration metrics and ongoing coding tasks. It was evaluated with twelve instructors using data collected from a Peer Instruction activity in a large programming lecture."
   selected: false
   teaser: vizgroup.png
   teaser_type: image
@@ -200,7 +208,7 @@
     website: null
     doi: https://doi.org/10.1145/3613904.3642367
     code: null
-  abstract: "Creating dedicated accounts to post users' pet content is a growing trend on Instagram. While these account owners derive joy from this pursuit, they may also struggle with criticisms and challenges. Yet, there remains a knowledge gap on how pet account owners manage their pets' online presence and navigate these obstacles successfully. Drawing from interviews with 21 Instagram pet account owners, we uncover the motivations behind pet account creation, spanning personal, altruistic, and commercial goals. We learn about the strategies employed for crafting their pets' online identities and personas, as well as the challenges faced by both owners and their pets in navigating the complexities of digital identity management. We discuss the evolving dynamics between humans and their pets, positioning pet identity cultivation as a form of collaborative work, akin to the \"third shift\", highlighting the need to design interfaces that support this unique identity management process."
+  summary: "An interview study with twenty-one Instagram pet account owners, examining why people create dedicated accounts for their pets and how they manage them. It covers the personal, altruistic, and commercial motivations behind pet account creation, the strategies owners use to craft their pets' online identities and personas, and the challenges both owners and pets face in navigating digital identity management. The paper positions pet identity cultivation as a form of collaborative work."
   selected: false
   teaser: pupularity.png
   teaser_type: image
@@ -229,7 +237,7 @@
     website: null
     doi: https://doi.org/10.1145/3586183.3606822
     code: null
-  abstract: "Knowledge workers frequently encounter repetitive web data entry tasks, like updating records or placing orders. Web automation increases productivity, but translating tasks to web actions accurately and extending to new specifications is challenging. Existing tools can automate tasks that perform the same logical trace of UI actions (e.g., input text in each field in order), but do not support tasks requiring different executions based on varied input conditions. We present DiLogics, a programming-by-demonstration system that utilizes NLP to assist users in creating web automation programs that handle diverse specifications. DiLogics first semantically segments input data to structured task steps. By recording user demonstrations for each step, DiLogics generalizes the web macros to novel but semantically similar task requirements. Our evaluation showed that non-experts can effectively use DiLogics to create automation programs that fulfill diverse input instructions. DiLogics provides an efficient, intuitive, and expressive method for developing web automation programs satisfying diverse specifications."
+  summary: "DiLogics is a programming-by-demonstration system for building web automation programs that handle varied input conditions, rather than repeating one fixed sequence of UI actions. It uses NLP to segment input data into structured task steps, then records a user demonstration for each step and generalizes those recordings to novel but semantically similar task requirements."
   selected: false
   teaser: dilogics.png
   teaser_type: image
@@ -259,7 +267,7 @@
     website: null
     doi: https://doi.org/10.1145/3526113.3545691
     code: null
-  abstract: "Data scientists, researchers, and clerks often create web automation programs to perform repetitive yet essential tasks, such as data scraping and data entry. However, existing web automation systems lack mechanisms for defining conditional behaviors where the system can intelligently filter candidate content based on semantic filters (e.g., extract texts based on key ideas or images based on entity relationships). We introduce SemanticOn, a system that enables users to specify, refine, and incorporate visual and textual semantic conditions in web automation programs via two methods: natural language description via prompts or information highlighting. Users can coordinate with SemanticOn to refine the conditions as the program continuously executes or reclaim manual control to repair errors. In a user study, participants completed a series of conditional web automation tasks. They reported that SemanticOn helped them effectively express and refine their semantic intent by utilizing visual and textual conditions."
+  summary: "SemanticOn lets users attach content-based semantic conditions to web automation programs, filtering candidate content by meaning rather than by fixed selectors. Conditions are specified either through natural language prompts or by highlighting relevant information, and can be refined while the program runs; users can also reclaim manual control to repair errors."
   selected: true
   teaser: semanticon.jpeg
   teaser_type: image
@@ -289,7 +297,7 @@
     website: null
     doi: null
     code: null
-  abstract: ""
+  summary: ""
   selected: false
   teaser: null
   teaser_type: null
