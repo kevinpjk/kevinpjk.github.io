@@ -1,43 +1,13 @@
 // =============================================================================
 // Animations
+//
+// Decorative motion has been deliberately removed for a more professional
+// read: the profile-photo bob, the staggered page-load fade, the paper-detail
+// stagger, and an unused tree-ring rotation.
+//
+// What remains is interaction feedback only — hover and focus transitions on
+// cards, links and controls, defined next to the components that use them.
+// The `prefers-reduced-motion` block in _base.scss still applies to those, to
+// the smooth anchor scrolling used by the single-page nav, and to the scripted
+// paper demos, which can auto-advance.
 // =============================================================================
-
-// Profile photo floating bob
-@keyframes float-bob {
-  0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(-4px); }
-}
-
-.float-bob {
-  animation: float-bob 4s ease-in-out infinite;
-}
-
-// Staggered fade-in on page load
-@keyframes fade-in-up {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.stagger-in {
-  opacity: 0;
-  animation: fade-in-up 400ms ease-out forwards;
-}
-
-@for $i from 1 through 10 {
-  .stagger-in:nth-child(#{$i}),
-  .stagger-delay-#{$i} {
-    animation-delay: #{$i * 60}ms;
-  }
-}
-
-// Tree-ring slow rotation
-@keyframes slow-rotate {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
-}

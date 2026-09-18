@@ -1,0 +1,199 @@
+---
+/**
+ * PublicationEntry — one row in the full publication list.
+ *
+ * This is where the teaser figure lives: a small thumbnail beside a dense,
+ * academic citation line.
+ */
+import { Image } from 'astro:assets';
+import { getTeaser } from '../lib/data';
+import type { Publication } from '../lib/data';
+
+interface Props {
+  pub: Publication;
+}
+
+const { pub } = Astro.props;
+const teaser = getTeaser(pub.teaser);
+const venueLabel = pub.workshop && pub.venue_full
+  ? pub.venue_full
+  : `${pub.venue} ${pub.year}`;
+
+const links = [
+  { label: 'PDF', url: pub.links.pdf },
+  { label: 'Video', url: pub.links.video },
+  { label: 'arXiv', url: pub.links.arxiv },
+  { label: 'ACM DL', url: pub.links.doi },
+  { label: 'Code', url: pub.links.code },
+].filter(l => l.url);
+---
+
+<article class="pub-row" id={`pub-${pub.slug}`} data-slug={pub.slug}>
+  <div class="pub-row-thumb">
+    {teaser ? (
+      <Image
+        src={teaser}
+        alt={`Teaser figure for ${pub.title}`}
+        widths={[160, 320]}
+        sizes="104px"
+        width={160}
+        height={112}
+        loading="lazy"
+        decoding="async"
+      />
+    ) : (
+      <span class="pub-row-thumb-empty" aria-hidden="true"></span>
+    )}
+  </div>
+
+  <div class="pub-row-body">
+    <h3 class="pub-row-title">
+      <button class="pub-row-open" data-open-paper={pub.slug}>{pub.title}</button>
+    </h3>
+
+    <p class="pub-row-authors">
+      {pub.authors.map((a, i) => (
+        <span class:list={{ highlight: a.highlight }}>
+          {a.name}{i < pub.authors.length - 1 ? ', ' : ''}
+        </span>
+      ))}
+    </p>
+
+    <p class="pub-row-meta">
+      <span class="pub-row-venue">{venueLabel}</span>
+      {pub.award && (
+        <span class="pub-row-award">{pub.award === 'Best Paper' ? '🏆' : '🥇'} {pub.award}</span>
+      )}
+      {links.map(l => (
+        <a href={l.url!} target="_blank" rel="noopener noreferrer">{l.label}</a>
+      ))}
+    </p>
+  </div>
+</article>
+
+<style lang="scss">
+  .pub-row {
+    position: relative;
+    display: grid;
+    grid-template-columns: 104px minmax(0, 1fr);
+    gap: 1rem;
+    padding: 0.9rem 0;
+    border-top: 1px solid var(--bg-surface-border);
+    transition: background-color var(--transition-fast);
+
+    &:hover { background: var(--bg-surface); }
+  }
+
+  .pub-row-thumb {
+    width: 104px;
+    height: 72px;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    border: 1px solid var(--bg-surface-border);
+    background: var(--bg-surface);
+
+    :global(img) {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+  }
+
+  .pub-row-thumb-empty {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: var(--bg-primary);
+  }
+
+  .pub-row-body { min-width: 0; }
+
+  .pub-row-title {
+    margin: 0 0 0.25rem;
+    font-size: 0.92rem;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  .pub-row-open {
+    padding: 0;
+    text-align: left;
+    font: inherit;
+    color: var(--color-text);
+
+    // Makes the whole row activate the detail, while staying one real control.
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+    }
+
+    &:hover {
+      color: var(--color-primary);
+      text-decoration: underline;
+      text-underline-offset: 0.15em;
+    }
+  }
+
+  .pub-row-authors {
+    margin: 0 0 0.3rem;
+    font-size: 0.78rem;
+    line-height: 1.5;
+    color: var(--color-text-muted);
+
+    .highlight {
+      font-weight: 600;
+      color: var(--color-text);
+    }
+  }
+
+  .pub-row-meta {
+    display: flex;
+    align-items: baseline;
+    gap: 0.7rem;
+    flex-wrap: wrap;
+    margin: 0;
+    font-size: 0.74rem;
+
+    // Links must sit above the title button's full-row overlay.
+    a {
+      position: relative;
+      z-index: 1;
+      color: var(--color-text-muted);
+      text-decoration: underline;
+      text-underline-offset: 0.2em;
+      text-decoration-color: var(--bg-surface-border);
+
+      &:hover {
+        color: var(--color-primary);
+        text-decoration-color: currentColor;
+      }
+    }
+  }
+
+  .pub-row-venue {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-text-muted);
+  }
+
+  .pub-row-award {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--color-accent);
+  }
+
+  @media (max-width: 560px) {
+    .pub-row {
+      grid-template-columns: 72px minmax(0, 1fr);
+      gap: 0.75rem;
+    }
+
+    .pub-row-thumb { width: 72px; height: 52px; }
+    .pub-row-title { font-size: 0.88rem; }
+  }
+</style>

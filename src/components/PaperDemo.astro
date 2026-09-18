@@ -1,0 +1,371 @@
+---
+/**
+ * PaperDemo — frame for a scripted paper demo.
+ *
+ * The first scene, the caption and the full transcript are rendered into
+ * static HTML here, so with JavaScript disabled or blocked the demo degrades
+ * to a captioned figure plus a readable walkthrough. Controls start hidden and
+ * are revealed by the loader, so a non-JS visitor never sees a dead button.
+ *
+ * A paper with no module under src/demos/ renders a placeholder instead.
+ */
+import { demos } from '../demos/registry';
+
+interface Props {
+  slug: string;
+  /** Larger stage for the detail overlay; compact for the homepage row. */
+  size?: 'compact' | 'full';
+}
+
+const { slug, size = 'compact' } = Astro.props;
+const demo = demos[slug];
+---
+
+{demo ? (
+  <figure
+    class:list={['paper-demo', `paper-demo--${size}`]}
+    data-paper-demo
+    data-demo-id={demo.id}
+  >
+    <div class="demo-stage-wrap">
+      <div class="demo-stage" data-demo-stage role="img" aria-label={demo.stageLabel} set:html={demo.render(0)} />
+      <span class="demo-badge">Scripted example</span>
+    </div>
+
+    <figcaption class="demo-caption" aria-live="polite" aria-atomic="true">
+      <span class="demo-counter" data-demo-counter>1 / {demo.steps.length} &middot; {demo.steps[0].label}</span>
+      <span class="demo-text" data-demo-caption>{demo.steps[0].caption}</span>
+    </figcaption>
+
+    <div class="demo-controls" data-demo-controls hidden>
+      <button class="demo-btn" type="button" data-demo-action="back" disabled>Back</button>
+      <button class="demo-btn demo-btn--primary" type="button" data-demo-action="next">{demo.steps[0].action}</button>
+      <button class="demo-btn" type="button" data-demo-action="play" aria-label="Play the walkthrough">Play</button>
+    </div>
+
+    <p class="demo-status" data-demo-status role="status" hidden></p>
+
+    <details class="demo-transcript">
+      <summary>Read the walkthrough</summary>
+      <ol>
+        {demo.transcript.map(line => <li>{line}</li>)}
+      </ol>
+    </details>
+  </figure>
+) : (
+  <div class:list={['paper-demo', 'paper-demo--placeholder', `paper-demo--${size}`]}>
+    <p class="demo-placeholder-text">Interactive demo in progress.</p>
+  </div>
+)}
+
+<style lang="scss">
+  .paper-demo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-width: 0;
+  }
+
+  .demo-stage-wrap {
+    position: relative;
+    border: 1px solid var(--bg-surface-border);
+    border-radius: var(--radius-md);
+    background: var(--bg-surface);
+    overflow: hidden;
+  }
+
+  .demo-stage {
+    display: grid;
+    grid-template-columns: 1.35fr 1fr;
+    gap: 0;
+    min-height: 168px;
+    font-size: 0.72rem;
+  }
+
+  .paper-demo--full .demo-stage {
+    min-height: 240px;
+    font-size: 0.8rem;
+  }
+
+  .demo-badge {
+    position: absolute;
+    right: 0.4rem;
+    bottom: 0.4rem;
+    padding: 0.1rem 0.4rem;
+    border-radius: var(--radius-sm);
+    background: var(--bg-primary);
+    border: 1px solid var(--bg-surface-border);
+    color: var(--color-text-muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .demo-caption {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    font-size: 0.76rem;
+    line-height: 1.45;
+  }
+
+  .demo-counter {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-muted);
+  }
+
+  .demo-text { color: var(--color-text); }
+
+  .demo-controls {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+
+  .demo-btn {
+    // 44px tall hit area, per the accessibility target.
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0.4rem 0.8rem;
+    border: 1px solid var(--bg-surface-border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-surface);
+    color: var(--color-text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 500;
+    transition: background-color var(--transition-fast), border-color var(--transition-fast);
+
+    &:hover:not(:disabled) {
+      border-color: var(--color-secondary);
+      background: var(--bg-primary);
+    }
+
+    &:disabled {
+      opacity: 0.45;
+      cursor: default;
+    }
+  }
+
+  .demo-btn--primary {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    font-weight: 600;
+  }
+
+  .demo-status {
+    margin: 0;
+    font-size: 0.74rem;
+    color: var(--color-accent);
+  }
+
+  .demo-transcript {
+    font-size: 0.74rem;
+    color: var(--color-text-muted);
+
+    summary {
+      cursor: pointer;
+      font-weight: 500;
+      &:hover { color: var(--color-primary); }
+    }
+
+    ol {
+      list-style: decimal;
+      padding-left: 1.2rem;
+      margin: 0.4rem 0 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      line-height: 1.5;
+    }
+  }
+
+  .paper-demo--placeholder {
+    display: grid;
+    place-items: center;
+    min-height: 168px;
+    border: 1px dashed var(--bg-surface-border);
+    border-radius: var(--radius-md);
+    background: var(--bg-surface);
+  }
+
+  .demo-placeholder-text {
+    margin: 0;
+    font-size: 0.76rem;
+    color: var(--color-text-muted);
+    font-style: italic;
+  }
+
+  @media (max-width: 700px) {
+    .demo-stage {
+      grid-template-columns: 1fr;
+      font-size: 0.7rem;
+    }
+  }
+</style>
+
+<style lang="scss" is:global>
+  // ---------------------------------------------------------------------------
+  // Scene styles for the Codellaborator demo.
+  //
+  // Global because the scene markup is injected by the demo module rather than
+  // rendered by this component, so Astro's scoping attribute is not applied.
+  // Every selector is prefixed `cd-` to keep it namespaced.
+  // ---------------------------------------------------------------------------
+  .cd-editor {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    border-right: 1px solid var(--bg-surface-border);
+  }
+
+  .cd-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.35rem 0.55rem;
+    background: var(--bg-primary);
+    border-bottom: 1px solid var(--bg-surface-border);
+  }
+
+  .cd-file {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.66rem;
+    color: var(--color-text-muted);
+  }
+
+  .cd-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3em;
+    padding: 0.1rem 0.4rem;
+    border-radius: 999px;
+    border: 1px solid var(--bg-surface-border);
+    background: var(--bg-surface);
+    font-size: 0.62rem;
+    white-space: nowrap;
+    color: var(--color-text-muted);
+    transition: color var(--transition-fast), border-color var(--transition-fast);
+  }
+
+  .cd-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+  }
+
+  .cd-status--busy { color: var(--color-accent); border-color: var(--color-accent); }
+  .cd-status--done { color: var(--color-primary); border-color: var(--color-primary); }
+
+  .cd-code-area {
+    flex: 1;
+    padding: 0.4rem 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.92em;
+    line-height: 1.75;
+  }
+
+  .cd-line {
+    position: relative;
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    // Room for the AI caret pinned at the right edge.
+    padding: 0 3.2rem 0 0.55rem;
+  }
+
+  // Provenance band marking an AI-authored line.
+  .cd-line.is-ai {
+    background: var(--color-highlight-glow);
+    box-shadow: inset 2px 0 0 var(--color-secondary);
+  }
+
+  .cd-no {
+    flex-shrink: 0;
+    width: 1ch;
+    text-align: right;
+    font-size: 0.62rem;
+    color: var(--color-text-muted);
+    opacity: 0.7;
+  }
+
+  .cd-code {
+    white-space: pre;
+    overflow-x: auto;
+    color: var(--color-text);
+    font-size: inherit;
+  }
+
+  .cd-caret {
+    position: absolute;
+    right: 0.4rem;
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 0 0.3rem;
+    border-radius: var(--radius-sm);
+    background: var(--color-secondary);
+    color: var(--bg-surface);
+    font-size: 0.56rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .cd-thread {
+    position: relative;
+    margin: 0.2rem 0.55rem 0.5rem 1.6rem;
+    padding: 0.4rem 0.5rem;
+    border: 1px solid var(--bg-surface-border);
+    border-left: 2px solid var(--color-secondary);
+    border-radius: var(--radius-sm);
+    background: var(--bg-primary);
+  }
+
+  .cd-thread-body {
+    margin: 0;
+    font-size: 0.66rem;
+    line-height: 1.5;
+    color: var(--color-text);
+
+    b { color: var(--color-text-muted); font-weight: 600; }
+  }
+
+  .cd-thread-body--ai b { color: var(--color-primary); }
+
+  .cd-panel {
+    padding: 0.5rem 0.6rem;
+    background: var(--bg-primary);
+    min-width: 0;
+  }
+
+  .cd-panel-label {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-muted);
+    margin-bottom: 0.25rem;
+  }
+
+  .cd-panel-body {
+    margin: 0;
+    font-size: 0.68rem;
+    line-height: 1.5;
+    color: var(--color-text);
+  }
+
+  .tok-kw { color: var(--color-primary); font-weight: 600; }
+  .tok-fn { color: var(--color-accent); }
+  .tok-str { color: var(--color-text-muted); font-style: italic; }
+
+  @media (max-width: 700px) {
+    .cd-editor { border-right: none; border-bottom: 1px solid var(--bg-surface-border); }
+  }
+</style>

@@ -1,9 +1,10 @@
 ---
 /**
  * PaperDetail — rendered once per publication, hidden by default.
- * Content elements stream in top-to-bottom using stagger-in keyframes.
+ * Rendered once per publication, hidden by default.
  */
 import { Image } from 'astro:assets';
+import PaperDemo from './PaperDemo.astro';
 import { getTeaser } from '../lib/data';
 import type { Publication, VenueInfo } from '../lib/data';
 
@@ -35,7 +36,7 @@ const linkItems = [
 
   <div class="paper-detail-inner">
     <div class="paper-meta">
-      <button class="back-btn pd-stagger" data-action="close-detail" aria-label="Back" style="--pd-i:0">
+      <button class="back-btn" data-action="close-detail" aria-label="Back">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <line x1="19" y1="12" x2="5" y2="12"></line>
           <polyline points="12 19 5 12 12 5"></polyline>
@@ -43,7 +44,7 @@ const linkItems = [
         Back
       </button>
 
-      <div class="paper-venue-row pd-stagger" style="--pd-i:1">
+      <div class="paper-venue-row">
         <span class="venue-label">{venueLabel}</span>
         {pub.award === 'Best Paper' ? (
           <span class="award-badge">🏆 {pub.award}</span>
@@ -52,9 +53,9 @@ const linkItems = [
         ) : null}
       </div>
 
-      <h2 class="paper-title pd-stagger" style="--pd-i:2">{pub.title}</h2>
+      <h2 class="paper-title">{pub.title}</h2>
 
-      <p class="paper-authors pd-stagger" style="--pd-i:3">
+      <p class="paper-authors">
         {pub.authors.map((a, i) => (
           <span>
             {a.url ? (
@@ -69,10 +70,10 @@ const linkItems = [
         ))}
       </p>
 
-      <p class="paper-summary pd-stagger" style="--pd-i:4">{pub.summary}</p>
+      <p class="paper-summary">{pub.summary}</p>
 
       {linkItems.length > 0 && (
-        <div class="paper-links pd-stagger" style="--pd-i:5">
+        <div class="paper-links">
           {linkItems.map(l => (
             <a href={l.url!} class="link-pill" target="_blank" rel="noopener noreferrer">
               <span class="link-icon">{l.icon}</span> {l.label}
@@ -84,7 +85,7 @@ const linkItems = [
 
     <div class="paper-visuals">
       {teaser && (
-        <div class="paper-image-wrap pd-stagger" style="--pd-i:1">
+        <div class="paper-image-wrap">
           <Image
             src={teaser}
             alt={`Teaser figure for ${pub.title}`}
@@ -95,9 +96,15 @@ const linkItems = [
           />
         </div>
       )}
-      <div class="tree-ring-container pd-stagger" data-slug={pub.slug} style="--pd-i:3"></div>
+      <div class="tree-ring-container" data-slug={pub.slug}></div>
     </div>
   </div>
+
+  {pub.selected && (
+    <div class="paper-demo-row">
+      <PaperDemo slug={pub.slug} size="full" />
+    </div>
+  )}
   <div class="ring-tooltip" role="tooltip" aria-hidden="true"></div>
 </article>
 
@@ -190,7 +197,7 @@ const linkItems = [
   .paper-detail-inner {
     max-width: var(--max-width);
     margin: 0 auto;
-    padding: 3rem 1.5rem 4rem;
+    padding: 3rem 1.5rem 2rem;
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 3rem;
@@ -258,6 +265,14 @@ const linkItems = [
       text-decoration-thickness: 1.5px;
     }
     a { color: var(--color-primary); &:hover { color: var(--color-secondary); } }
+  }
+
+  // Sibling of .paper-detail-inner, so it matches that block's gutters
+  // rather than participating in its grid.
+  .paper-demo-row {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: 0 1.5rem 4rem;
   }
 
   .paper-summary {
@@ -362,23 +377,4 @@ const linkItems = [
 </style>
 
 <style is:global>
-  @keyframes pd-fade-in-down {
-    from {
-      opacity: 0;
-      transform: translateY(-18px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  .paper-detail .pd-stagger {
-    opacity: 0;
-  }
-
-  .paper-detail.active .pd-stagger {
-    animation: pd-fade-in-down 400ms ease-out forwards;
-    animation-delay: calc(var(--pd-i, 0) * 80ms + 100ms);
-  }
 </style>

@@ -4,22 +4,29 @@ import profilePhoto from '../assets/profile.jpg';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import JobMarketBanner from '../components/JobMarketBanner.astro';
 import NewsSection from '../components/NewsSection.astro';
-import PublicationCard from '../components/PublicationCard.astro';
+import SelectedWork from '../components/SelectedWork.astro';
+import PublicationEntry from '../components/PublicationEntry.astro';
 import PaperDetailOverlays from '../components/PaperDetailOverlays.astro';
-import { getSelectedPublications, getVenues } from '../lib/data';
+import {
+  getSelectedPublications,
+  getConferencePublications,
+  getWorkshopPublications,
+  getManuscriptsUnderReview,
+} from '../lib/data';
 
 const selectedPubs = getSelectedPublications();
-const venues = getVenues();
+const conferencePubs = getConferencePublications();
+const workshopPubs = getWorkshopPublications();
+const manuscripts = getManuscriptsUnderReview();
 
 /**
- * Selected-work themes, mirroring the structure of the research statement.
+ * Selected-work themes, mirroring the research statement.
  *
- * `pending` marks a theme whose work is still under review. It renders with
- * its heading and gloss but no paper list, so the three-part structure stays
- * visible without naming unpublished manuscripts. Enabling
- * `manuscripts_under_review` in site.yaml fills it in.
+ * A theme whose work is all under review renders with its heading and gloss
+ * but no papers, so the structure stays visible without naming unpublished
+ * manuscripts. Enabling `manuscripts_under_review` in site.yaml fills it in.
  */
-const categories = [
+const themes = [
   {
     key: 'when-ai-acts',
     label: 'When AI should act',
@@ -42,94 +49,122 @@ const categories = [
   },
 ];
 
-const pubsByCategory = categories
-  .map(cat => ({
-    ...cat,
-    pubs: selectedPubs.filter(p => p.category === cat.key),
-  }))
-  // A theme with no published work still appears, as a heading and gloss.
-  .filter(cat => cat.pubs.length > 0 || cat.key === 'where-direction-applies');
+const themed = themes
+  .map(t => ({ ...t, pubs: selectedPubs.filter(p => p.category === t.key) }))
+  .filter(t => t.pubs.length > 0 || t.key === 'where-direction-applies');
+
+// Full list, newest first.
+const years = [...new Set(conferencePubs.map(p => p.year))].sort((a, b) => b - a);
+const byYear = years.map(year => ({
+  year,
+  pubs: conferencePubs.filter(p => p.year === year),
+}));
+
+const contactLinks = [
+  { label: 'CV', href: '/assets/pdf/Kevin_Jiankai_Pu_Research_CV.pdf', external: true },
+  { label: 'Google Scholar', href: 'https://scholar.google.com/citations?user=TsENWEIAAAAJ', external: true },
+  { label: 'Twitter/X', href: 'https://twitter.com/kevpjk', external: true },
+  { label: 'Gallery', href: '/gallery/', external: false },
+  { label: 'Email', href: 'mailto:jpu@dgp.toronto.edu', external: false },
+];
 ---
 
 <BaseLayout title="Kevin Pu">
-  <div class="landing container" id="landing-content">
+  <div class="home container">
     <JobMarketBanner />
-    <div class="landing-grid">
-      <div class="landing-left">
-        <div class="hero-row stagger-in stagger-delay-1">
-          <div class="hero-text">
-            <h1 class="display-name">Kevin Pu</h1>
-            <p class="title-line">PhD Candidate &middot; Computer Science &middot; University of Toronto</p>
-            <p class="affiliations">
-              Advised by Prof.&nbsp;<a href="https://www.tovigrossman.com/" target="_blank" rel="noopener noreferrer">Tovi Grossman</a>
-              at the <a href="https://www.dgp.toronto.edu/" target="_blank" rel="noopener noreferrer">Dynamic Graphics Group</a>
-              and Prof.&nbsp;<a href="https://chensivan.github.io/" target="_blank" rel="noopener noreferrer">Yan Chen</a>
-            </p>
-            <p class="contact-line">
-              <a href="mailto:jpu@dgp.toronto.edu">jpu@dgp.toronto.edu</a>
-              &middot;
-              <a href="https://scholar.google.com/citations?user=TsENWEIAAAAJ" target="_blank" rel="noopener noreferrer" aria-label="Google Scholar">
-                <svg class="contact-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M5.242 13.769L0 9.5 12 0l12 9.5-5.242 4.269C17.548 11.249 14.978 9.5 12 9.5c-2.977 0-5.548 1.748-6.758 4.269zM12 10a7 7 0 1 0 0 14 7 7 0 0 0 0-14z"/></svg>
-                Scholar
-              </a>
-              &middot;
-              <a href="https://twitter.com/kevpjk" target="_blank" rel="noopener noreferrer" aria-label="Twitter / X">
-                <svg class="contact-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M23.954 4.569c-.885.389-1.83.654-2.825.775 1.014-.602 1.794-1.556 2.163-2.69-.949.555-2.005.959-3.127 1.184-.897-.949-2.178-1.54-3.594-1.54-2.723 0-4.928 2.174-4.928 4.857 0 .38.045.75.127 1.106-4.094-.203-7.725-2.139-10.157-5.082-.424.722-.666 1.561-.666 2.457 0 1.694.871 3.188 2.188 4.065-.807-.026-1.566-.245-2.228-.616v.061c0 2.367 1.717 4.342 3.995 4.793-.417.11-.856.171-1.309.171-.319 0-.63-.03-.932-.086.631 1.942 2.445 3.357 4.604 3.399-1.68 1.301-3.809 2.077-6.115 2.077-.398 0-.79-.023-1.175-.067 2.189 1.383 4.768 2.19 7.549 2.19 9.058 0 14.01-7.387 14.01-13.79 0-.21 0-.42-.015-.63.962-.689 1.8-1.56 2.46-2.548z"/></svg>
-                Twitter
-              </a>
-            </p>
-          </div>
-          <Image
-            src={profilePhoto}
-            alt="Kevin Pu"
-            class="profile-photo float-bob"
-            widths={[110, 160, 320]}
-            sizes="(max-width: 480px) 100px, (max-width: 768px) 110px, 160px"
-            width={320}
-            height={320}
-            loading="eager"
-            fetchpriority="high"
-          />
-        </div>
 
-        <div class="bio stagger-in stagger-delay-2">
-          <p>
-            My research interests lie in intersection of human-computer interaction and AI.
-            My past works have focused on aligning AI support with human capabilities to build harmonious
-            <span class="keyword" data-category="when-ai-acts"><strong>mixed-initiative interaction</strong></span>, enhancing
-            <span class="keyword" data-category="what-it-shows"><strong>human-AI collaboration</strong></span>
-            <!-- <span class="keyword" data-category="neurosymbolic"><strong>neurosymbolic program synthesis</strong></span> -->
-            workflows while balancing automation and human agency.
-             <!-- for automation, programming, and ideation. -->
+    <div class="home-grid">
+      <aside class="home-side">
+        <Image
+          src={profilePhoto}
+          alt="Kevin Pu"
+          class="side-photo"
+          widths={[120, 180, 360]}
+          sizes="(max-width: 900px) 96px, 150px"
+          width={360}
+          height={360}
+          loading="eager"
+          fetchpriority="high"
+        />
+
+        <div class="side-identity">
+          <h1 class="side-name">Kevin Pu</h1>
+          <p class="side-role">PhD Candidate, Computer Science<br />University of Toronto</p>
+          <p class="side-affil">
+            Advised by <a href="https://www.tovigrossman.com/" target="_blank" rel="noopener noreferrer">Tovi Grossman</a>
+            and <a href="https://chensivan.github.io/" target="_blank" rel="noopener noreferrer">Yan Chen</a>
+            at the <a href="https://www.dgp.toronto.edu/" target="_blank" rel="noopener noreferrer">DGP Lab</a>.
           </p>
         </div>
 
-        <div class="stagger-in stagger-delay-4">
-          <NewsSection />
-        </div>
-      </div>
+        <nav class="side-links" aria-label="Profiles and contact">
+          {contactLinks.map(l => (
+            <a
+              href={l.href}
+              {...(l.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+            >{l.label}</a>
+          ))}
+        </nav>
+      </aside>
 
-      <div class="landing-right stagger-in stagger-delay-5">
-        <div class="selected-pubs-header">
-          <h2 class="section-heading">Selected Publications</h2>
-          <a href="/publications/" class="show-all-link">Show all &rarr;</a>
-        </div>
+      <div class="home-main">
+        <section class="home-bio" aria-label="About">
+          <p>
+            I work at the intersection of human-computer interaction and AI. I build and study
+            interactive systems that decide <strong>when</strong> an AI system should act,
+            make <strong>what</strong> it did inspectable, and carry a person's
+            <strong>direction</strong> across tasks and sessions &mdash; keeping people in
+            control of increasingly autonomous tools.
+          </p>
+        </section>
 
-        {pubsByCategory.map(cat => (
-          <div class="pub-category-group">
-            <span class="category-label">{cat.label}</span>
-            <p class="category-gloss">{cat.gloss}</p>
-            {cat.pubs.length > 0 ? (
-              <div class="pub-cards">
-                {cat.pubs.map(pub => (
-                  <PublicationCard pub={pub} venueInfo={venues[pub.venue]} />
-                ))}
+        <NewsSection />
+
+        <section class="home-section" id="selected" aria-labelledby="selected-heading">
+          <h2 class="section-title" id="selected-heading">Selected Work</h2>
+
+          {themed.map(theme => (
+            <div class="theme-group">
+              <div class="theme-head">
+                <h3 class="theme-label">{theme.label}</h3>
+                <p class="theme-gloss">{theme.gloss}</p>
               </div>
-            ) : (
-              <p class="category-pending">Current work, under review.</p>
-            )}
-          </div>
-        ))}
+
+              {theme.pubs.length > 0 ? (
+                theme.pubs.map(pub => <SelectedWork pub={pub} />)
+              ) : manuscripts.length > 0 ? (
+                <ul class="theme-manuscripts">
+                  {manuscripts.map(m => (
+                    <li>
+                      <span class="tm-title">{m.title}</span>
+                      <span class="tm-status">Manuscript under review, {m.year}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p class="theme-pending">Current work, under review.</p>
+              )}
+            </div>
+          ))}
+        </section>
+
+        <section class="home-section" id="publications" aria-labelledby="publications-heading">
+          <h2 class="section-title" id="publications-heading">All Publications</h2>
+
+          {byYear.map(group => (
+            <div class="year-group">
+              <h3 class="year-label">{group.year}</h3>
+              {group.pubs.map(pub => <PublicationEntry pub={pub} />)}
+            </div>
+          ))}
+
+          {workshopPubs.length > 0 && (
+            <div class="year-group">
+              <h3 class="year-label">Workshop Papers</h3>
+              {workshopPubs.map(pub => <PublicationEntry pub={pub} />)}
+            </div>
+          )}
+        </section>
       </div>
     </div>
   </div>
@@ -138,222 +173,201 @@ const pubsByCategory = categories
 </BaseLayout>
 
 <style lang="scss">
-  .landing-grid {
+  .home { padding-bottom: 4rem; }
+
+  .home-grid {
     display: grid;
-    grid-template-columns: 1fr 340px;
+    grid-template-columns: 220px minmax(0, 1fr);
     gap: 3rem;
     align-items: start;
   }
 
-  .landing-left { min-width: 0; }
-
-  .hero-row {
-    display: flex;
-    align-items: flex-start;
-    gap: 2rem;
-  }
-
-  .hero-text { flex: 1; min-width: 0; }
-
-  .display-name {
-    font-family: 'Fraunces', serif;
-    font-size: 2.8rem;
-    font-weight: 700;
-    line-height: 1.15;
-    margin-bottom: 0.3rem;
-  }
-
-  .title-line {
-    font-size: 1.05rem;
-    color: var(--color-text-muted);
-    margin-bottom: 0.5rem;
-  }
-
-  .affiliations {
-    font-size: 0.95rem;
-    color: var(--color-text-muted);
-    line-height: 1.55;
-    margin-bottom: 0.35rem;
-  }
-
-  .contact-line {
-    font-size: 0.85rem;
-    color: var(--color-text-muted);
-    display: flex;
-    align-items: center;
-    gap: 0.3em;
-    flex-wrap: wrap;
-
-    a {
-      color: var(--color-text-muted);
-      display: inline-flex;
-      align-items: center;
-      gap: 0.25em;
-      &:hover { color: var(--color-primary); }
-    }
-  }
-
-  .contact-icon {
-    width: 14px;
-    height: 14px;
-    flex-shrink: 0;
-  }
-
-  .profile-photo {
-    width: 160px;
-    height: 160px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 3px solid var(--bg-surface-border);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-    flex-shrink: 0;
-  }
-
-  .bio {
-    margin-top: 1.5rem;
-    font-size: 1rem;
-    line-height: 1.7;
-  }
-
-  .keyword {
-    cursor: default;
-    padding: 0.05em 0.15em;
-    border-radius: var(--radius-sm);
-    transition: background-color var(--transition-fast);
-
-    &:hover, &.highlighted {
-      background-color: var(--color-highlight-glow);
-    }
-
-    strong { font-weight: 600; color: var(--color-primary); }
-  }
-
-  .landing-right {
+  // --- Sidebar -------------------------------------------------------------
+  .home-side {
     position: sticky;
     top: 2rem;
-  }
-
-  .selected-pubs-header {
     display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    margin-bottom: 1.25rem;
+    flex-direction: column;
+    gap: 1rem;
   }
 
-  .section-heading {
-    font-size: 1.15rem;
-    color: var(--color-primary);
+  .side-photo {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid var(--bg-surface-border);
   }
 
-  .show-all-link {
-    font-size: 0.82rem;
-    font-weight: 500;
-    color: var(--color-text-muted);
-    &:hover { color: var(--color-primary); }
+  .side-name {
+    font-family: 'Fraunces', serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin: 0 0 0.3rem;
   }
 
-  .pub-category-group { margin-bottom: 1.5rem; }
-
-  .category-gloss {
+  .side-role {
+    margin: 0 0 0.5rem;
     font-size: 0.82rem;
     line-height: 1.5;
     color: var(--color-text-muted);
-    margin: 0 0 0.6rem;
-    padding-left: 0.15rem;
   }
 
-  .category-pending {
-    font-size: 0.82rem;
-    color: var(--color-text-muted);
-    font-style: italic;
+  .side-affil {
     margin: 0;
-    padding: 0.6rem 0.15rem;
-    border-top: 1px dashed var(--bg-surface-border);
-  }
-
-  .category-label {
-    display: block;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.68rem;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
+    font-size: 0.78rem;
+    line-height: 1.55;
     color: var(--color-text-muted);
-    margin-bottom: 0.5rem;
-    padding-left: 0.15rem;
   }
 
-  .pub-cards {
+  .side-links {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    font-size: 0.8rem;
+
+    a {
+      color: var(--color-text-muted);
+      text-decoration: underline;
+      text-underline-offset: 0.2em;
+      text-decoration-color: var(--bg-surface-border);
+      width: fit-content;
+
+      &:hover {
+        color: var(--color-primary);
+        text-decoration-color: currentColor;
+      }
+    }
+  }
+
+  // --- Main column ---------------------------------------------------------
+  .home-main { min-width: 0; }
+
+  .home-bio p {
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.7;
+
+    strong { color: var(--color-primary); font-weight: 600; }
+  }
+
+  .home-section { margin-top: 3rem; }
+
+  .section-title {
+    font-family: 'Fraunces', serif;
+    font-size: 1.35rem;
+    font-weight: 600;
+    margin: 0 0 0.25rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 2px solid var(--color-primary);
+  }
+
+  // --- Themes --------------------------------------------------------------
+  .theme-group { margin-top: 1.75rem; }
+
+  .theme-head { margin-bottom: 0.25rem; }
+
+  .theme-label {
+    margin: 0;
+    font-size: 0.98rem;
+    font-weight: 600;
+    color: var(--color-primary);
+  }
+
+  .theme-gloss {
+    margin: 0.15rem 0 0;
+    font-size: 0.84rem;
+    line-height: 1.5;
+    color: var(--color-text-muted);
+  }
+
+  .theme-pending {
+    margin: 0.75rem 0 0;
+    padding-top: 0.75rem;
+    border-top: 1px dashed var(--bg-surface-border);
+    font-size: 0.84rem;
+    font-style: italic;
+    color: var(--color-text-muted);
+  }
+
+  .theme-manuscripts {
+    list-style: none;
+    margin: 0.75rem 0 0;
+    padding: 0;
     display: flex;
     flex-direction: column;
     gap: 0.6rem;
+
+    li {
+      padding-top: 0.6rem;
+      border-top: 1px solid var(--bg-surface-border);
+    }
   }
 
-  @media (max-width: 1024px) {
-    .landing-grid { grid-template-columns: 1fr; }
-    .landing-right { position: static; }
+  .tm-title {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    line-height: 1.4;
   }
 
-  @media (max-width: 768px) {
-    .hero-row { gap: 1.25rem; }
-    .display-name { font-size: 2.2rem; }
-    .profile-photo { width: 110px; height: 110px; }
+  .tm-status {
+    display: block;
+    margin-top: 0.15rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.66rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-text-muted);
+  }
+
+  // --- Year groups ---------------------------------------------------------
+  .year-group { margin-top: 1.5rem; }
+
+  .year-label {
+    margin: 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    letter-spacing: 0.04em;
+  }
+
+  // --- Responsive ----------------------------------------------------------
+  @media (max-width: 900px) {
+    .home-grid {
+      grid-template-columns: 1fr;
+      gap: 1.75rem;
+    }
+
+    .home-side {
+      position: static;
+      flex-direction: row;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 1.25rem;
+    }
+
+    .side-photo { width: 96px; height: 96px; }
+
+    .side-identity { flex: 1 1 16rem; min-width: 0; }
+
+    .side-links {
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      flex-basis: 100%;
+    }
   }
 
   @media (max-width: 480px) {
-    .hero-row {
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      gap: 1rem;
-    }
-
-    .hero-text { text-align: center; }
-
-    .contact-line { justify-content: center; }
-
-    .display-name { font-size: 1.8rem; }
-
-    .title-line { font-size: 0.92rem; }
-
-    .affiliations { font-size: 0.88rem; }
-
-    .profile-photo { width: 100px; height: 100px; }
-
-    .bio { font-size: 0.92rem; }
-
-    .selected-pubs-header { margin-top: 0.5rem; }
-
-    .section-heading { font-size: 1.05rem; }
+    .side-name { font-size: 1.4rem; }
+    .home-bio p { font-size: 0.94rem; }
+    .section-title { font-size: 1.2rem; }
   }
 </style>
 
 <script>
-  function initHighlighting() {
-    const keywords = document.querySelectorAll<HTMLElement>('.keyword');
-    const cards = document.querySelectorAll<HTMLElement>('.pub-card');
-
-    keywords.forEach(kw => {
-      const cat = kw.dataset.category;
-      kw.addEventListener('mouseenter', () => {
-        cards.forEach(card => { if (card.dataset.category === cat) card.classList.add('glow'); });
-      });
-      kw.addEventListener('mouseleave', () => {
-        cards.forEach(card => card.classList.remove('glow'));
-      });
-    });
-
-    cards.forEach(card => {
-      const cat = card.dataset.category;
-      card.addEventListener('mouseenter', () => {
-        keywords.forEach(kw => { if (kw.dataset.category === cat) kw.classList.add('highlighted'); });
-      });
-      card.addEventListener('mouseleave', () => {
-        keywords.forEach(kw => kw.classList.remove('highlighted'));
-      });
-    });
-  }
-
-  initHighlighting();
-  document.addEventListener('astro:after-swap', initHighlighting);
+  import '../scripts/demo-loader';
 </script>

@@ -1,0 +1,167 @@
+---
+/**
+ * SelectedWork — a wide row for one selected paper: citation on the left,
+ * scripted demo on the right.
+ *
+ * No teaser thumbnail here by design. The teaser belongs to the full
+ * publication list and the detail overlay; this row leads with the demo.
+ */
+import PaperDemo from './PaperDemo.astro';
+import type { Publication } from '../lib/data';
+
+interface Props {
+  pub: Publication;
+}
+
+const { pub } = Astro.props;
+const venueLabel = `${pub.venue} ${pub.year}`;
+
+const links = [
+  { label: 'PDF', url: pub.links.pdf },
+  { label: 'Video', url: pub.links.video },
+  { label: 'arXiv', url: pub.links.arxiv },
+  { label: 'ACM DL', url: pub.links.doi },
+  { label: 'Code', url: pub.links.code },
+].filter(l => l.url);
+---
+
+<article class="selected-work" data-category={pub.category} data-slug={pub.slug}>
+  <div class="sw-cite">
+    <div class="sw-meta">
+      <span class="sw-venue">{venueLabel}</span>
+      {pub.award && (
+        <span class="sw-award">{pub.award === 'Best Paper' ? '🏆' : '🥇'} {pub.award}</span>
+      )}
+    </div>
+
+    <h3 class="sw-title">
+      <button class="sw-open" data-open-paper={pub.slug}>{pub.title}</button>
+    </h3>
+
+    <p class="sw-authors">
+      {pub.authors.map((a, i) => (
+        <span class:list={{ highlight: a.highlight }}>
+          {a.name}{i < pub.authors.length - 1 ? ', ' : ''}
+        </span>
+      ))}
+    </p>
+
+    {pub.short_desc && <p class="sw-desc">{pub.short_desc}</p>}
+
+    {links.length > 0 && (
+      <p class="sw-links">
+        {links.map(l => (
+          <a href={l.url!} target="_blank" rel="noopener noreferrer">{l.label}</a>
+        ))}
+      </p>
+    )}
+  </div>
+
+  <div class="sw-demo">
+    <PaperDemo slug={pub.slug} size="compact" />
+  </div>
+</article>
+
+<style lang="scss">
+  .selected-work {
+    display: grid;
+    // ~34% citation / ~66% demo, per the demo's minimum comfortable width.
+    grid-template-columns: minmax(0, 0.52fr) minmax(0, 1fr);
+    gap: 1.5rem;
+    padding: 1.25rem 0;
+    border-top: 1px solid var(--bg-surface-border);
+  }
+
+  .sw-cite { min-width: 0; }
+
+  .sw-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.35rem;
+  }
+
+  .sw-venue {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-muted);
+  }
+
+  .sw-award {
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: var(--color-accent);
+  }
+
+  .sw-title {
+    margin: 0 0 0.3rem;
+    font-size: 0.98rem;
+    font-weight: 600;
+    line-height: 1.35;
+  }
+
+  .sw-open {
+    padding: 0;
+    text-align: left;
+    font: inherit;
+    color: var(--color-text);
+
+    &:hover {
+      color: var(--color-primary);
+      text-decoration: underline;
+      text-underline-offset: 0.15em;
+    }
+  }
+
+  .sw-authors {
+    margin: 0 0 0.4rem;
+    font-size: 0.78rem;
+    line-height: 1.5;
+    color: var(--color-text-muted);
+
+    .highlight {
+      font-weight: 600;
+      color: var(--color-text);
+    }
+  }
+
+  .sw-desc {
+    margin: 0 0 0.5rem;
+    font-size: 0.82rem;
+    line-height: 1.55;
+    color: var(--color-text);
+  }
+
+  .sw-links {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin: 0;
+    font-size: 0.76rem;
+
+    a {
+      color: var(--color-text-muted);
+      text-decoration: underline;
+      text-underline-offset: 0.2em;
+      text-decoration-color: var(--bg-surface-border);
+
+      &:hover {
+        color: var(--color-primary);
+        text-decoration-color: currentColor;
+      }
+    }
+  }
+
+  .sw-demo { min-width: 0; }
+
+  @media (max-width: 860px) {
+    .selected-work {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+  }
+</style>
