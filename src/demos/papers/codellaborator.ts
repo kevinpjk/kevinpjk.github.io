@@ -100,9 +100,20 @@ function scene(): string {
           </button>
         </div>
         <div class="cd-breakout-log" data-breakout-log></div>
+        <form class="cd-breakout-form" data-breakout-form>
+          <label class="cd-sr" for="cd-breakout-input">Reply to Cody in the breakout</label>
+          <input class="cd-input" id="cd-breakout-input" data-breakout-input type="text"
+                 placeholder="Reply…" autocomplete="off" />
+          <button class="cd-send" type="submit" aria-label="Send reply to Cody">
+            <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true">
+              <path d="M2 8l12-5.5L9 14l-1.5-5L2 8z" fill="currentColor"/>
+            </svg>
+          </button>
+        </form>
       </div>
 
-      <i class="cd-connector" data-connector aria-hidden="true"></i>
+      <i class="cd-connector cd-connector--v" data-connector-v aria-hidden="true"></i>
+      <i class="cd-connector cd-connector--h" data-connector-h aria-hidden="true"></i>
       <i class="cd-caret" data-caret data-mode="dot" aria-hidden="true"><b class="cd-caret-label" data-caret-label>Cody</b></i>
     </div>
   </div>
@@ -122,6 +133,10 @@ function mount(root: HTMLElement, ctx: DemoContext): DemoController {
   const sideLog = q<HTMLElement>('[data-side-log]');
   const sideForm = q<HTMLFormElement>('[data-side-form]');
   const sideInput = q<HTMLInputElement>('[data-side-input]');
+  const breakoutForm = q<HTMLFormElement>('[data-breakout-form]');
+  const breakoutInput = q<HTMLInputElement>('[data-breakout-input]');
+  const connV = q<HTMLElement>('[data-connector-v]');
+  const connH = q<HTMLElement>('[data-connector-h]');
 
   const aborter = new AbortController();
   const listen = { signal: aborter.signal };
@@ -274,38 +289,54 @@ function mount(root: HTMLElement, ctx: DemoContext): DemoController {
 
   function openBreakout(msgs: { who: 'you' | 'cody'; text: string }[]) {
     breakoutLog.innerHTML = chatMarkup(msgs);
+    breakoutLog.scrollTop = breakoutLog.scrollHeight;
+
+    // Unhide, force a reflow, then flip the open flag. Without the reflow both
+    // happen in one frame and the browser has no start value to animate from,
+    // so the panel would pop in rather than fade.
     breakout.hidden = false;
+    void breakout.offsetHeight;
     breakout.dataset.open = 'true';
 
     const anchor = linesEl.querySelector<HTMLElement>(`[data-line="${EDIT_FROM}"]`);
     anchor?.classList.add('is-anchored');
 
-    // Dotted run from the anchored line's breakpoint down to the panel, so
-    // the conversation is visibly tied to the line it is about. Measured
-    // after layout, since the panel's height depends on its content.
-    const connector = root.querySelector<HTMLElement>('[data-connector]');
-    if (!anchor || !connector) return;
+    // Dotted elbow: down the gutter from the breakpoint, then across to the
+    // panel's left edge. A single vertical segment stopped short of the panel,
+    // which sits to the right, so the two never visibly connected.
+    if (!anchor) return;
 
     requestAnimationFrame(() => {
       const box = editor.getBoundingClientRect();
       const lineBox = anchor.getBoundingClientRect();
       const panelBox = breakout.getBoundingClientRect();
-      const top = lineBox.top - box.top + lineBox.height / 2;
-      const height = panelBox.top - box.top - top;
-      if (height <= 0) return;
-      connector.style.top = `${top}px`;
-      connector.style.height = `${height}px`;
-      connector.dataset.visible = 'true';
+
+      const lineY = lineBox.top - box.top + lineBox.height / 2;
+      const panelY = panelBox.top - box.top;
+      const panelX = panelBox.left - box.left;
+      const gutterX = 11; // matches .cd-connector--v left offset
+
+      const drop = panelY - lineY;
+      if (drop <= 0 || panelX <= gutterX) return;
+
+      connV.style.top = `${lineY}px`;
+      connV.style.height = `${drop}px`;
+      connH.style.top = `${panelY}px`;
+      connH.style.left = `${gutterX}px`;
+      connH.style.width = `${panelX - gutterX}px`;
+      connV.dataset.visible = 'true';
+      connH.dataset.visible = 'true';
     });
   }
 
   function closeBreakout() {
     breakout.dataset.open = 'false';
-    breakout.hidden = true;
+    // Let the fade finish before removing it from the layout.
+    timers.push(window.setTimeout(() => { breakout.hidden = true; }, ctx.reducedMotion ? 0 : 260));
     linesEl.querySelectorAll('.cd-line.is-anchored')
       .forEach(el => el.classList.remove('is-anchored'));
-    const connector = root.querySelector<HTMLElement>('[data-connector]');
-    if (connector) connector.dataset.visible = 'false';
+    connV.dataset.visible = 'false';
+    connH.dataset.visible = 'false';
   }
 
   // --- the automated intro ------------------------------------------------
@@ -426,13 +457,34 @@ function mount(root: HTMLElement, ctx: DemoContext): DemoController {
     stopIntro();
     sideInput.value = '';
     appendMsg(sideLog, 'you', text);
+    setCaretMode('caret', 'working on it…');
+    ctx.announce('Cody is working on it.');
 
     // Cody answers in the breakout, anchored to the code under discussion.
     timers.push(window.setTimeout(() => {
       openBreakout([...BREAKOUT_SEED, { who: 'you', text }, { who: 'cody', text: REPLY }]);
       ctx.announce(`Cody replied in the breakout: ${REPLY}`);
       setCaretMode('dot');
-    }, ctx.reducedMotion ? 0 : 420));
+    }, ctx.reducedMotion ? 0 : 900));
+  }, listen);
+
+  // Replying inside the breakout keeps the conversation where the code is.
+  breakoutForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const text = breakoutInput.value.trim();
+    if (!text) return;
+
+    stopIntro();
+    breakoutInput.value = '';
+    appendMsg(breakoutLog, 'you', text);
+    setCaretMode('caret', 'working on it…');
+    ctx.announce('Cody is working on it.');
+
+    timers.push(window.setTimeout(() => {
+      appendMsg(breakoutLog, 'cody', REPLY);
+      ctx.announce(`Cody replied: ${REPLY}`);
+      setCaretMode('dot');
+    }, ctx.reducedMotion ? 0 : 900));
   }, listen);
 
   q<HTMLButtonElement>('[data-breakout-close]')
@@ -454,6 +506,7 @@ function mount(root: HTMLElement, ctx: DemoContext): DemoController {
       closeBreakout();
       sideLog.innerHTML = chatMarkup(SIDE_CHAT_SEED);
       sideInput.value = '';
+      breakoutInput.value = '';
       caret.dataset.visible = 'false';
       setCaretMode('dot');
       ctx.announce('Demo reset.');

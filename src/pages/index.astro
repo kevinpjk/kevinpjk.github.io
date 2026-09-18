@@ -293,13 +293,27 @@ const contactLinks = [
   }
 
   // --- Themes --------------------------------------------------------------
-  .theme-group { margin-top: 2rem; }
+  .theme-group { margin-top: 2.75rem; }
 
+  // Themes are marked by a short accent bar, type scale and space rather than
+  // a full-width rule. Stacked rules under the section title, under every
+  // theme and between every paper read as one repetitive ladder.
   .theme-head {
-    padding-bottom: 0.6rem;
-    border-bottom: 2px solid var(--color-secondary);
-    // Clears the sticky offset when jumped to from the bio.
+    position: relative;
+    padding-left: 1.1rem;
+    margin-bottom: 1rem;
     scroll-margin-top: 2rem;
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0.42em;
+      width: 4px;
+      height: 1.5em;
+      border-radius: 2px;
+      background: var(--color-secondary);
+    }
   }
 
   .theme-label {

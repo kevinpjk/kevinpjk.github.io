@@ -63,9 +63,12 @@ const { item } = Astro.props;
     display: grid;
     grid-template-columns: minmax(0, 0.46fr) minmax(0, 1fr);
     gap: 2rem;
-    padding: 1.6rem 0;
+    padding: 0 0 1.75rem;
 
-    & + & { border-top: 1px solid var(--bg-surface-border); }
+    & + & {
+      padding-top: 1.75rem;
+      border-top: 1px solid var(--bg-surface-border);
+    }
   }
 
   // Positioned so the title's click overlay covers THIS column only. If the

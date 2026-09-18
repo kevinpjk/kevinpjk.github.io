@@ -61,6 +61,7 @@ const links = [
 
     <p class="pub-row-meta">
       <span class="pub-row-venue">{venueLabel}</span>
+      {pub.role && <span class="pub-row-role">{pub.role}</span>}
       {pub.award && (
         <span class="pub-row-award">{pub.award === 'Best Paper' ? '🏆' : '🥇'} {pub.award}</span>
       )}
@@ -198,6 +199,17 @@ const links = [
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.07em;
+    color: var(--color-secondary);
+  }
+
+  .pub-row-role {
+    padding: 0.05rem 0.35rem;
+    border: 1px solid var(--color-secondary);
+    border-radius: var(--radius-sm);
+    font-size: 0.64rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
     color: var(--color-secondary);
   }
 

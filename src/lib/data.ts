@@ -60,6 +60,8 @@ export interface Publication {
   venue_full?: string;
   year: number;
   workshop?: boolean;
+  /** Contribution not conveyed by author position, e.g. "Co-organizer". */
+  role?: string;
   category: string | null;
   award: string | null;
   links: PubLinks;
