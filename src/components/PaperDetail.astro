@@ -3,6 +3,8 @@
  * PaperDetail — rendered once per publication, hidden by default.
  * Content elements stream in top-to-bottom using stagger-in keyframes.
  */
+import { Image } from 'astro:assets';
+import { getTeaser } from '../lib/data';
 import type { Publication, VenueInfo } from '../lib/data';
 
 interface Props {
@@ -11,6 +13,7 @@ interface Props {
 }
 
 const { pub } = Astro.props;
+const teaser = getTeaser(pub.teaser);
 const venueLabel = pub.workshop && pub.venue_full
   ? pub.venue_full
   : `${pub.venue} ${pub.year}`;
@@ -80,12 +83,15 @@ const linkItems = [
     </div>
 
     <div class="paper-visuals">
-      {pub.teaser && (
+      {teaser && (
         <div class="paper-image-wrap pd-stagger" style="--pd-i:1">
-          <img
-            src={`/assets/img/papers/${pub.teaser}`}
+          <Image
+            src={teaser}
             alt={`Teaser figure for ${pub.title}`}
+            widths={[400, 800, 1200]}
+            sizes="(max-width: 900px) 92vw, 520px"
             loading="lazy"
+            decoding="async"
           />
         </div>
       )}

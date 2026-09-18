@@ -1,7 +1,8 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PaperDetailOverlays from '../components/PaperDetailOverlays.astro';
-import { getConferencePublications, getWorkshopPublications, getVenues } from '../lib/data';
+import { Image } from 'astro:assets';
+import { getConferencePublications, getWorkshopPublications, getVenues, getTeaser } from '../lib/data';
 
 const pubs = getConferencePublications();
 const workshopPubs = getWorkshopPublications();
@@ -75,12 +76,15 @@ const pubsByYear = years.map(year => ({
                       </div>
                     )}
                   </div>
-                  {pub.teaser && (
+                  {getTeaser(pub.teaser) && (
                     <div class="pub-entry-teaser">
-                      <img
-                        src={`/assets/img/papers/${pub.teaser}`}
+                      <Image
+                        src={getTeaser(pub.teaser)!}
                         alt={`Teaser for ${pub.title}`}
+                        widths={[240, 480]}
+                        sizes="(max-width: 768px) 40vw, 200px"
                         loading="lazy"
+                        decoding="async"
                       />
                     </div>
                   )}

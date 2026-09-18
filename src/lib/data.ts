@@ -1,6 +1,33 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import yaml from 'js-yaml';
+import type { ImageMetadata } from 'astro';
+
+/**
+ * Teaser images, keyed by the filename used in publications.yaml.
+ *
+ * They live in src/assets/ rather than public/ so Astro's build-time image
+ * pipeline can emit resized, format-converted variants. Vite requires a
+ * literal glob, so this map is the bridge between the YAML filename strings
+ * and the imported modules.
+ */
+const teaserModules = import.meta.glob<{ default: ImageMetadata }>(
+  '../assets/papers/*.{png,jpg,jpeg,webp,avif}',
+  { eager: true }
+);
+
+const teasers = new Map<string, ImageMetadata>(
+  Object.entries(teaserModules).map(([filePath, mod]) => [
+    filePath.split('/').pop()!,
+    mod.default,
+  ])
+);
+
+/** Returns the processed image for a teaser filename, or undefined if absent. */
+export function getTeaser(filename: string | null): ImageMetadata | undefined {
+  if (!filename) return undefined;
+  return teasers.get(filename);
+}
 
 const dataDir = path.resolve('src/data');
 
