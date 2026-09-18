@@ -1,144 +1,466 @@
-import type { PaperDemo } from '../types';
+import { esc, highlightPython } from '../types';
+import type { DemoContext, DemoController, PaperDemo } from '../types';
 
 /**
  * Codellaborator — proactive AI programming support.
  *
- * An authored condensation of the interface described in section 4 and
- * Figure 2 of the paper (https://arxiv.org/abs/2502.18658): a separate AI
- * caret, an activity/status indicator near the relevant code, provenance
- * highlighting on AI-authored lines, and a breakout conversation anchored to
- * the lines it discusses.
+ * A live reconstruction of the interface in Figure 2 of the paper
+ * (https://arxiv.org/abs/2502.18658): a chat panel beside an editor, an AI
+ * agent with its own caret and status label, provenance highlighting on the
+ * lines it authored, and a breakout conversation anchored to those lines.
+ *
+ * What runs automatically: Cody's caret travels to the stub method, selects
+ * the two lines to replace, types the implementation character by character,
+ * then opens a breakout chat about it.
+ *
+ * What the visitor can do: type in the side chat (Cody answers in the
+ * breakout), edit any line of code directly, and push Cody's caret away by
+ * moving the pointer into it.
  *
  * This is an illustrative reconstruction, not a recording, and it makes no
  * claim about measured outcomes. See the "Claims that must not appear on the
  * site" section of _new_material/website-update-brief.md.
  */
 
-interface Line {
-  no: number;
-  /** Pre-escaped markup. Authored literals only. */
-  html: string;
-  ai?: boolean;
+const INITIAL_LINES = [
+  'class SchedulingSystemAPI:',
+  '    def __init__(self):',
+  '        self.events = []',
+  '',
+  '    def get_sorted_events(self):',
+  '        # TODO: sort events by start time',
+  '        pass',
+];
+
+/** Cody replaces the two-line stub body with this. */
+const TARGET_LINE = '        return sorted(self.events, key=start_time)';
+/** Zero-based indices of the lines Cody selects and replaces. */
+const EDIT_FROM = 5;
+const EDIT_TO = 6;
+
+const SIDE_CHAT_SEED = [
+  { who: 'cody' as const, text: "I noticed get_sorted_events is still a stub. Want me to fill it in?" },
+];
+
+const BREAKOUT_SEED = [
+  { who: 'cody' as const, text: "I implemented get_sorted_events. It returns the events sorted by start time. Want me to add a test next?" },
+];
+
+const REPLY = 'Sure thing! Let me do that for you.';
+
+function lineMarkup(text: string, i: number): string {
+  return `<div class="cd-line" data-line="${i}">
+    <span class="cd-gutter" aria-hidden="true">${i + 1}</span>
+    <code class="cd-code" data-code="${i}" spellcheck="false">${highlightPython(text)}</code>
+  </div>`;
 }
 
-const BASE: Line[] = [
-  { no: 1, html: '<span class="tok-kw">def</span> <span class="tok-fn">average</span>(values):' },
-  { no: 2, html: '    total = <span class="tok-fn">sum</span>(values)' },
-  { no: 3, html: '    <span class="tok-kw">return</span> total / <span class="tok-fn">len</span>(values)' },
-  { no: 4, html: '' },
-];
-
-const DOC: Line = {
-  no: 2,
-  html: '    <span class="tok-str">"""Return the mean."""</span>',
-  ai: true,
-};
-
-/** Lines for a given step, renumbered after the docstring is inserted. */
-function linesFor(index: number): Line[] {
-  if (index < 2) return BASE;
-  const [head, ...rest] = BASE;
-  return [head, DOC, ...rest.map((l, i) => ({ ...l, no: i + 3 }))];
-}
-
-const STATUS = [
-  { text: 'observing', tone: 'idle' },
-  { text: 'considering this function', tone: 'busy' },
-  { text: 'wrote 1 line', tone: 'done' },
-  { text: 'ready', tone: 'idle' },
-];
-
-/** The right-hand panel: what the agent is doing, and why. */
-const PANEL = [
-  {
-    label: 'Editor activity',
-    body: 'You finish the function and move to a new line. Codellaborator watches editor activity for context rather than waiting to be prompted.',
-  },
-  {
-    label: 'Agent presence · near line 1',
-    body: 'A status indicator appears beside the function being considered, so the agent’s activity is visible and located rather than hidden.',
-  },
-  {
-    label: 'Attributed edit · line 2',
-    body: 'The agent adds a docstring. A separate caret and a provenance band mark the line as AI-authored, so ownership stays legible.',
-  },
-  {
-    label: 'Breakout conversation · line 2',
-    body: '<b>You</b> — why this change?<br><b>Cody</b> — the function had no docstring, so I described what it returns. The conversation stays anchored to the line it is about.',
-  },
-];
-
-function render(index: number): string {
-  const lines = linesFor(index);
-  const status = STATUS[index];
-  const panel = PANEL[index];
-  const showCaret = index === 2;
-  const showThread = index === 3;
-
-  const code = lines
-    .map(line => {
-      const isAi = line.ai && index >= 2;
-      return `<div class="cd-line${isAi ? ' is-ai' : ''}">
-        <span class="cd-no" aria-hidden="true">${line.no}</span>
-        <code class="cd-code">${line.html || '&nbsp;'}</code>
-        ${isAi && showCaret ? '<span class="cd-caret" aria-hidden="true">Cody</span>' : ''}
-      </div>`;
-    })
+function chatMarkup(msgs: { who: 'you' | 'cody'; text: string }[]): string {
+  return msgs
+    .map(m => `<div class="cd-msg cd-msg--${m.who}">
+      <span class="cd-msg-who">${m.who === 'you' ? 'You' : 'Cody'}</span>
+      <p class="cd-msg-text">${esc(m.text)}</p>
+    </div>`)
     .join('');
+}
 
-  return `<div class="cd-editor">
-      <div class="cd-bar">
-        <span class="cd-file">analysis.py</span>
-        <span class="cd-status cd-status--${status.tone}">
-          <i class="cd-dot" aria-hidden="true"></i>Cody &middot; ${status.text}
-        </span>
+function scene(): string {
+  return `<div class="cd" data-cd>
+  <div class="cd-topbar">
+    <span class="cd-brand">Codellaborator</span>
+    <span class="cd-tab">code.py</span>
+  </div>
+
+  <div class="cd-body">
+    <aside class="cd-side">
+      <div class="cd-side-log" data-side-log>${chatMarkup(SIDE_CHAT_SEED)}</div>
+      <form class="cd-side-form" data-side-form>
+        <label class="cd-sr" for="cd-side-input">Message Cody</label>
+        <input class="cd-input" id="cd-side-input" data-side-input type="text"
+               placeholder="Send a message…" autocomplete="off" />
+        <button class="cd-send" type="submit" aria-label="Send message to Cody">
+          <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true">
+            <path d="M2 8l12-5.5L9 14l-1.5-5L2 8z" fill="currentColor"/>
+          </svg>
+        </button>
+      </form>
+    </aside>
+
+    <div class="cd-editor" data-editor>
+      <div class="cd-lines" data-lines>${INITIAL_LINES.map(lineMarkup).join('')}</div>
+
+      <div class="cd-breakout" data-breakout hidden>
+        <div class="cd-breakout-head">
+          <span class="cd-breakout-title">Breakout &middot; line ${EDIT_FROM + 1}</span>
+          <button class="cd-breakout-close" type="button" data-breakout-close
+                  aria-label="Close breakout conversation">
+            <svg viewBox="0 0 16 16" width="11" height="11" aria-hidden="true">
+              <path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+        <div class="cd-breakout-log" data-breakout-log></div>
       </div>
-      <div class="cd-code-area">${code}</div>
-      ${showThread ? `<div class="cd-thread">
-        <span class="cd-thread-anchor" aria-hidden="true"></span>
-        <p class="cd-thread-body"><b>You</b> &mdash; why this change?</p>
-        <p class="cd-thread-body cd-thread-body--ai"><b>Cody</b> &mdash; the function had no docstring, so I described what it returns.</p>
-      </div>` : ''}
+
+      <i class="cd-caret" data-caret aria-hidden="true"><b class="cd-caret-label" data-caret-label>Cody</b></i>
     </div>
-    <div class="cd-panel">
-      <span class="cd-panel-label">${panel.label}</span>
-      <p class="cd-panel-body">${panel.body}</p>
-    </div>`;
+  </div>
+</div>`;
+}
+
+function mount(root: HTMLElement, ctx: DemoContext): DemoController {
+  const q = <T extends Element>(sel: string) => root.querySelector<T>(sel)!;
+
+  const stage = q<HTMLElement>('[data-cd]');
+  const editor = q<HTMLElement>('[data-editor]');
+  const linesEl = q<HTMLElement>('[data-lines]');
+  const caret = q<HTMLElement>('[data-caret]');
+  const caretLabel = q<HTMLElement>('[data-caret-label]');
+  const breakout = q<HTMLElement>('[data-breakout]');
+  const breakoutLog = q<HTMLElement>('[data-breakout-log]');
+  const sideLog = q<HTMLElement>('[data-side-log]');
+  const sideForm = q<HTMLFormElement>('[data-side-form]');
+  const sideInput = q<HTMLInputElement>('[data-side-input]');
+
+  const aborter = new AbortController();
+  const listen = { signal: aborter.signal };
+
+  let lines = [...INITIAL_LINES];
+  let timers: number[] = [];
+  let running = false;
+  let paused = false;
+  let finished = false;
+  let caretPos = { x: 0, y: 0 };
+
+  const clearTimers = () => {
+    timers.forEach(t => window.clearTimeout(t));
+    timers = [];
+  };
+
+  /** setTimeout that respects pause and is cancelled by clearTimers/destroy. */
+  const wait = (ms: number) =>
+    new Promise<void>(resolve => {
+      if (paused || aborter.signal.aborted) return;
+      timers.push(window.setTimeout(resolve, ms));
+    });
+
+  // --- caret placement ----------------------------------------------------
+
+  /** Pixel position of a character offset within a line, relative to editor. */
+  function charPos(lineIndex: number, col: number) {
+    const code = linesEl.querySelector<HTMLElement>(`[data-code="${lineIndex}"]`);
+    const box = editor.getBoundingClientRect();
+    if (!code) return { x: 0, y: 0 };
+
+    const codeBox = code.getBoundingClientRect();
+    const text = code.textContent ?? '';
+    const clamped = Math.min(col, text.length);
+
+    // Measure with a Range so the position is correct for any glyph widths.
+    let x = codeBox.left;
+    const node = code.firstChild;
+    if (node && clamped > 0) {
+      try {
+        const range = document.createRange();
+        range.setStart(code, 0);
+        let counted = 0;
+        let target: { node: Node; offset: number } | null = null;
+        const walk = document.createTreeWalker(code, NodeFilter.SHOW_TEXT);
+        let n: Node | null;
+        while ((n = walk.nextNode())) {
+          const len = n.textContent?.length ?? 0;
+          if (counted + len >= clamped) {
+            target = { node: n, offset: clamped - counted };
+            break;
+          }
+          counted += len;
+        }
+        if (target) {
+          range.setStart(target.node, target.offset);
+          range.setEnd(target.node, target.offset);
+          const r = range.getBoundingClientRect();
+          if (r.left) x = r.left;
+        }
+      } catch {
+        // Fall back to the line's left edge.
+      }
+    }
+
+    return {
+      x: x - box.left,
+      y: codeBox.top - box.top + codeBox.height / 2,
+    };
+  }
+
+  function placeCaret(x: number, y: number, animate = true) {
+    caretPos = { x, y };
+    caret.style.transitionDuration = animate && !ctx.reducedMotion ? '' : '0ms';
+    caret.style.transform = `translate(${x}px, ${y}px)`;
+    caret.dataset.visible = 'true';
+  }
+
+  function setCaretLabel(text: string, tone = '') {
+    caretLabel.textContent = text;
+    caret.dataset.tone = tone;
+  }
+
+  // --- rendering ----------------------------------------------------------
+
+  function renderLine(i: number) {
+    const code = linesEl.querySelector<HTMLElement>(`[data-code="${i}"]`);
+    if (code) code.innerHTML = highlightPython(lines[i]);
+  }
+
+  function renderAll() {
+    linesEl.innerHTML = lines.map(lineMarkup).join('');
+    wireEditing();
+  }
+
+  function setSelection(from: number, to: number | null) {
+    linesEl.querySelectorAll<HTMLElement>('.cd-line').forEach(el => {
+      const i = Number(el.dataset.line);
+      el.classList.toggle('is-sel', to !== null && i >= from && i <= to);
+    });
+  }
+
+  function setProvenance(indices: number[]) {
+    linesEl.querySelectorAll<HTMLElement>('.cd-line').forEach(el => {
+      el.classList.toggle('is-ai', indices.includes(Number(el.dataset.line)));
+    });
+  }
+
+  // --- editing ------------------------------------------------------------
+
+  function wireEditing() {
+    linesEl.querySelectorAll<HTMLElement>('.cd-code').forEach(code => {
+      code.setAttribute('contenteditable', 'plaintext-only');
+      // Firefox before 136 ignores plaintext-only; true still beats nothing.
+      if (code.contentEditable !== 'plaintext-only') code.contentEditable = 'true';
+      code.setAttribute('role', 'textbox');
+      code.setAttribute('aria-label', `Line ${Number(code.dataset.code) + 1}, editable`);
+
+      code.addEventListener('focus', () => {
+        // Show plain text while editing so re-highlighting cannot move the caret.
+        const i = Number(code.dataset.code);
+        code.textContent = lines[i];
+        stopIntro();
+      }, listen);
+
+      code.addEventListener('blur', () => {
+        const i = Number(code.dataset.code);
+        lines[i] = (code.textContent ?? '').replace(/\n/g, '');
+        renderLine(i);
+      }, listen);
+
+      code.addEventListener('keydown', e => {
+        // Keep it one line per row; Enter would split the DOM structure.
+        if (e.key === 'Enter') e.preventDefault();
+      }, listen);
+    });
+  }
+
+  // --- chat ---------------------------------------------------------------
+
+  function appendMsg(log: HTMLElement, who: 'you' | 'cody', text: string) {
+    log.insertAdjacentHTML('beforeend', chatMarkup([{ who, text }]));
+    log.scrollTop = log.scrollHeight;
+  }
+
+  function openBreakout(msgs: { who: 'you' | 'cody'; text: string }[]) {
+    breakoutLog.innerHTML = chatMarkup(msgs);
+    breakout.hidden = false;
+    breakout.dataset.open = 'true';
+
+  }
+
+  function closeBreakout() {
+    breakout.dataset.open = 'false';
+    breakout.hidden = true;
+    linesEl.querySelectorAll('.cd-line.is-anchored')
+      .forEach(el => el.classList.remove('is-anchored'));
+  }
+
+  // --- the automated intro ------------------------------------------------
+
+  function stopIntro() {
+    if (!running) return;
+    clearTimers();
+    running = false;
+    ctx.setRunning(false);
+  }
+
+  async function runIntro() {
+    if (aborter.signal.aborted) return;
+    running = true;
+    finished = false;
+    ctx.setRunning(true);
+
+    const settle = () => {
+      running = false;
+      finished = true;
+      ctx.setRunning(false);
+      setCaretLabel('Cody', 'idle');
+    };
+
+    if (ctx.reducedMotion) {
+      // No travel and no typing: show the end state immediately.
+      lines[EDIT_FROM] = TARGET_LINE;
+      lines.splice(EDIT_TO, 1);
+      renderAll();
+      setProvenance([EDIT_FROM]);
+      const p = charPos(EDIT_FROM, TARGET_LINE.length);
+      placeCaret(p.x, p.y, false);
+      openBreakout(BREAKOUT_SEED);
+      ctx.announce('Cody implemented get_sorted_events and opened a breakout conversation.');
+      settle();
+      return;
+    }
+
+    // 1. Caret travels to the stub.
+    setCaretLabel('Thinking…', 'busy');
+    const start = charPos(EDIT_FROM, 8);
+    placeCaret(start.x, start.y);
+    ctx.announce('Cody is looking at get_sorted_events.');
+    await wait(900);
+    if (paused || aborter.signal.aborted) return;
+
+    // 2. Select the two lines it intends to replace.
+    setSelection(EDIT_FROM, EDIT_TO);
+    ctx.announce('Cody selected the two stub lines.');
+    await wait(850);
+    if (paused || aborter.signal.aborted) return;
+
+    // 3. Replace them with an empty line and type into it.
+    setSelection(0, null);
+    lines[EDIT_FROM] = '';
+    lines.splice(EDIT_TO, 1);
+    renderAll();
+    setProvenance([EDIT_FROM]);
+    setCaretLabel('writing…', 'busy');
+
+    for (let c = 1; c <= TARGET_LINE.length; c++) {
+      if (paused || aborter.signal.aborted) return;
+      lines[EDIT_FROM] = TARGET_LINE.slice(0, c);
+      renderLine(EDIT_FROM);
+      const p = charPos(EDIT_FROM, c);
+      placeCaret(p.x, p.y, false);
+      // Slightly uneven cadence reads as typing rather than a ticker.
+      await wait(c % 7 === 0 ? 34 : 16);
+    }
+    if (paused || aborter.signal.aborted) return;
+
+    renderLine(EDIT_FROM);
+    ctx.announce('Cody wrote the implementation.');
+    await wait(600);
+    if (paused || aborter.signal.aborted) return;
+
+    // 4. Open the breakout about what it just did.
+    openBreakout(BREAKOUT_SEED);
+    ctx.announce('Cody opened a breakout conversation about the change.');
+    settle();
+
+    // Provenance fades, as in the paper.
+    timers.push(window.setTimeout(() => setProvenance([]), 5000));
+  }
+
+  // --- caret avoidance ----------------------------------------------------
+
+  let dodgeCooldown = 0;
+
+  editor.addEventListener('pointermove', e => {
+    const box = editor.getBoundingClientRect();
+    const px = e.clientX - box.left;
+    const py = e.clientY - box.top;
+    const dx = px - caretPos.x;
+    const dy = py - caretPos.y;
+    const dist = Math.hypot(dx, dy);
+
+    const now = performance.now();
+    if (dist > 52 || now < dodgeCooldown) return;
+    dodgeCooldown = now + 420;
+
+    // Push away along the approach vector, clamped inside the editor.
+    const len = dist || 1;
+    const pad = 28;
+    const nx = Math.min(box.width - pad, Math.max(pad, caretPos.x - (dx / len) * 104));
+    const ny = Math.min(box.height - pad, Math.max(pad, caretPos.y - (dy / len) * 74));
+    placeCaret(nx, ny);
+    setCaretLabel('Cody', 'idle');
+  }, listen);
+
+  // --- side chat ----------------------------------------------------------
+
+  sideForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const text = sideInput.value.trim();
+    if (!text) return;
+
+    stopIntro();
+    sideInput.value = '';
+    appendMsg(sideLog, 'you', text);
+
+    // Cody answers in the breakout, anchored to the code under discussion.
+    timers.push(window.setTimeout(() => {
+      openBreakout([...BREAKOUT_SEED, { who: 'you', text }, { who: 'cody', text: REPLY }]);
+      ctx.announce(`Cody replied in the breakout: ${REPLY}`);
+      setCaretLabel('Cody', 'idle');
+    }, ctx.reducedMotion ? 0 : 420));
+  }, listen);
+
+  q<HTMLButtonElement>('[data-breakout-close]')
+    .addEventListener('click', () => closeBreakout(), listen);
+
+  // --- lifecycle ----------------------------------------------------------
+
+  wireEditing();
+  void runIntro();
+
+  return {
+    reset() {
+      clearTimers();
+      paused = false;
+      lines = [...INITIAL_LINES];
+      renderAll();
+      setSelection(0, null);
+      setProvenance([]);
+      closeBreakout();
+      sideLog.innerHTML = chatMarkup(SIDE_CHAT_SEED);
+      sideInput.value = '';
+      caret.dataset.visible = 'false';
+      setCaretLabel('Cody', 'idle');
+      ctx.announce('Demo reset.');
+      void runIntro();
+    },
+    pause() {
+      paused = true;
+      stopIntro();
+      setCaretLabel('Cody', 'idle');
+    },
+    resume() {
+      if (!paused) return;
+      paused = false;
+      if (!finished) void runIntro();
+    },
+    destroy() {
+      clearTimers();
+      aborter.abort();
+    },
+  };
 }
 
 export const demo: PaperDemo = {
   id: 'codellaborator',
-  stageLabel: 'Reconstructed code editor showing a proactive AI agent adding a docstring',
-  steps: [
-    {
-      label: 'Your work',
-      action: 'See what Cody does →',
-      caption: 'You finish a function. Editor activity gives the agent its context.',
-      duration: 2600,
-    },
-    {
-      label: 'Agent presence',
-      action: 'See the edit →',
-      caption: 'A status indicator appears beside the code the agent is considering.',
-      duration: 2800,
-    },
-    {
-      label: 'Attributed edit',
-      action: 'Ask why →',
-      caption: 'The agent adds a docstring, marked with its own caret and a provenance band.',
-      duration: 3400,
-    },
-    {
-      label: 'Local context',
-      action: 'Start again →',
-      caption: 'The explanation stays anchored to the line it is about.',
-    },
-  ],
+  stageLabel:
+    'Reconstruction of the Codellaborator interface: a chat panel beside a Python editor, where an AI agent with its own caret implements a method and opens a conversation about it',
+  hint: 'Live reconstruction — message Cody, edit the code, or move your pointer into Cody’s caret.',
   transcript: [
-    'You finish a Python function and move to a new line. Codellaborator reads editor activity for context instead of waiting to be prompted.',
-    'A status indicator appears beside the function the agent is considering, so its activity is both visible and located.',
-    'The agent adds a docstring to the function. A separate caret and a provenance band mark that line as AI-authored.',
-    'You ask why the change was made. The reply stays anchored to the line it concerns, keeping the discussion in context.',
+    'A chat panel sits beside a Python editor holding a SchedulingSystemAPI class whose get_sorted_events method is an empty stub.',
+    'Cody, the proactive agent, moves its own caret to the stub and selects the two lines that make up its body.',
+    'Cody replaces those lines, typing the implementation in as you watch. A provenance band marks the line as AI-authored and fades after five seconds, as it does in the paper.',
+    'Cody then opens a breakout conversation anchored to that line, explaining what it wrote and asking whether to continue.',
+    'You can send Cody a message from the side chat, and it answers in the breakout beside the code rather than away from it.',
+    'Every line of code is editable, and moving your pointer into Cody’s caret makes it move aside.',
   ],
-  render,
+  scene,
+  mount,
 };
