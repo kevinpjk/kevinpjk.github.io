@@ -104,11 +104,14 @@ const contactLinks = [
 
         <div class="side-identity">
           <h1 class="side-name">Kevin Pu</h1>
-          <p class="side-role">PhD Candidate, Computer Science<br />University of Toronto</p>
+          <p class="side-role">
+            PhD Candidate, Computer Science<br />
+            University of Toronto &middot;{' '}
+            <a href="https://www.dgp.toronto.edu/" target="_blank" rel="noopener noreferrer">DGP Lab</a>
+          </p>
           <p class="side-affil">
             Advised by <a href="https://www.tovigrossman.com/" target="_blank" rel="noopener noreferrer">Tovi Grossman</a>{' '}
-            and <a href="https://chensivan.github.io/" target="_blank" rel="noopener noreferrer">Yan Chen</a>{' '}
-            at the <a href="https://www.dgp.toronto.edu/" target="_blank" rel="noopener noreferrer">DGP Lab</a>.
+            and <a href="https://chensivan.github.io/" target="_blank" rel="noopener noreferrer">Yan Chen</a>.
           </p>
         </div>
 
@@ -126,10 +129,10 @@ const contactLinks = [
         <section class="home-bio" aria-label="About">
           <p>
             I work at the intersection of human-computer interaction and AI. I build and study
-            interactive systems that decide <strong>when</strong> an AI system should act,
-            make <strong>what</strong> it did inspectable, and carry a person's
-            <strong>direction</strong> across tasks and sessions &mdash; keeping people in
-            control of increasingly autonomous tools.
+            interactive systems that decide <a class="bio-jump" href="#theme-when-ai-acts"><strong>when</strong></a>{' '}
+            an AI system should act, make <a class="bio-jump" href="#theme-what-it-shows"><strong>what</strong></a>{' '}
+            it did inspectable, and carry a person's <strong>direction</strong> across tasks and
+            sessions &mdash; keeping people in control of increasingly autonomous tools.
           </p>
         </section>
 
@@ -139,7 +142,7 @@ const contactLinks = [
           <h2 class="section-title" id="selected-heading">Selected Work</h2>
 
           {themed.map(theme => (
-            <div class="theme-group">
+            <div class="theme-group" id={`theme-${theme.key}`}>
               <div class="theme-head">
                 <h3 class="theme-label">{theme.label}</h3>
                 <p class="theme-gloss">{theme.gloss}</p>
@@ -293,29 +296,42 @@ const contactLinks = [
   .theme-group { margin-top: 2rem; }
 
   .theme-head {
-    display: flex;
-    align-items: baseline;
-    gap: 0.6rem;
-    flex-wrap: wrap;
-    padding-bottom: 0.5rem;
-    border-bottom: 1px solid var(--bg-surface-border);
+    padding-bottom: 0.6rem;
+    border-bottom: 2px solid var(--color-secondary);
+    // Clears the sticky offset when jumped to from the bio.
+    scroll-margin-top: 2rem;
   }
 
   .theme-label {
-    margin: 0;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 1.05rem;
-    font-weight: 700;
-    letter-spacing: -0.01em;
-    color: var(--color-text);
-    white-space: nowrap;
+    margin: 0 0 0.15rem;
+    font-family: 'Fraunces', serif;
+    font-size: 1.32rem;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    color: var(--color-primary);
   }
 
   .theme-gloss {
     margin: 0;
-    font-size: 0.85rem;
+    font-size: 0.88rem;
     line-height: 1.5;
     color: var(--color-text-muted);
+  }
+
+  .theme-group { scroll-margin-top: 2rem; }
+
+  // Bio keywords that jump to their theme.
+  .bio-jump {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+    text-decoration-thickness: 2px;
+    text-decoration-color: var(--color-highlight-glow);
+
+    strong { color: var(--color-primary); font-weight: 600; }
+
+    &:hover strong { color: var(--color-secondary); }
+    &:hover { text-decoration-color: var(--color-secondary); }
   }
 
 
@@ -367,7 +383,7 @@ const contactLinks = [
     .side-name { font-size: 1.6rem; }
     .home-bio p { font-size: 0.96rem; }
     .section-title { font-size: 1.25rem; }
-    .theme-label { font-size: 0.98rem; white-space: normal; }
+    .theme-label { font-size: 1.12rem; }
   }
 </style>
 

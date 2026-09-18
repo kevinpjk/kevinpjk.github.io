@@ -65,14 +65,15 @@ function formatDate(dateStr: string): string {
   // rest. Only this element's own descendants are affected, so it does not
   // interfere with the sticky sidebar elsewhere on the page.
   .news-scroll {
+    // Fallback estimate, replaced with an exact measurement by the script
+    // below once layout settles. Rows wrap differently at different widths,
+    // so a fixed guess can show four rows on a wide screen and two on a
+    // narrow one.
     --news-row-height: 4.45rem;
+    max-height: calc(var(--news-visible-rows, 3) * var(--news-row-height));
+    overflow-y: auto;
+    overscroll-behavior: contain;
     padding-right: 0.5rem;
-
-    @supports (max-height: 1px) {
-      max-height: calc(var(--news-visible-rows, 3) * var(--news-row-height));
-      overflow-y: auto;
-      overscroll-behavior: contain;
-    }
 
     &:focus-visible {
       outline: 2px solid var(--color-primary);
@@ -141,3 +142,23 @@ function formatDate(dateStr: string): string {
     }
   }
 </style>
+
+<script>
+  // Cap the list at exactly N rows by measuring where row N+1 starts, rather
+  // than trusting a fixed row-height estimate.
+  function capNewsHeight() {
+    document.querySelectorAll<HTMLElement>('.news-scroll').forEach(list => {
+      const rows = list.querySelectorAll<HTMLElement>('.news-item');
+      const visible = Number(
+        getComputedStyle(list).getPropertyValue('--news-visible-rows').trim() || 3
+      );
+      const cutoff = rows[visible];
+      if (!cutoff || rows.length <= visible) return;
+      list.style.maxHeight = `${cutoff.offsetTop - list.firstElementChild!.offsetTop}px`;
+    });
+  }
+
+  capNewsHeight();
+  addEventListener('resize', capNewsHeight);
+  document.addEventListener('astro:after-swap', capNewsHeight);
+</script>

@@ -21,11 +21,12 @@
   --cd-text: #2a2a33;
   --cd-muted: #6f6f80;
   --cd-sel: rgba(108, 79, 216, 0.1);
+  --cd-dot: #E8589F;
 
   display: flex;
   flex-direction: column;
   height: 100%;
-  min-height: 262px;
+  min-height: 300px;
   background: var(--cd-surface);
   color: var(--cd-text);
   font-size: 0.72rem;
@@ -42,11 +43,12 @@
   --cd-text: #e6e6ef;
   --cd-muted: #9b9bb0;
   --cd-sel: rgba(169, 146, 255, 0.14);
+  --cd-dot: #FF87BE;
 }
 
 .paper-demo--full .cd {
-  font-size: 0.78rem;
-  min-height: 320px;
+  font-size: 0.82rem;
+  min-height: 360px;
 }
 
 // --- top bar -----------------------------------------------------------------
@@ -54,7 +56,8 @@
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  padding: 0.3rem 0.55rem;
+  // Right padding leaves room for the frame's Reset control.
+  padding: 0.3rem 4.5rem 0.3rem 0.55rem;
   background: var(--cd-panel);
   border-bottom: 1px solid var(--cd-border);
 }
@@ -191,8 +194,8 @@
 
 .cd-lines {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.9em;
-  line-height: 1.75;
+  font-size: 0.84em;
+  line-height: 1.8;
 }
 
 .cd-line {
@@ -207,20 +210,31 @@
 // Cody's selection of the lines it is about to replace.
 .cd-line.is-sel { background: var(--cd-sel); }
 
-// The line the open breakout refers to, so the anchor is legible without the
-// panel covering it.
-.cd-line.is-anchored .cd-code {
-  box-shadow: 0 1px 0 var(--cd-accent-line);
-}
-
 // Provenance band on an AI-authored line; fades after five seconds.
 .cd-line.is-ai {
   background: var(--cd-accent-soft);
   box-shadow: inset 2px 0 0 var(--cd-accent);
 }
 
+.cd-bp {
+  position: absolute;
+  left: -0.05rem;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  margin-top: -3px;
+  border-radius: 50%;
+  background: var(--cd-accent);
+  opacity: 0;
+  transition: opacity 160ms ease;
+}
+
+.cd-line.is-anchored .cd-bp { opacity: 1; }
+
 .cd-gutter {
+  position: relative;
   flex-shrink: 0;
+  padding-left: 0.5rem;
   width: 1.2ch;
   text-align: right;
   font-size: 0.62rem;
@@ -235,16 +249,22 @@
   flex: 0 1 auto;
   max-width: 100%;
   min-width: 0;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
+  // Editors scroll; they do not reflow code.
+  white-space: pre;
+  overflow-x: auto;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { height: 0; }
   color: var(--cd-text);
   font-size: inherit;
   border-radius: 3px;
 
-  &:focus-visible {
-    outline: 1px solid var(--cd-accent);
-    outline-offset: 1px;
-  }
+  // No box outline: the whole line highlights instead, as an editor would.
+  &:focus-visible { outline: none; }
+}
+
+.cd-line:focus-within {
+  background: var(--cd-sel);
+  box-shadow: inset 2px 0 0 var(--cd-accent-line);
 }
 
 // Python tokens.
@@ -258,23 +278,55 @@
   .cd-t-str { color: #e0b070; }
 }
 
+// Dotted run from the anchored line to the breakout panel.
+.cd-connector {
+  position: absolute;
+  left: 0.72rem;
+  width: 0;
+  border-left: 1px dashed var(--cd-accent-line);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.cd-connector[data-visible='true'] { opacity: 1; }
+
 // --- Cody's caret ------------------------------------------------------------
 .cd-caret {
   position: absolute;
   top: 0;
   left: 0;
-  width: 2px;
-  height: 1.15em;
-  margin-top: -0.575em;
-  background: var(--cd-accent);
-  border-radius: 1px;
   opacity: 0;
   pointer-events: none;
-  transition: transform 420ms cubic-bezier(0.22, 0.61, 0.36, 1), opacity 200ms ease;
+  transition: transform 420ms cubic-bezier(0.22, 0.61, 0.36, 1),
+              opacity 200ms ease,
+              width 160ms ease,
+              height 160ms ease;
   z-index: 3;
 }
 
 .cd-caret[data-visible='true'] { opacity: 1; }
+
+// Resting presence: a small pink dot, no name attached.
+.cd-caret[data-mode='dot'] {
+  width: 9px;
+  height: 9px;
+  margin: -4.5px 0 0 -4.5px;
+  border-radius: 50%;
+  background: var(--cd-dot);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--cd-dot) 22%, transparent);
+}
+
+.cd-caret[data-mode='dot'] .cd-caret-label { display: none; }
+
+// Working in the document: a real text caret carrying its name.
+.cd-caret[data-mode='caret'] {
+  width: 2px;
+  height: 1.15em;
+  margin: -0.575em 0 0 0;
+  border-radius: 1px;
+  background: var(--cd-accent);
+}
 
 .cd-caret-label {
   position: absolute;
@@ -293,8 +345,7 @@
   line-height: 1.5;
 }
 
-.cd-caret[data-tone='busy'] .cd-caret-label { background: var(--cd-accent); }
-.cd-caret[data-tone='idle'] .cd-caret-label { background: var(--cd-muted); }
+
 
 // --- breakout chat -----------------------------------------------------------
 .cd-breakout {
@@ -352,7 +403,7 @@
   flex-direction: column;
   gap: 0.3rem;
   padding: 0.4rem;
-  max-height: 84px;
+  max-height: 76px;
   overflow-y: auto;
 
   &::-webkit-scrollbar { width: 3px; }

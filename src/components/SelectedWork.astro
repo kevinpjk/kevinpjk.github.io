@@ -27,19 +27,14 @@ const { item } = Astro.props;
     </p>
 
     <h4 class="sw-name">
-      {item.emoji && <span class="sw-emoji" aria-hidden="true">{item.emoji}</span>}
       {item.underReview ? (
-        <span class="sw-name-text">{item.shortName ?? item.title}</span>
+        <span class="sw-name-text">{item.title}</span>
       ) : (
         <button class="sw-open" data-open-paper={item.slug}>
-          <span class="sw-name-text">{item.shortName ?? item.title}</span>
+          <span class="sw-name-text">{item.title}</span>
         </button>
       )}
     </h4>
-
-    {item.shortDesc && <p class="sw-desc">{item.shortDesc}</p>}
-
-    <p class="sw-title">{item.title}</p>
 
     <p class="sw-authors">
       {item.authors.map((a, i) => (
@@ -66,7 +61,7 @@ const { item } = Astro.props;
 <style lang="scss">
   .sw {
     display: grid;
-    grid-template-columns: minmax(0, 0.58fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 0.46fr) minmax(0, 1fr);
     gap: 2rem;
     padding: 1.6rem 0;
 
@@ -113,20 +108,12 @@ const { item } = Astro.props;
   }
 
   .sw-name {
-    display: flex;
-    align-items: baseline;
-    gap: 0.35em;
-    margin: 0 0 0.3rem;
+    margin: 0 0 0.4rem;
     font-family: 'DM Sans', sans-serif;
-    font-size: 1.22rem;
-    font-weight: 700;
-    line-height: 1.2;
-    letter-spacing: -0.01em;
-  }
-
-  .sw-emoji {
-    font-size: 1.05rem;
-    line-height: 1;
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.35;
+    letter-spacing: -0.005em;
   }
 
   .sw-open {
@@ -150,21 +137,9 @@ const { item } = Astro.props;
     }
   }
 
-  .sw-name-text { color: var(--color-primary); }
+  .sw-name-text { color: var(--color-text); }
 
-  .sw-desc {
-    margin: 0 0 0.55rem;
-    font-size: 0.92rem;
-    line-height: 1.55;
-    color: var(--color-text);
-  }
-
-  .sw-title {
-    margin: 0 0 0.35rem;
-    font-size: 0.82rem;
-    line-height: 1.5;
-    color: var(--color-text-muted);
-  }
+  .sw-open:hover .sw-name-text { color: var(--color-primary); }
 
   .sw-authors {
     margin: 0 0 0.6rem;

@@ -33,7 +33,7 @@ const INITIAL_LINES = [
 ];
 
 /** Cody replaces the two-line stub body with this. */
-const TARGET_LINE = '        return sorted(self.events, key=start_time)';
+const TARGET_LINE = '        return sorted(self.events, key=lambda e: e.start_time)';
 /** Zero-based indices of the lines Cody selects and replaces. */
 const EDIT_FROM = 5;
 const EDIT_TO = 6;
@@ -50,7 +50,7 @@ const REPLY = 'Sure thing! Let me do that for you.';
 
 function lineMarkup(text: string, i: number): string {
   return `<div class="cd-line" data-line="${i}">
-    <span class="cd-gutter" aria-hidden="true">${i + 1}</span>
+    <span class="cd-gutter" aria-hidden="true"><i class="cd-bp"></i>${i + 1}</span>
     <code class="cd-code" data-code="${i}" spellcheck="false">${highlightPython(text)}</code>
   </div>`;
 }
@@ -102,7 +102,8 @@ function scene(): string {
         <div class="cd-breakout-log" data-breakout-log></div>
       </div>
 
-      <i class="cd-caret" data-caret aria-hidden="true"><b class="cd-caret-label" data-caret-label>Cody</b></i>
+      <i class="cd-connector" data-connector aria-hidden="true"></i>
+      <i class="cd-caret" data-caret data-mode="dot" aria-hidden="true"><b class="cd-caret-label" data-caret-label>Cody</b></i>
     </div>
   </div>
 </div>`;
@@ -199,9 +200,14 @@ function mount(root: HTMLElement, ctx: DemoContext): DemoController {
     caret.dataset.visible = 'true';
   }
 
-  function setCaretLabel(text: string, tone = '') {
-    caretLabel.textContent = text;
-    caret.dataset.tone = tone;
+  /**
+   * `dot` is Cody's resting presence — a small marker, no label.
+   * `caret` is a text caret with its name attached, shown only while it is
+   * actually working in the document.
+   */
+  function setCaretMode(mode: 'dot' | 'caret', label = 'Cody') {
+    caret.dataset.mode = mode;
+    caretLabel.textContent = label;
   }
 
   // --- rendering ----------------------------------------------------------
@@ -271,6 +277,26 @@ function mount(root: HTMLElement, ctx: DemoContext): DemoController {
     breakout.hidden = false;
     breakout.dataset.open = 'true';
 
+    const anchor = linesEl.querySelector<HTMLElement>(`[data-line="${EDIT_FROM}"]`);
+    anchor?.classList.add('is-anchored');
+
+    // Dotted run from the anchored line's breakpoint down to the panel, so
+    // the conversation is visibly tied to the line it is about. Measured
+    // after layout, since the panel's height depends on its content.
+    const connector = root.querySelector<HTMLElement>('[data-connector]');
+    if (!anchor || !connector) return;
+
+    requestAnimationFrame(() => {
+      const box = editor.getBoundingClientRect();
+      const lineBox = anchor.getBoundingClientRect();
+      const panelBox = breakout.getBoundingClientRect();
+      const top = lineBox.top - box.top + lineBox.height / 2;
+      const height = panelBox.top - box.top - top;
+      if (height <= 0) return;
+      connector.style.top = `${top}px`;
+      connector.style.height = `${height}px`;
+      connector.dataset.visible = 'true';
+    });
   }
 
   function closeBreakout() {
@@ -278,6 +304,8 @@ function mount(root: HTMLElement, ctx: DemoContext): DemoController {
     breakout.hidden = true;
     linesEl.querySelectorAll('.cd-line.is-anchored')
       .forEach(el => el.classList.remove('is-anchored'));
+    const connector = root.querySelector<HTMLElement>('[data-connector]');
+    if (connector) connector.dataset.visible = 'false';
   }
 
   // --- the automated intro ------------------------------------------------
@@ -299,7 +327,7 @@ function mount(root: HTMLElement, ctx: DemoContext): DemoController {
       running = false;
       finished = true;
       ctx.setRunning(false);
-      setCaretLabel('Cody', 'idle');
+      setCaretMode('dot');
     };
 
     if (ctx.reducedMotion) {
@@ -317,7 +345,7 @@ function mount(root: HTMLElement, ctx: DemoContext): DemoController {
     }
 
     // 1. Caret travels to the stub.
-    setCaretLabel('Thinking…', 'busy');
+    setCaretMode('caret', 'Thinking…');
     const start = charPos(EDIT_FROM, 8);
     placeCaret(start.x, start.y);
     ctx.announce('Cody is looking at get_sorted_events.');
@@ -336,7 +364,7 @@ function mount(root: HTMLElement, ctx: DemoContext): DemoController {
     lines.splice(EDIT_TO, 1);
     renderAll();
     setProvenance([EDIT_FROM]);
-    setCaretLabel('writing…', 'busy');
+    setCaretMode('caret', 'writing…');
 
     for (let c = 1; c <= TARGET_LINE.length; c++) {
       if (paused || aborter.signal.aborted) return;
@@ -385,7 +413,7 @@ function mount(root: HTMLElement, ctx: DemoContext): DemoController {
     const nx = Math.min(box.width - pad, Math.max(pad, caretPos.x - (dx / len) * 104));
     const ny = Math.min(box.height - pad, Math.max(pad, caretPos.y - (dy / len) * 74));
     placeCaret(nx, ny);
-    setCaretLabel('Cody', 'idle');
+    setCaretMode('dot');
   }, listen);
 
   // --- side chat ----------------------------------------------------------
@@ -403,7 +431,7 @@ function mount(root: HTMLElement, ctx: DemoContext): DemoController {
     timers.push(window.setTimeout(() => {
       openBreakout([...BREAKOUT_SEED, { who: 'you', text }, { who: 'cody', text: REPLY }]);
       ctx.announce(`Cody replied in the breakout: ${REPLY}`);
-      setCaretLabel('Cody', 'idle');
+      setCaretMode('dot');
     }, ctx.reducedMotion ? 0 : 420));
   }, listen);
 
@@ -427,14 +455,14 @@ function mount(root: HTMLElement, ctx: DemoContext): DemoController {
       sideLog.innerHTML = chatMarkup(SIDE_CHAT_SEED);
       sideInput.value = '';
       caret.dataset.visible = 'false';
-      setCaretLabel('Cody', 'idle');
+      setCaretMode('dot');
       ctx.announce('Demo reset.');
       void runIntro();
     },
     pause() {
       paused = true;
       stopIntro();
-      setCaretLabel('Cody', 'idle');
+      setCaretMode('dot');
     },
     resume() {
       if (!paused) return;
