@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{title}} · Paper demo prototype</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="./prototype.css">
+</head>
+<body>
+  <main>
+    <header class="page-heading">
+      <a href="https://kevinpjk.github.io/">Kevin Pu</a>
+      <span>Selected work / Demo prototype</span>
+    </header>
+    <article class="paper-row">
+      <div class="paper-copy">
+        <p class="eyebrow">{{eyebrow}}</p>
+        <h1>{{title}}</h1>
+        <p class="takeaway">{{takeaway}}</p>
+        <p class="paper-title">{{paperTitle}}</p>
+        <nav aria-label="Paper resources"><a href="{{paperUrl}}">Paper ↗</a><a href="{{videoUrl}}">Full video ↗</a></nav>
+      </div>
+      <section class="demo" data-paper-demo data-demo-module="./demos/{{id}}.js" aria-label="{{title}} scripted demonstration">
+        <div class="demo-heading"><span>{{stageTitle}}</span><span class="example-label">Scripted example</span></div>
+        <div class="stage" data-stage>{{initialStage}}</div>
+        <div class="caption" aria-live="polite" aria-atomic="true"><span data-step-label>{{initialLabel}}</span><p data-caption>{{initialCaption}}</p></div>
+        <div class="controls" data-controls hidden>
+          <button type="button" data-action="previous" aria-label="Back to previous step" aria-disabled="true">← Back</button>
+          <button type="button" class="primary" data-action="next">{{initialAction}}</button>
+          <button type="button" data-action="play" class="play-button" aria-label="Play the walkthrough">▶ Play</button>
+          <button type="button" data-action="reset" aria-label="Reset the walkthrough">↺ Reset</button>
+        </div>
+        <p class="motion-note" data-motion-note hidden>Reduced motion is on. Use the step buttons to explore.</p>
+        <p class="load-status" data-load-status role="status" hidden></p>
+        <details class="transcript"><summary>Read the walkthrough</summary><ol>{{transcript}}</ol><p>This is a simplified, authored example of the paper’s interaction mechanisms, not a recording or a live AI system.</p></details>
+        <noscript><p class="motion-note">The complete walkthrough is available as text above.</p></noscript>
+      </section>
+    </article>
+    <footer>One interaction, {{stepCount}} moments. The demo stays still until you start it.</footer>
+  </main>
+  <script type="module" src="./loader.js"></script>
+</body>
+</html>

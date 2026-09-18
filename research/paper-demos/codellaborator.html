@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Codellaborator · Paper demo prototype</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="./prototype.css">
+</head>
+<body>
+  <main>
+    <header class="page-heading">
+      <a href="https://kevinpjk.github.io/">Kevin Pu</a>
+      <span>Selected work / Demo prototype</span>
+    </header>
+    <article class="paper-row">
+      <div class="paper-copy">
+        <p class="eyebrow">CHI 2025 · Proactive AI</p>
+        <h1>Codellaborator</h1>
+        <p class="takeaway">See what your AI collaborator is doing, where it is working, and why.</p>
+        <p class="paper-title">Assistance or Disruption? Exploring and Evaluating the Design and Trade-offs of Proactive AI Programming Support</p>
+        <nav aria-label="Paper resources"><a href="https://arxiv.org/abs/2502.18658">Paper ↗</a><a href="https://youtu.be/mI-jd-IjfE4">Full video ↗</a></nav>
+      </div>
+      <section class="demo" data-paper-demo data-demo-module="./demos/codellaborator.js" aria-label="Codellaborator scripted demonstration">
+        <div class="demo-heading"><span>Inside the editor</span><span class="example-label">Scripted example</span></div>
+        <div class="stage" data-stage><div class="editor-bar"><span>analysis.py</span><span class="presence">Cody · observing</span></div>
+    <div class="editor-code" aria-label="Example Python function">
+      <div class="code-line "><span class="line-no" aria-hidden="true">1</span><code><span class="syntax">def</span> average(values):</code></div><div class="code-line "><span class="line-no" aria-hidden="true">2</span><code>    total = sum(values)</code></div><div class="code-line "><span class="line-no" aria-hidden="true">3</span><code>    <span class="syntax">return</span> total / len(values)</code></div><div class="code-line "><span class="line-no" aria-hidden="true">4</span><code> </code><span class="human-caret" aria-hidden="true">You</span></div>
+    </div>
+    <div class="context"><span class="context-label">Editor activity</span><p>You finish a function and move to a new line.</p></div></div>
+        <div class="caption" aria-live="polite" aria-atomic="true"><span data-step-label>1 / 4 · Your work</span><p data-caption>A finished code block gives Cody context for proactive assistance.</p></div>
+        <div class="controls" data-controls hidden>
+          <button type="button" data-action="previous" aria-label="Back to previous step" aria-disabled="true">← Back</button>
+          <button type="button" class="primary" data-action="next">Finish the function →</button>
+          <button type="button" data-action="play" class="play-button" aria-label="Play the walkthrough">▶ Play</button>
+          <button type="button" data-action="reset" aria-label="Reset the walkthrough">↺ Reset</button>
+        </div>
+        <p class="motion-note" data-motion-note hidden>Reduced motion is on. Use the step buttons to explore.</p>
+        <p class="load-status" data-load-status role="status" hidden></p>
+        <details class="transcript"><summary>Read the walkthrough</summary><ol><li>You finish a Python function. Editor activity gives the proactive agent context.</li><li>Cody shows a thinking status near the relevant code.</li><li>Cody adds documentation. Its separate caret and purple highlights identify the AI’s contribution.</li><li>You inspect an explanation attached to the changed lines. Local context keeps the discussion connected to the code.</li></ol><p>This is a simplified, authored example of the paper’s interaction mechanisms, not a recording or a live AI system.</p></details>
+        <noscript><p class="motion-note">The complete walkthrough is available as text above.</p></noscript>
+      </section>
+    </article>
+    <footer>One interaction, 4 moments. The demo stays still until you start it.</footer>
+  </main>
+  <script type="module" src="./loader.js"></script>
+</body>
+</html>
