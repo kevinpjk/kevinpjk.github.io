@@ -1,0 +1,29 @@
+# =============================================================================
+# site.yaml — site-wide switches
+#
+# Each block here is a single edit that turns one piece of the site on or off.
+# =============================================================================
+
+# Job-market banner on the homepage.
+# To remove the banner entirely, set `enabled: false`. Nothing else to change.
+job_market_banner:
+  enabled: true
+  heading: "On the job market"
+  body: >-
+    I am applying for tenure-track faculty and industry research positions for
+    2027. I expect to complete my PhD in June 2027.
+  links:
+    - { label: "CV", href: "/assets/pdf/Kevin_Jiankai_Pu_Research_CV.pdf" }
+    - { label: "Email", href: "mailto:jpu@dgp.toronto.edu" }
+  # Lets a visitor dismiss the banner for their own browser only.
+  dismissible: true
+
+# Manuscripts under review (src/data/manuscripts.yaml).
+#
+# LEAVE THIS FALSE until Kevin confirms author lists, venue anonymity policies,
+# and employer/host approval. See the header of manuscripts.yaml.
+manuscripts_under_review:
+  enabled: false
+  heading: "Manuscripts under review"
+  # Fixed label. Never "to appear", "accepted", or "forthcoming".
+  label: "Manuscript under review, 2026"

@@ -1,9 +1,10 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PaperDetailOverlays from '../components/PaperDetailOverlays.astro';
-import { getPublications, getVenues } from '../lib/data';
+import { getConferencePublications, getWorkshopPublications, getVenues } from '../lib/data';
 
-const pubs = getPublications();
+const pubs = getConferencePublications();
+const workshopPubs = getWorkshopPublications();
 const venues = getVenues();
 
 // Group by year, descending
@@ -29,6 +30,7 @@ const pubsByYear = years.map(year => ({
               { label: 'PDF', url: pub.links.pdf },
               { label: 'Video', url: pub.links.video },
               { label: 'arXiv', url: pub.links.arxiv },
+              { label: 'DOI', url: pub.links.doi },
               { label: 'Website', url: pub.links.website },
               { label: 'Code', url: pub.links.code },
             ].filter(l => l.url);
@@ -89,6 +91,40 @@ const pubsByYear = years.map(year => ({
         </div>
       </section>
     ))}
+
+    {workshopPubs.length > 0 && (
+      <section class="year-group stagger-in">
+        <h2 class="year-heading">Workshop Papers</h2>
+        <div class="pub-list">
+          {workshopPubs.map(pub => (
+            <article class="pub-entry" id={`pub-${pub.slug}`}>
+              <div class="pub-entry-body">
+                <div class="pub-entry-text">
+                  <div class="pub-entry-top">
+                    <span class="venue-label">{pub.venue} '{String(pub.year).slice(2)}</span>
+                  </div>
+                  <h3 class="pub-entry-title">{pub.title}</h3>
+                  <p class="pub-entry-authors">
+                    {pub.authors.map((a, i) => (
+                      <span>
+                        {a.url ? (
+                          <a href={a.url} target="_blank" rel="noopener noreferrer"
+                             class:list={{ highlight: a.highlight }}>{a.name}</a>
+                        ) : (
+                          <span class:list={{ highlight: a.highlight }}>{a.name}</span>
+                        )}
+                        {i < pub.authors.length - 1 && ', '}
+                      </span>
+                    ))}
+                  </p>
+                  {pub.venue_full && <p class="pub-entry-venue-full">{pub.venue_full}</p>}
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+    )}
   </div>
   <PaperDetailOverlays />
 </BaseLayout>
@@ -102,6 +138,12 @@ const pubsByYear = years.map(year => ({
 
   .year-group {
     margin-bottom: 2.5rem;
+  }
+
+  .pub-entry-venue-full {
+    font-size: 0.82rem;
+    color: var(--color-text-muted);
+    margin-top: 0.3rem;
   }
 
   .year-heading {

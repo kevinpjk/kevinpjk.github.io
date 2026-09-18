@@ -1,0 +1,54 @@
+# =============================================================================
+# manuscripts.yaml — manuscripts under review
+#
+# DELIBERATELY SEPARATE FROM publications.yaml.
+#
+# These are anonymized submissions. Keeping them in their own file guarantees
+# they can never be counted among published papers by any code path that reads
+# the publication list.
+#
+# Nothing here is rendered unless `manuscripts_under_review.enabled` is set to
+# true in src/data/site.yaml. Before flipping that flag, Kevin must confirm:
+#   (a) the exact author list and order,
+#   (b) that each venue's anonymity policy permits listing, and
+#   (c) employer/host approval — Google for Sidecar, Berkeley for Helm.
+#
+# Author lists below are transcribed from _new_material/references.bib.
+# The label is fixed at "Manuscript under review, 2026" — never "to appear",
+# "accepted", or "forthcoming".
+# =============================================================================
+
+- slug: sidecar
+  title: "Too Long to Watch, Too Short to Leave: Designing for Agent Micro-Waits"
+  short_name: "Sidecar"
+  short_desc: "A side channel that surfaces what a running agent decided on its own"
+  authors:
+    - { name: "Kevin Pu", url: null, highlight: true }
+    - { name: "Anh Truong", url: null }
+    - { name: "Michael Terry", url: null }
+    - { name: "Carrie Cai", url: null }
+    - { name: "Michael Xieyang Liu", url: null }
+    - { name: "Savvas Petridis", url: null }
+  year: 2026
+
+- slug: helm
+  title: "Helm: Turning Situated Feedback into Reusable Guidance for Steering Multi-Agent Workflows"
+  short_name: "Helm"
+  short_desc: "Turns situated corrections into scoped, reusable guidelines with provenance"
+  authors:
+    - { name: "Kevin Pu", url: null, highlight: true }
+    - { name: "Sangho Suh", url: null }
+    - { name: "Yan Chen", url: "https://chensivan.github.io/" }
+    - { name: "Tovi Grossman", url: "https://www.tovigrossman.com/" }
+    - { name: "Bjoern Hartmann", url: "https://people.eecs.berkeley.edu/~bjoern/" }
+  year: 2026
+
+- slug: weavechat
+  title: "Who Shapes What Persists? Negotiating Personal Context Across LLM Conversations"
+  short_name: "WeaveChat"
+  short_desc: "How personal context is negotiated and carried across LLM conversations"
+  authors:
+    - { name: "Justin Cui", url: null }
+    - { name: "Kevin Pu", url: null, highlight: true }
+    - { name: "Tovi Grossman", url: "https://www.tovigrossman.com/" }
+  year: 2026

@@ -11,12 +11,15 @@ interface Props {
 }
 
 const { pub } = Astro.props;
-const venueLabel = `${pub.venue} ${pub.year}`;
+const venueLabel = pub.workshop && pub.venue_full
+  ? pub.venue_full
+  : `${pub.venue} ${pub.year}`;
 
 const linkItems = [
   { label: 'PDF', url: pub.links.pdf, icon: '📄' },
   { label: 'Video', url: pub.links.video, icon: '🎬' },
   { label: 'arXiv', url: pub.links.arxiv, icon: '📝' },
+  { label: 'DOI', url: pub.links.doi, icon: '🔗' },
   { label: 'Website', url: pub.links.website, icon: '🌐' },
   { label: 'Code', url: pub.links.code, icon: '💻' },
 ].filter(l => l.url);
@@ -77,13 +80,15 @@ const linkItems = [
     </div>
 
     <div class="paper-visuals">
-      <div class="paper-image-wrap pd-stagger" style="--pd-i:1">
-        <img
-          src={`/assets/img/papers/${pub.teaser}`}
-          alt={`Teaser figure for ${pub.title}`}
-          loading="lazy"
-        />
-      </div>
+      {pub.teaser && (
+        <div class="paper-image-wrap pd-stagger" style="--pd-i:1">
+          <img
+            src={`/assets/img/papers/${pub.teaser}`}
+            alt={`Teaser figure for ${pub.title}`}
+            loading="lazy"
+          />
+        </div>
+      )}
       <div class="tree-ring-container pd-stagger" data-slug={pub.slug} style="--pd-i:3"></div>
     </div>
   </div>
