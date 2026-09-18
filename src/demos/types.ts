@@ -27,6 +27,12 @@ export interface DemoContext {
 }
 
 export interface DemoController {
+  /**
+   * Begin the automated sequence. `mount()` must NOT start on its own — the
+   * loader decides when a demo plays, so that several demos on one page never
+   * animate at once.
+   */
+  play(): void;
   /** Restore the demo to its initial state and restart any intro sequence. */
   reset(): void;
   /** Halt automated motion. Direct interaction stays available. */
@@ -76,13 +82,15 @@ const PY_BUILTINS = new Set(['sorted', 'sum', 'len', 'print', 'list', 'dict', 'r
 export function highlightPython(line: string): string {
   if (line.trim() === '') return '&nbsp;';
 
-  // Comments win over everything to their right.
+  // Comments win over everything to their right. The text before the `#` is
+  // usually pure indentation, so it is emitted verbatim rather than recursed
+  // into — recursing would trim it away and collapse the indent.
   const hash = line.indexOf('#');
   if (hash !== -1) {
     const before = line.slice(0, hash);
     const comment = line.slice(hash);
-    return highlightPython(before === '' ? ' ' : before).replace('&nbsp;', ' ')
-      + `<span class="cd-t-com">${esc(comment)}</span>`;
+    const head = before.trim() === '' ? esc(before) : highlightPython(before);
+    return head + `<span class="cd-t-com">${esc(comment)}</span>`;
   }
 
   return line.replace(/("[^"]*"|'[^']*')|([A-Za-z_][A-Za-z0-9_]*)|([^A-Za-z_"']+)/g,

@@ -17,6 +17,75 @@ const pending = new WeakMap<HTMLElement, Promise<DemoController | null>>();
 const wired = new WeakSet<HTMLElement>();
 const observers = new Set<IntersectionObserver>();
 
+/**
+ * At most one demo animates at a time.
+ *
+ * Several demos sit on one page, and letting each autoplay as it scrolls past
+ * means a visitor arrives to a wall of motion, misses the interactions, and
+ * has nothing to focus on. A demo becomes the active one when it is
+ * substantially in view AND the most visible demo on screen, or as soon as the
+ * visitor clicks or focuses inside it. Starting one pauses the previous.
+ */
+let activeRoot: HTMLElement | null = null;
+const roots = new Set<HTMLElement>();
+
+/** How much of a demo must be on screen before it may start on its own. */
+const AUTO_PLAY_RATIO = 0.55;
+
+/** Fraction of a demo currently within the viewport, measured live. */
+function visibleFraction(root: HTMLElement): number {
+  const box = root.getBoundingClientRect();
+  if (box.height === 0) return 0;
+  const shown = Math.min(box.bottom, window.innerHeight) - Math.max(box.top, 0);
+  return Math.max(0, Math.min(1, shown / box.height));
+}
+
+async function makeActive(root: HTMLElement) {
+  if (activeRoot === root) return;
+
+  const previous = activeRoot;
+  activeRoot = root;
+  if (previous) mounted.get(previous)?.pause();
+
+  const controller = await activate(root);
+  // Another demo may have taken over while this one was loading.
+  if (controller && activeRoot === root) controller.play();
+}
+
+/**
+ * Pick the demo that should be playing: the most visible one, provided it is
+ * substantially on screen. Ratios are measured here rather than read from
+ * cached IntersectionObserver entries, because those are recorded at
+ * different moments per element and comparing them left the slot stuck on a
+ * demo that had already scrolled past.
+ */
+let rebalanceQueued = false;
+function rebalance() {
+  if (rebalanceQueued) return;
+  rebalanceQueued = true;
+
+  requestAnimationFrame(() => {
+    rebalanceQueued = false;
+
+    let best: HTMLElement | null = null;
+    let bestRatio = AUTO_PLAY_RATIO;
+    roots.forEach(root => {
+      const ratio = visibleFraction(root);
+      if (ratio >= bestRatio) {
+        best = root;
+        bestRatio = ratio;
+      }
+    });
+
+    if (best) {
+      void makeActive(best);
+    } else if (activeRoot) {
+      mounted.get(activeRoot)?.pause();
+      activeRoot = null;
+    }
+  });
+}
+
 const REDUCED = '(prefers-reduced-motion: reduce)';
 
 function makeContext(root: HTMLElement): DemoContext {
@@ -90,23 +159,44 @@ function wire(root: HTMLElement) {
     const controller = await activate(root);
     if (!controller) return;
 
-    if (button.dataset.demoAction === 'reset') controller.reset();
-    if (button.dataset.demoAction === 'pause') controller.pause();
+    if (button.dataset.demoAction === 'reset') {
+      await makeActive(root);
+      mounted.get(root)?.reset();
+      return;
+    }
+    if (button.dataset.demoAction === 'pause') {
+      controller.pause();
+      if (activeRoot === root) activeRoot = null;
+    }
   });
 
-  // Mount when the demo first becomes visible; pause when it leaves.
+  // Direct interaction always wins over the visibility heuristic: if the
+  // visitor reaches for a demo, that is the one they mean.
+  const claim = () => void makeActive(root);
+  root.addEventListener('pointerdown', claim);
+  root.addEventListener('focusin', claim);
+
+  // Mounting and playing are separate concerns. A demo mounts as soon as any
+  // part of it is on screen, so its hover and keyboard interactions are live
+  // even while a different demo is the one animating. Only the most visible
+  // demo actually plays.
   const observer = new IntersectionObserver(entries => {
     for (const entry of entries) {
-      if (entry.isIntersecting) {
-        void activate(root);
-      } else {
-        mounted.get(root)?.pause();
-      }
-    }
-  }, { threshold: 0.35 });
 
+      // Mount as soon as any part is on screen so hover and keyboard
+      // interactions are live even while a different demo is animating.
+      if (entry.isIntersecting) void activate(root);
+    }
+    rebalance();
+  }, { threshold: [0, 0.2, 0.4, AUTO_PLAY_RATIO, 0.75, 1] });
+
+  roots.add(root);
   observer.observe(root);
   observers.add(observer);
+
+  // Scrolling between two thresholds still changes which demo is most
+  // visible, so re-check on scroll as well as on threshold crossings.
+  window.addEventListener('scroll', rebalance, { passive: true });
 }
 
 function pauseAllIfHidden() {
@@ -114,6 +204,7 @@ function pauseAllIfHidden() {
   document.querySelectorAll<HTMLElement>('[data-paper-demo]').forEach(root => {
     mounted.get(root)?.pause();
   });
+  activeRoot = null;
 }
 
 function initDemos() {
@@ -133,6 +224,8 @@ function teardownDemos() {
   });
   observers.forEach(o => o.disconnect());
   observers.clear();
+  roots.clear();
+  activeRoot = null;
 }
 
 document.addEventListener('visibilitychange', pauseAllIfHidden);

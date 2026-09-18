@@ -282,6 +282,42 @@
 # Kept in the same list but marked `workshop: true` so they can be shown
 # separately from full conference papers.
 
+# Accepted workshop proposal. `role` marks Kevin's organizing contribution,
+# which is not conveyed by author position alone.
+- slug: revibing-hci
+  title: "Revibing HCI: Agentic Reimplementation as Community Practice"
+  authors:
+    - { name: "Yoonjoo Lee", url: null }
+    - { name: "Tae Soo Kim", url: null }
+    - { name: "Kevin Pu", url: null, highlight: true }
+    - { name: "Mira Dontcheva", url: null }
+    - { name: "Bjoern Hartmann", url: "https://people.eecs.berkeley.edu/~bjoern/" }
+    - { name: "Toby Jia-Jun Li", url: null }
+    - { name: "Brad A. Myers", url: null }
+    - { name: "Jeffrey Nichols", url: null }
+    - { name: "April Yi Wang", url: null }
+    - { name: "Xuhai Xu", url: null }
+    - { name: "Eytan Adar", url: null }
+  venue: UIST Workshop
+  year: 2026
+  workshop: true
+  venue_full: "UIST 2026 Workshop Proposal: Adjunct Proceedings of the 39th Annual ACM Symposium on User Interface Software and Technology (to appear)"
+  category: null
+  award: null
+  links:
+    pdf: null
+    video: null
+    arxiv: null
+    website: https://uist.acm.org/2026/workshops/
+    doi: null
+    code: null
+  summary: ""
+  selected: false
+  teaser: null
+  teaser_type: null
+  ring_concept: "agentic reimplementation"
+  ring_keywords: ["community", "reimplementation", "agents", "HCI"]
+
 - slug: loom
   title: "LOOM: Personalized Learning Informed by Daily LLM Conversations Toward Long-Term Mastery via a Dynamic Learner Memory Graph"
   authors:
@@ -307,40 +343,3 @@
   teaser_type: null
   ring_concept: "learner memory graph"
   ring_keywords: ["personalization", "learning", "memory", "LLM"]
-
-# Accepted workshop proposal. `role` marks Kevin's organizing contribution,
-# which is not conveyed by author position alone.
-- slug: revibing-hci
-  title: "Revibing HCI: Agentic Reimplementation as Community Practice"
-  authors:
-    - { name: "Yoonjoo Lee", url: null }
-    - { name: "Tae Soo Kim", url: null }
-    - { name: "Kevin Pu", url: null, highlight: true }
-    - { name: "Mira Dontcheva", url: null }
-    - { name: "Bjoern Hartmann", url: "https://people.eecs.berkeley.edu/~bjoern/" }
-    - { name: "Toby Jia-Jun Li", url: null }
-    - { name: "Brad A. Myers", url: null }
-    - { name: "Jeffrey Nichols", url: null }
-    - { name: "April Yi Wang", url: null }
-    - { name: "Xuhai Xu", url: null }
-    - { name: "Eytan Adar", url: null }
-  venue: UIST Workshop
-  year: 2026
-  workshop: true
-  role: "Co-organizer"
-  venue_full: "UIST 2026 Workshop Proposal: Adjunct Proceedings of the 39th Annual ACM Symposium on User Interface Software and Technology (to appear)"
-  category: null
-  award: null
-  links:
-    pdf: null
-    video: null
-    arxiv: null
-    website: https://uist.acm.org/2026/workshops/
-    doi: null
-    code: null
-  summary: ""
-  selected: false
-  teaser: null
-  teaser_type: null
-  ring_concept: "agentic reimplementation"
-  ring_keywords: ["community", "reimplementation", "agents", "HCI"]

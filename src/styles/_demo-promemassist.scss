@@ -1,0 +1,545 @@
+// =============================================================================
+// ProMemAssist demo scene
+//
+// Global rather than component-scoped: the scene markup is injected by the
+// demo module, so Astro's scoping attribute is never applied to it. Every
+// selector is namespaced `pm-`.
+//
+// Palette follows the paper's own figures — a blue working-memory container,
+// green memory items, amber for the item that would be displaced — so the
+// diagram reads as the same system the paper describes.
+// =============================================================================
+
+.pm {
+  --pm-bg: #ffffff;
+  --pm-panel: #f4f8fc;
+  --pm-border: #dbe4ee;
+  --pm-text: #26303d;
+  --pm-muted: #6b7889;
+
+  --pm-see: #2f7d6b;      // visuospatial signal
+  --pm-hear: #3f6bb5;     // phonological signal
+  --pm-item: #e4f2e0;     // memory item fill
+  --pm-item-line: #b9dcb0;
+  --pm-hot: #d94f7d;      // relevant / the moment
+  --pm-drop: #C88A1E;     // displaced
+  --pm-drop-fill: #fdf2d8;
+
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr) minmax(0, 1.05fr);
+  gap: 0.7rem;
+  height: 100%;
+  min-height: 300px;
+  padding: 0.6rem;
+  background: var(--pm-bg);
+  color: var(--pm-text);
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+[data-theme='dark'] .pm {
+  --pm-bg: #1b2028;
+  --pm-panel: #232b36;
+  --pm-border: #38434f;
+  --pm-text: #e4e9ef;
+  --pm-muted: #97a3b2;
+
+  --pm-see: #6fd3ba;
+  --pm-hear: #85adf0;
+  --pm-item: #27362c;
+  --pm-item-line: #3d5a44;
+  --pm-hot: #ff7ea6;
+  --pm-drop: #E0B15A;
+  --pm-drop-fill: #3a3121;
+}
+
+.paper-demo--full .pm {
+  font-size: 0.78rem;
+  min-height: 360px;
+}
+
+// --- columns -----------------------------------------------------------------
+.pm-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.pm-col-label {
+  margin: 0;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.58rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--pm-muted);
+}
+
+.pm-col-note {
+  display: block;
+  margin-top: 0.1rem;
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 0.58rem;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  font-style: italic;
+  opacity: 0.85;
+}
+
+.pm-icon {
+  width: 1.5em;
+  height: 1.5em;
+  display: block;
+}
+
+// --- perception --------------------------------------------------------------
+.pm-view {
+  position: relative;
+  flex: 1;
+  min-height: 118px;
+  border: 1px solid var(--pm-border);
+  border-radius: var(--radius-md);
+  background: var(--pm-panel);
+  overflow: hidden;
+}
+
+.pm-wearer {
+  position: absolute;
+  left: 0.4rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  color: var(--pm-text);
+  opacity: 0;
+  transition: opacity 400ms ease;
+  z-index: 2;
+}
+
+.pm-glasses { width: 2.1em; height: 2.1em; }
+
+.pm-wearer-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.5rem;
+  letter-spacing: 0.04em;
+  color: var(--pm-muted);
+  white-space: nowrap;
+}
+
+// The wearer's field of view, fanning rightwards from the glasses.
+.pm-cone {
+  position: absolute;
+  left: 2.6rem;
+  top: 50%;
+  width: calc(100% - 2.6rem);
+  height: 150%;
+  transform: translateY(-50%) scaleX(0);
+  transform-origin: left center;
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--pm-see) 20%, transparent),
+    color-mix(in srgb, var(--pm-see) 4%, transparent)
+  );
+  clip-path: polygon(0 46%, 100% 0, 100% 100%, 0 54%);
+  transition: transform 700ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  z-index: 0;
+}
+
+.pm-obj {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 1.95em;
+  height: 1.95em;
+  border-radius: 50%;
+  border: 1px solid var(--pm-border);
+  background: var(--pm-bg);
+  color: var(--pm-see);
+  opacity: 0;
+  transform: scale(0.75);
+  transition: opacity 320ms ease, transform 320ms cubic-bezier(0.22, 0.61, 0.36, 1),
+              box-shadow 200ms ease, border-color 200ms ease;
+  z-index: 1;
+}
+
+// Positions are tuned to sit inside the cone's spread at every width.
+.pm-obj--banana { left: 44%; top: 24%; }
+.pm-obj--cup    { left: 70%; top: 22%; }
+.pm-obj--plate  { left: 46%; top: 55%; }
+.pm-obj--fork   { left: 72%; top: 62%; }
+
+.pm-obj.is-lit,
+.pm-heard.is-lit {
+  border-color: var(--pm-hot);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--pm-hot) 22%, transparent);
+}
+
+// --- what was heard ----------------------------------------------------------
+.pm-heard {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.45rem;
+  border: 1px solid var(--pm-border);
+  border-radius: var(--radius-md);
+  background: var(--pm-panel);
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 340ms ease, transform 340ms ease,
+              box-shadow 200ms ease, border-color 200ms ease;
+}
+
+.pm-wave {
+  display: flex;
+  align-items: center;
+  gap: 1.5px;
+  flex-shrink: 0;
+  height: 1.1em;
+
+  i {
+    width: 2px;
+    border-radius: 1px;
+    background: var(--pm-hear);
+    height: 35%;
+  }
+
+  i:nth-child(1) { height: 40%; }
+  i:nth-child(2) { height: 75%; }
+  i:nth-child(3) { height: 100%; }
+  i:nth-child(4) { height: 60%; }
+  i:nth-child(5) { height: 95%; }
+  i:nth-child(6) { height: 50%; }
+  i:nth-child(7) { height: 30%; }
+}
+
+.pm-quote {
+  font-style: italic;
+  font-size: 0.66rem;
+  line-height: 1.4;
+  color: var(--pm-text);
+  quotes: none;
+}
+
+// --- working memory ----------------------------------------------------------
+.pm-items {
+  flex: 1;
+  list-style: none;
+  margin: 0;
+  padding: 0.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  border: 1px solid var(--pm-border);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--pm-hear) 7%, var(--pm-panel));
+}
+
+.pm-item {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.35rem;
+  border: 1px solid var(--pm-item-line);
+  border-radius: 5px;
+  background: var(--pm-item);
+  cursor: default;
+  opacity: 0;
+  transform: translateX(-6px);
+  transition: opacity 300ms ease, transform 300ms ease,
+              box-shadow 180ms ease, border-color 180ms ease,
+              background-color 180ms ease;
+
+  &:focus-visible {
+    outline: 2px solid var(--pm-hot);
+    outline-offset: 1px;
+  }
+}
+
+.pm-item[data-kind='phonological'] {
+  background: color-mix(in srgb, var(--pm-hear) 14%, var(--pm-bg));
+  border-color: color-mix(in srgb, var(--pm-hear) 34%, transparent);
+}
+
+.pm-item-rank {
+  flex-shrink: 0;
+  width: 1.1em;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.56rem;
+  color: var(--pm-muted);
+}
+
+.pm-item-main { flex: 1; min-width: 0; }
+
+.pm-item-label {
+  display: block;
+  font-size: 0.66rem;
+  font-weight: 600;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pm-item-kind {
+  display: block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.48rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--pm-muted);
+}
+
+// The encoded vector, suggested rather than spelled out.
+.pm-embed {
+  display: flex;
+  gap: 1px;
+  flex-shrink: 0;
+
+  i {
+    width: 3px;
+    height: 9px;
+    border-radius: 1px;
+    background: color-mix(in srgb, var(--pm-see) 45%, transparent);
+  }
+  i:nth-child(2) { height: 6px; }
+  i:nth-child(3) { height: 11px; }
+  i:nth-child(4) { height: 5px; }
+}
+
+.pm-item[data-kind='phonological'] .pm-embed i {
+  background: color-mix(in srgb, var(--pm-hear) 50%, transparent);
+}
+
+.pm-item.is-lit {
+  border-color: var(--pm-hot);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--pm-hot) 20%, transparent);
+}
+
+// While the spoken line is being explained.
+.pm-item.is-relevant {
+  border-color: var(--pm-hot);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--pm-hot) 26%, transparent);
+}
+
+.pm-item.is-displaced {
+  background: var(--pm-drop-fill);
+  border-color: var(--pm-drop);
+  opacity: 0.85;
+
+  .pm-item-label { text-decoration: line-through; }
+
+  &::after {
+    content: 'displaced';
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.46rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--pm-drop);
+    white-space: nowrap;
+  }
+}
+
+// Everything not implicated dims, so the reasoning stands out.
+.pm.is-explaining .pm-item:not(.is-relevant):not(.is-displaced) { opacity: 0.4; }
+
+// --- timing and assistance ---------------------------------------------------
+.pm-pickup {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.45rem;
+  border: 1px solid var(--pm-border);
+  border-radius: var(--radius-md);
+  background: var(--pm-panel);
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 320ms ease, transform 320ms ease;
+}
+
+.pm-hand {
+  flex-shrink: 0;
+  color: var(--pm-hot);
+}
+
+.pm-pickup-text {
+  font-size: 0.64rem;
+  line-height: 1.35;
+  color: var(--pm-muted);
+
+  b { color: var(--pm-text); font-weight: 600; }
+}
+
+.pm-verdict {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.35rem 0.45rem;
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in srgb, var(--pm-hot) 30%, transparent);
+  background: color-mix(in srgb, var(--pm-hot) 8%, transparent);
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 320ms ease, transform 320ms ease;
+}
+
+.pm-verdict-row {
+  font-size: 0.6rem;
+  line-height: 1.35;
+  color: var(--pm-muted);
+
+  b { color: var(--pm-hot); font-weight: 700; }
+}
+
+.pm-voice {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: auto;
+  padding: 0.45rem 0.5rem;
+  text-align: left;
+  border: 1px solid var(--pm-hot);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--pm-hot) 10%, var(--pm-bg));
+  color: var(--pm-text);
+  cursor: pointer;
+  opacity: 0;
+  transform: scale(0.97);
+  transition: opacity 360ms ease, transform 360ms cubic-bezier(0.22, 0.61, 0.36, 1),
+              box-shadow 200ms ease;
+
+  .pm-icon { flex-shrink: 0; color: var(--pm-hot); }
+
+  &:hover,
+  &:focus-visible {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--pm-hot) 20%, transparent);
+  }
+}
+
+.pm-voice-text {
+  font-size: 0.66rem;
+  font-weight: 600;
+  font-style: italic;
+  line-height: 1.35;
+}
+
+.pm-voice-hint {
+  margin: 0.1rem 0 0;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.5rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--pm-muted);
+  opacity: 0;
+  transition: opacity 300ms ease;
+}
+
+// --- connector overlay -------------------------------------------------------
+.pm-links {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 5;
+  overflow: visible;
+}
+
+.pm-link {
+  fill: none;
+  stroke: var(--pm-hot);
+  stroke-width: 1.2;
+  stroke-dasharray: 3 3;
+  opacity: 0.85;
+}
+
+// --- staging -----------------------------------------------------------------
+// Each stage reveals the next part of the flow. `done` shows everything, so a
+// reduced-motion visitor and the static server-rendered scene both land there.
+
+.pm[data-stage='look'] .pm-wearer,
+.pm[data-stage='see'] .pm-wearer,
+.pm[data-stage='hear'] .pm-wearer,
+.pm[data-stage='encode'] .pm-wearer,
+.pm[data-stage='pickup'] .pm-wearer,
+.pm[data-stage='done'] .pm-wearer { opacity: 1; }
+
+.pm[data-stage='see'] .pm-cone,
+.pm[data-stage='hear'] .pm-cone,
+.pm[data-stage='encode'] .pm-cone,
+.pm[data-stage='pickup'] .pm-cone,
+.pm[data-stage='done'] .pm-cone { transform: translateY(-50%) scaleX(1); }
+
+.pm[data-stage='see'] .pm-obj,
+.pm[data-stage='hear'] .pm-obj,
+.pm[data-stage='encode'] .pm-obj,
+.pm[data-stage='pickup'] .pm-obj,
+.pm[data-stage='done'] .pm-obj { opacity: 1; transform: scale(1); }
+
+.pm[data-stage='see'] .pm-obj--banana { transition-delay: 220ms; }
+.pm[data-stage='see'] .pm-obj--cup    { transition-delay: 400ms; }
+.pm[data-stage='see'] .pm-obj--plate  { transition-delay: 580ms; }
+.pm[data-stage='see'] .pm-obj--fork   { transition-delay: 760ms; }
+
+.pm[data-stage='hear'] .pm-heard,
+.pm[data-stage='encode'] .pm-heard,
+.pm[data-stage='pickup'] .pm-heard,
+.pm[data-stage='done'] .pm-heard { opacity: 1; transform: none; }
+
+.pm[data-stage='encode'] .pm-item,
+.pm[data-stage='pickup'] .pm-item,
+.pm[data-stage='done'] .pm-item { opacity: 1; transform: none; }
+
+.pm[data-stage='encode'] .pm-item { transition-delay: calc(var(--i) * 260ms); }
+
+.pm[data-stage='pickup'] .pm-pickup,
+.pm[data-stage='done'] .pm-pickup { opacity: 1; transform: none; }
+
+.pm[data-stage='pickup'] .pm-obj--plate,
+.pm[data-stage='pickup'] .pm-obj--fork,
+.pm[data-stage='done'] .pm-obj--plate,
+.pm[data-stage='done'] .pm-obj--fork {
+  border-color: var(--pm-hot);
+  color: var(--pm-hot);
+}
+
+.pm[data-stage='done'] .pm-verdict,
+.pm[data-stage='done'] .pm-voice { opacity: 1; transform: none; }
+
+.pm[data-stage='done'] .pm-voice-hint { opacity: 1; }
+
+// Dimming during an explanation must beat the staging rules above.
+.pm.is-explaining .pm-item:not(.is-relevant):not(.is-displaced) { opacity: 0.4; }
+
+// --- narrow ------------------------------------------------------------------
+@media (max-width: 700px) {
+  .pm {
+    grid-template-columns: 1fr;
+    gap: 0.55rem;
+    min-height: 0;
+  }
+
+  .pm-view { min-height: 104px; }
+  .pm-voice { margin-top: 0; }
+
+  // Connector geometry assumes the three columns sit side by side.
+  .pm-links { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pm-cone,
+  .pm-obj,
+  .pm-heard,
+  .pm-item,
+  .pm-pickup,
+  .pm-verdict,
+  .pm-voice,
+  .pm-wearer {
+    transition: none !important;
+    transition-delay: 0ms !important;
+  }
+}

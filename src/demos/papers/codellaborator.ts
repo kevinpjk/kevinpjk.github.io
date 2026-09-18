@@ -493,9 +493,15 @@ function mount(root: HTMLElement, ctx: DemoContext): DemoController {
   // --- lifecycle ----------------------------------------------------------
 
   wireEditing();
-  void runIntro();
+  // Deliberately not started here: the loader calls play() when this demo
+  // becomes the active one.
 
   return {
+    play() {
+      if (running || finished) return;
+      paused = false;
+      void runIntro();
+    },
     reset() {
       clearTimers();
       paused = false;
@@ -509,6 +515,7 @@ function mount(root: HTMLElement, ctx: DemoContext): DemoController {
       breakoutInput.value = '';
       caret.dataset.visible = 'false';
       setCaretMode('dot');
+      finished = false;
       ctx.announce('Demo reset.');
       void runIntro();
     },
