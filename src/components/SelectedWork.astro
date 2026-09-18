@@ -65,7 +65,6 @@ const { item } = Astro.props;
 
 <style lang="scss">
   .sw {
-    position: relative;
     display: grid;
     grid-template-columns: minmax(0, 0.58fr) minmax(0, 1fr);
     gap: 2rem;
@@ -74,7 +73,13 @@ const { item } = Astro.props;
     & + & { border-top: 1px solid var(--bg-surface-border); }
   }
 
-  .sw-cite { min-width: 0; }
+  // Positioned so the title's click overlay covers THIS column only. If the
+  // overlay is anchored to .sw instead it spans the grid and swallows every
+  // pointer event on the demo, making the demo unclickable.
+  .sw-cite {
+    position: relative;
+    min-width: 0;
+  }
 
   .sw-meta {
     display: flex;
