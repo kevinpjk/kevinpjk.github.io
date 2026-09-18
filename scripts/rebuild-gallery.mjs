@@ -9,12 +9,11 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { execSync } from 'node:child_process';
 import yaml from 'js-yaml';
 
 const GALLERY_DIR = path.resolve('public/assets/img/gallery');
 const YAML_PATH = path.resolve('src/data/gallery.yaml');
-const IMAGE_EXTS = new Set(['.jpg', '.jpeg', '.png', '.gif', '.webp', '.heic']);
+const IMAGE_EXTS = new Set(['.jpg', '.jpeg', '.png', '.gif', '.webp']);
 const VIDEO_EXTS = new Set(['.mp4', '.mov', '.webm']);
 
 // Load existing YAML to preserve location/date
@@ -59,60 +58,35 @@ for (const folder of folders) {
   const files = fs.readdirSync(folderPath).sort();
 
   const photos = [];
-  // Group HEIC+MP4 pairs as live photos
-  const heicFiles = new Set();
-  const mp4Files = new Set();
-  const otherImages = [];
+  // A still paired with a same-named video is a "live" photo.
+  const videoByBase = new Map();
+  const images = [];
 
   for (const file of files) {
     const ext = path.extname(file).toLowerCase();
     const base = path.parse(file).name;
     if (IMAGE_EXTS.has(ext)) {
-      if (ext === '.heic') {
-        heicFiles.add(base);
-      } else {
-        otherImages.push(file);
-      }
+      images.push(file);
     } else if (VIDEO_EXTS.has(ext)) {
-      mp4Files.add(base);
+      videoByBase.set(base, file);
     }
   }
 
-  // Live photos: HEIC files that have a matching MP4.
-  // Convert HEIC → JPG on first sight (browsers can't render .heic in <img>).
+  // One entry per still; attach the paired video when there is one.
   let photoIndex = 1;
-  for (const base of heicFiles) {
-    const heicPath = path.join(folderPath, `${base}.HEIC`);
-    const jpgPath = path.join(folderPath, `${base}.jpg`);
-    if (!fs.existsSync(jpgPath) && fs.existsSync(heicPath)) {
-      try {
-        execSync(`sips -s format jpeg "${heicPath}" --out "${jpgPath}"`, { stdio: 'ignore' });
-      } catch (e) {
-        console.warn(`Failed to convert ${heicPath} to jpg:`, e.message);
-      }
-    }
-
-    const hasVideo = mp4Files.has(base);
+  for (const file of images) {
+    const base = path.parse(file).name;
     const photo = {
-      src: `gallery/${folder}/${base}.jpg`,
-      thumb: `gallery/${folder}/${base}.jpg`,
-      caption: `${event} ${photoIndex}`,
-    };
-    if (hasVideo) {
-      photo.video = `gallery/${folder}/${base}.MP4`;
-      photo.type = 'live';
-    }
-    photos.push(photo);
-    photoIndex++;
-  }
-
-  // Regular images
-  for (const file of otherImages) {
-    photos.push({
       src: `gallery/${folder}/${file}`,
       thumb: `gallery/${folder}/${file}`,
       caption: `${event} ${photoIndex}`,
-    });
+    };
+    const video = videoByBase.get(base);
+    if (video) {
+      photo.video = `gallery/${folder}/${video}`;
+      photo.type = 'live';
+    }
+    photos.push(photo);
     photoIndex++;
   }
 

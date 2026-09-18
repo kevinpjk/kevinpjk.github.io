@@ -24,18 +24,13 @@ body {
   background-color: var(--bg-primary);
   min-height: 100vh;
   transition: background-color var(--transition-normal), color var(--transition-normal);
-  cursor: url('/cursors/leaf.svg') 4 4, default;
-
-  * {
-    cursor: inherit;
-  }
 }
 
 a, button, [role="button"], input[type="submit"], summary,
 label, select, [tabindex], .pub-card, .pub-entry, .photo-cell,
 .branch-node, .branch-card, .timeline-card, .timeline-dot,
 .fnav-item, .link-pill, .back-btn, .expand-all-btn {
-  cursor: url('/cursors/leaf-pointer.svg') 4 4, pointer !important;
+  cursor: pointer;
 }
 
 h1, h2, h3, h4, h5, h6 {

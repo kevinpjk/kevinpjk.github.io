@@ -1,43 +1,44 @@
-# Astro Starter Kit: Minimal
+# kevinpjk.github.io
+
+Personal academic site for Kevin Pu — built with [Astro](https://astro.build/), plain SCSS, and YAML content files.
+
+## Develop
 
 ```sh
-npm create astro@latest -- --template minimal
+npm ci          # requires Node >= 22.12
+npm run dev     # http://localhost:4321
+npm run build   # static output to ./dist
+npm run preview # serve the built site
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+## Content
 
-## 🚀 Project Structure
+All site content lives in `src/data/` as YAML and is loaded through `src/lib/data.ts`:
 
-Inside of your Astro project, you'll see the following folders and files:
+| File | Contents |
+| --- | --- |
+| `publications.yaml` | Full publication list. `selected: true` promotes a paper to the homepage. |
+| `news.yaml` | News entries, newest first. Supports `**bold**`, `_italic_`, and `[links](url)`. |
+| `venues.yaml` | Per-venue display colors and full names. |
+| `gallery.yaml` | Generated — see below. |
 
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
+Teaser images and PDFs are served from `public/assets/`.
+
+### Gallery
+
+`src/data/gallery.yaml` is generated from the folders in
+`public/assets/img/gallery/`:
+
+```sh
+node scripts/rebuild-gallery.mjs
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+Each folder becomes an event. A still with a same-named video beside it
+(`IMG_1234.jpg` + `IMG_1234.MP4`) is emitted as a `live` photo. Existing
+`location` and `date` fields are preserved across runs.
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+## Deploy
 
-Any static assets, like images, can be placed in the `public/` directory.
-
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+Pushing to `master` triggers `.github/workflows/deploy.yml`, which builds the
+site and publishes it to GitHub Pages. Work on a branch; merging to `master`
+is what goes live.
