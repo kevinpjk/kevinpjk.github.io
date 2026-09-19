@@ -6,8 +6,8 @@
 // selector is namespaced `pm-`.
 //
 // Palette follows the paper's own figures — a blue working-memory container,
-// green memory items, amber for the item that would be displaced — so the
-// diagram reads as the same system the paper describes.
+// green memory items, amber for the item that gets displaced — so the diagram
+// reads as the same system the paper describes.
 // =============================================================================
 
 .pm {
@@ -24,13 +24,14 @@
   --pm-hot: #d94f7d;      // relevant / the moment
   --pm-drop: #C88A1E;     // displaced
   --pm-drop-fill: #fdf2d8;
+  --pm-wood: #e8ddcd;     // tabletop
 
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr) minmax(0, 1.05fr);
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr) minmax(0, 1.05fr);
   gap: 0.7rem;
   height: 100%;
-  min-height: 300px;
+  min-height: 316px;
   padding: 0.6rem;
   background: var(--pm-bg);
   color: var(--pm-text);
@@ -52,11 +53,12 @@
   --pm-hot: #ff7ea6;
   --pm-drop: #E0B15A;
   --pm-drop-fill: #3a3121;
+  --pm-wood: #3a3430;
 }
 
 .paper-demo--full .pm {
   font-size: 0.78rem;
-  min-height: 360px;
+  min-height: 372px;
 }
 
 // --- columns -----------------------------------------------------------------
@@ -70,10 +72,10 @@
 .pm-col-label {
   margin: 0;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.58rem;
+  font-size: 0.56rem;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.07em;
   color: var(--pm-muted);
 }
 
@@ -95,35 +97,34 @@
   display: block;
 }
 
-// --- perception --------------------------------------------------------------
+// --- the scene ---------------------------------------------------------------
 .pm-view {
   position: relative;
   flex: 1;
-  min-height: 118px;
+  min-height: 150px;
   border: 1px solid var(--pm-border);
   border-radius: var(--radius-md);
   background: var(--pm-panel);
   overflow: hidden;
 }
 
-.pm-wearer {
+.pm-user {
   position: absolute;
-  left: 0.4rem;
-  top: 50%;
-  transform: translateY(-50%);
+  left: 0.45rem;
+  bottom: 0.5rem;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.15rem;
+  gap: 0.1rem;
   color: var(--pm-text);
   opacity: 0;
   transition: opacity 400ms ease;
-  z-index: 2;
+  z-index: 3;
 }
 
-.pm-glasses { width: 2.1em; height: 2.1em; }
+.pm-user-icon { width: 2.5em; height: 2.5em; }
 
-.pm-wearer-tag {
+.pm-user-tag {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.5rem;
   letter-spacing: 0.04em;
@@ -131,51 +132,70 @@
   white-space: nowrap;
 }
 
-// The wearer's field of view, fanning rightwards from the glasses.
+// The wearer's field of view, fanning up and right from where they stand.
 .pm-cone {
   position: absolute;
-  left: 2.6rem;
-  top: 50%;
-  width: calc(100% - 2.6rem);
-  height: 150%;
-  transform: translateY(-50%) scaleX(0);
+  left: 1.9rem;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  transform: scaleX(0);
   transform-origin: left center;
   background: linear-gradient(
     to right,
-    color-mix(in srgb, var(--pm-see) 20%, transparent),
-    color-mix(in srgb, var(--pm-see) 4%, transparent)
+    color-mix(in srgb, var(--pm-see) 24%, transparent),
+    color-mix(in srgb, var(--pm-see) 5%, transparent)
   );
-  clip-path: polygon(0 46%, 100% 0, 100% 100%, 0 54%);
-  transition: transform 700ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  clip-path: polygon(0 74%, 100% 4%, 100% 98%, 0 90%);
+  transition: transform 720ms cubic-bezier(0.22, 0.61, 0.36, 1);
   z-index: 0;
+}
+
+// A tabletop seen at an angle: narrower at the far edge.
+.pm-table {
+  position: absolute;
+  left: 32%;
+  right: 6%;
+  top: 34%;
+  bottom: 14%;
+  background: var(--pm-wood);
+  border-radius: 3px;
+  clip-path: polygon(14% 0, 86% 0, 100% 100%, 0 100%);
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 420ms ease, transform 420ms ease;
+  z-index: 1;
 }
 
 .pm-obj {
   position: absolute;
   display: grid;
   place-items: center;
-  width: 1.95em;
-  height: 1.95em;
+  width: 2.5em;
+  height: 2.5em;
   border-radius: 50%;
   border: 1px solid var(--pm-border);
   background: var(--pm-bg);
   color: var(--pm-see);
   opacity: 0;
-  transform: scale(0.75);
+  transform: scale(0.7);
   transition: opacity 320ms ease, transform 320ms cubic-bezier(0.22, 0.61, 0.36, 1),
-              box-shadow 200ms ease, border-color 200ms ease;
-  z-index: 1;
+              box-shadow 200ms ease, border-color 200ms ease, color 200ms ease;
+  z-index: 2;
+
+  .pm-icon { width: 1.5em; height: 1.5em; }
 }
 
-// Positions are tuned to sit inside the cone's spread at every width.
-.pm-obj--banana { left: 44%; top: 24%; }
-.pm-obj--cup    { left: 70%; top: 22%; }
-.pm-obj--plate  { left: 46%; top: 55%; }
-.pm-obj--fork   { left: 72%; top: 62%; }
+// Laid out as a place setting: banana further back, then cup, plate, fork.
+.pm-obj--banana { left: 56%; top: 39%; }
+.pm-obj--cup    { left: 40%; top: 58%; }
+.pm-obj--plate  { left: 58%; top: 60%; }
+.pm-obj--fork   { left: 76%; top: 62%; }
 
 .pm-obj.is-lit,
 .pm-heard.is-lit {
   border-color: var(--pm-hot);
+  color: var(--pm-hot);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--pm-hot) 22%, transparent);
 }
 
@@ -183,7 +203,7 @@
 .pm-heard {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.45rem;
   padding: 0.35rem 0.45rem;
   border: 1px solid var(--pm-border);
   border-radius: var(--radius-md);
@@ -199,23 +219,44 @@
   align-items: center;
   gap: 1.5px;
   flex-shrink: 0;
-  height: 1.1em;
+  height: 1.2em;
 
   i {
     width: 2px;
+    height: 30%;
     border-radius: 1px;
     background: var(--pm-hear);
-    height: 35%;
+    transform-origin: center;
   }
-
-  i:nth-child(1) { height: 40%; }
-  i:nth-child(2) { height: 75%; }
-  i:nth-child(3) { height: 100%; }
-  i:nth-child(4) { height: 60%; }
-  i:nth-child(5) { height: 95%; }
-  i:nth-child(6) { height: 50%; }
-  i:nth-child(7) { height: 30%; }
 }
+
+// Live sound: the bars move only while the line is being heard and encoded.
+@keyframes pm-wave-bounce {
+  0%, 100% { height: 26%; }
+  50%      { height: 100%; }
+}
+
+.pm[data-stage='hear'] .pm-wave i,
+.pm[data-stage='encode'] .pm-wave i {
+  animation: pm-wave-bounce 780ms ease-in-out infinite;
+}
+
+.pm-wave i:nth-child(1) { animation-delay: 0ms; }
+.pm-wave i:nth-child(2) { animation-delay: 110ms; }
+.pm-wave i:nth-child(3) { animation-delay: 220ms; }
+.pm-wave i:nth-child(4) { animation-delay: 90ms; }
+.pm-wave i:nth-child(5) { animation-delay: 300ms; }
+.pm-wave i:nth-child(6) { animation-delay: 160ms; }
+.pm-wave i:nth-child(7) { animation-delay: 40ms; }
+
+// Resting heights once the sound has passed.
+.pm-wave i:nth-child(1) { height: 40%; }
+.pm-wave i:nth-child(2) { height: 70%; }
+.pm-wave i:nth-child(3) { height: 100%; }
+.pm-wave i:nth-child(4) { height: 55%; }
+.pm-wave i:nth-child(5) { height: 85%; }
+.pm-wave i:nth-child(6) { height: 45%; }
+.pm-wave i:nth-child(7) { height: 30%; }
 
 .pm-quote {
   font-style: italic;
@@ -239,20 +280,25 @@
   background: color-mix(in srgb, var(--pm-hear) 7%, var(--pm-panel));
 }
 
+.pm-slot {
+  position: relative;
+  opacity: 0;
+  transform: translateX(-6px);
+  transition: opacity 300ms ease, transform 300ms ease;
+}
+
 .pm-item {
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  padding: 0.25rem 0.35rem;
+  padding: 0.28rem 0.4rem;
   border: 1px solid var(--pm-item-line);
   border-radius: 5px;
   background: var(--pm-item);
   cursor: default;
-  opacity: 0;
-  transform: translateX(-6px);
-  transition: opacity 300ms ease, transform 300ms ease,
-              box-shadow 180ms ease, border-color 180ms ease,
-              background-color 180ms ease;
+  transition: box-shadow 180ms ease, border-color 180ms ease,
+              background-color 180ms ease, opacity 300ms ease,
+              transform 420ms cubic-bezier(0.34, 1.2, 0.64, 1);
 
   &:focus-visible {
     outline: 2px solid var(--pm-hot);
@@ -263,14 +309,6 @@
 .pm-item[data-kind='phonological'] {
   background: color-mix(in srgb, var(--pm-hear) 14%, var(--pm-bg));
   border-color: color-mix(in srgb, var(--pm-hear) 34%, transparent);
-}
-
-.pm-item-rank {
-  flex-shrink: 0;
-  width: 1.1em;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.56rem;
-  color: var(--pm-muted);
 }
 
 .pm-item-main { flex: 1; min-width: 0; }
@@ -288,31 +326,25 @@
 .pm-item-kind {
   display: block;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.48rem;
+  font-size: 0.46rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--pm-muted);
 }
 
-// The encoded vector, suggested rather than spelled out.
-.pm-embed {
-  display: flex;
-  gap: 1px;
+// The encoded vector, written out as in Figure 3 rather than drawn as bars,
+// which read as a chart rather than an embedding.
+.pm-vec {
   flex-shrink: 0;
-
-  i {
-    width: 3px;
-    height: 9px;
-    border-radius: 1px;
-    background: color-mix(in srgb, var(--pm-see) 45%, transparent);
-  }
-  i:nth-child(2) { height: 6px; }
-  i:nth-child(3) { height: 11px; }
-  i:nth-child(4) { height: 5px; }
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.46rem;
+  letter-spacing: -0.01em;
+  color: color-mix(in srgb, var(--pm-see) 70%, var(--pm-muted));
+  white-space: nowrap;
 }
 
-.pm-item[data-kind='phonological'] .pm-embed i {
-  background: color-mix(in srgb, var(--pm-hear) 50%, transparent);
+.pm-item[data-kind='phonological'] .pm-vec {
+  color: color-mix(in srgb, var(--pm-hear) 70%, var(--pm-muted));
 }
 
 .pm-item.is-lit {
@@ -320,53 +352,73 @@
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--pm-hot) 20%, transparent);
 }
 
-// While the spoken line is being explained.
 .pm-item.is-relevant {
   border-color: var(--pm-hot);
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--pm-hot) 26%, transparent);
 }
 
-.pm-item.is-displaced {
-  background: var(--pm-drop-fill);
-  border-color: var(--pm-drop);
-  opacity: 0.85;
+// --- the displaced slot ------------------------------------------------------
+// Two cards share one slot. The leaving card tilts and falls out of the list;
+// the arriving card fades in behind it. Stacking avoids any reflow.
+.pm-slot--swap { min-height: 2.5em; }
 
-  .pm-item-label { text-decoration: line-through; }
+// Positioned so its z-index applies: the card must fall in front of the one
+// taking its place, not behind it.
+.pm-item--leaving { position: relative; z-index: 2; }
 
-  &::after {
-    content: 'displaced';
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.46rem;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--pm-drop);
-    white-space: nowrap;
+.pm-item--arriving {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform: translateY(-4px);
+  pointer-events: none;
+  transition: opacity 320ms ease 140ms, transform 320ms ease 140ms;
+}
+
+.pm.is-explaining {
+  .pm-item--leaving {
+    background: var(--pm-drop-fill);
+    border-color: var(--pm-drop);
+    transform: rotate(-8deg) translate(-12%, 165%);
+    opacity: 0;
+    z-index: 4;
+    // The card must stay readable while it falls, so the fade is delayed
+    // rather than running alongside the tilt.
+    transition: transform 760ms cubic-bezier(0.55, 0, 0.75, 0.3),
+                opacity 420ms ease 340ms,
+                background-color 180ms ease,
+                border-color 180ms ease;
+
+    .pm-item-label { text-decoration: line-through; }
+  }
+
+  .pm-item--arriving {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+  }
+
+  // Everything not implicated dims, so the reasoning stands out.
+  .pm-item:not(.is-relevant):not(.pm-item--leaving):not(.pm-item--arriving) {
+    opacity: 0.38;
   }
 }
 
-// Everything not implicated dims, so the reasoning stands out.
-.pm.is-explaining .pm-item:not(.is-relevant):not(.is-displaced) { opacity: 0.4; }
-
-// --- timing and assistance ---------------------------------------------------
-.pm-pickup {
+// --- when to speak -----------------------------------------------------------
+.pm-step {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
-  padding: 0.35rem 0.45rem;
+  gap: 0.45rem;
+  padding: 0.38rem 0.45rem;
   border: 1px solid var(--pm-border);
   border-radius: var(--radius-md);
   background: var(--pm-panel);
   opacity: 0;
-  transform: translateY(4px);
+  transform: translateY(5px);
   transition: opacity 320ms ease, transform 320ms ease;
 }
 
-.pm-hand {
-  flex-shrink: 0;
-  color: var(--pm-hot);
-}
-
-.pm-pickup-text {
+.pm-step-text {
   font-size: 0.64rem;
   line-height: 1.35;
   color: var(--pm-muted);
@@ -374,17 +426,19 @@
   b { color: var(--pm-text); font-weight: 600; }
 }
 
-.pm-verdict {
-  display: flex;
+.pm-grab {
+  flex-shrink: 0;
+  width: 1.4em;
+  height: 1.4em;
+  color: var(--pm-hot);
+}
+
+.pm-step--verdict {
   flex-direction: column;
-  gap: 0.15rem;
-  padding: 0.35rem 0.45rem;
-  border-radius: var(--radius-md);
-  border: 1px solid color-mix(in srgb, var(--pm-hot) 30%, transparent);
+  align-items: flex-start;
+  gap: 0.1rem;
+  border-color: color-mix(in srgb, var(--pm-hot) 30%, transparent);
   background: color-mix(in srgb, var(--pm-hot) 8%, transparent);
-  opacity: 0;
-  transform: translateY(4px);
-  transition: opacity 320ms ease, transform 320ms ease;
 }
 
 .pm-verdict-row {
@@ -395,24 +449,23 @@
   b { color: var(--pm-hot); font-weight: 700; }
 }
 
+// The generated message.
 .pm-voice {
   display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  margin-top: auto;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
   padding: 0.45rem 0.5rem;
+  min-height: 3.6em;
   text-align: left;
   border: 1px solid var(--pm-hot);
   border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--pm-hot) 10%, var(--pm-bg));
+  background: color-mix(in srgb, var(--pm-hot) 9%, var(--pm-bg));
   color: var(--pm-text);
   cursor: pointer;
   opacity: 0;
-  transform: scale(0.97);
-  transition: opacity 360ms ease, transform 360ms cubic-bezier(0.22, 0.61, 0.36, 1),
-              box-shadow 200ms ease;
-
-  .pm-icon { flex-shrink: 0; color: var(--pm-hot); }
+  transform: translateY(5px);
+  transition: opacity 320ms ease, transform 320ms ease, box-shadow 200ms ease;
 
   &:hover,
   &:focus-visible {
@@ -420,17 +473,61 @@
   }
 }
 
+.pm-voice-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.48rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--pm-hot);
+}
+
 .pm-voice-text {
   font-size: 0.66rem;
   font-weight: 600;
   font-style: italic;
   line-height: 1.35;
+
+  // A caret while the text is still streaming in.
+  .pm[data-stage='generate'] &::after {
+    content: '';
+    display: inline-block;
+    width: 2px;
+    height: 0.95em;
+    margin-left: 1px;
+    vertical-align: -0.12em;
+    background: var(--pm-hot);
+  }
 }
 
+// Speaker arcs light up in turn as the line is played.
+.pm-speaker {
+  flex-shrink: 0;
+  width: 1.5em;
+  height: 1.5em;
+  color: var(--pm-hot);
+}
+
+.pm-wv { opacity: 0; transition: opacity 200ms ease; }
+
+@keyframes pm-volume {
+  0%, 12%  { opacity: 0; }
+  30%, 92% { opacity: 1; }
+  100%     { opacity: 0; }
+}
+
+.pm[data-stage='play'] .pm-wv,
+.pm[data-stage='done'] .pm-wv {
+  animation: pm-volume 1500ms ease-in-out infinite;
+}
+
+.pm-wv--1 { animation-delay: 0ms; }
+.pm-wv--2 { animation-delay: 170ms; }
+.pm-wv--3 { animation-delay: 340ms; }
+
 .pm-voice-hint {
-  margin: 0.1rem 0 0;
+  margin: 0.05rem 0 0;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.5rem;
+  font-size: 0.48rem;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--pm-muted);
@@ -451,69 +548,62 @@
 
 .pm-link {
   fill: none;
-  stroke: var(--pm-hot);
   stroke-width: 1.2;
   stroke-dasharray: 3 3;
-  opacity: 0.85;
+  opacity: 0.9;
 }
+
+.pm-link--keep { stroke: var(--pm-hot); }
+.pm-link--drop { stroke: var(--pm-drop); }
 
 // --- staging -----------------------------------------------------------------
 // Each stage reveals the next part of the flow. `done` shows everything, so a
 // reduced-motion visitor and the static server-rendered scene both land there.
 
-.pm[data-stage='look'] .pm-wearer,
-.pm[data-stage='see'] .pm-wearer,
-.pm[data-stage='hear'] .pm-wearer,
-.pm[data-stage='encode'] .pm-wearer,
-.pm[data-stage='pickup'] .pm-wearer,
-.pm[data-stage='done'] .pm-wearer { opacity: 1; }
+$after-look: "[data-stage='look'], [data-stage='see'], [data-stage='hear'], [data-stage='encode'], [data-stage='pickup'], [data-stage='generate'], [data-stage='evaluate'], [data-stage='play'], [data-stage='done']";
+$after-see: "[data-stage='see'], [data-stage='hear'], [data-stage='encode'], [data-stage='pickup'], [data-stage='generate'], [data-stage='evaluate'], [data-stage='play'], [data-stage='done']";
+$after-hear: "[data-stage='hear'], [data-stage='encode'], [data-stage='pickup'], [data-stage='generate'], [data-stage='evaluate'], [data-stage='play'], [data-stage='done']";
+$after-encode: "[data-stage='encode'], [data-stage='pickup'], [data-stage='generate'], [data-stage='evaluate'], [data-stage='play'], [data-stage='done']";
+$after-pickup: "[data-stage='pickup'], [data-stage='generate'], [data-stage='evaluate'], [data-stage='play'], [data-stage='done']";
+$after-generate: "[data-stage='generate'], [data-stage='evaluate'], [data-stage='play'], [data-stage='done']";
+$after-evaluate: "[data-stage='evaluate'], [data-stage='play'], [data-stage='done']";
+$after-play: "[data-stage='play'], [data-stage='done']";
 
-.pm[data-stage='see'] .pm-cone,
-.pm[data-stage='hear'] .pm-cone,
-.pm[data-stage='encode'] .pm-cone,
-.pm[data-stage='pickup'] .pm-cone,
-.pm[data-stage='done'] .pm-cone { transform: translateY(-50%) scaleX(1); }
+.pm:is(#{$after-look}) .pm-user { opacity: 1; }
 
-.pm[data-stage='see'] .pm-obj,
-.pm[data-stage='hear'] .pm-obj,
-.pm[data-stage='encode'] .pm-obj,
-.pm[data-stage='pickup'] .pm-obj,
-.pm[data-stage='done'] .pm-obj { opacity: 1; transform: scale(1); }
-
-.pm[data-stage='see'] .pm-obj--banana { transition-delay: 220ms; }
-.pm[data-stage='see'] .pm-obj--cup    { transition-delay: 400ms; }
-.pm[data-stage='see'] .pm-obj--plate  { transition-delay: 580ms; }
-.pm[data-stage='see'] .pm-obj--fork   { transition-delay: 760ms; }
-
-.pm[data-stage='hear'] .pm-heard,
-.pm[data-stage='encode'] .pm-heard,
-.pm[data-stage='pickup'] .pm-heard,
-.pm[data-stage='done'] .pm-heard { opacity: 1; transform: none; }
-
-.pm[data-stage='encode'] .pm-item,
-.pm[data-stage='pickup'] .pm-item,
-.pm[data-stage='done'] .pm-item { opacity: 1; transform: none; }
-
-.pm[data-stage='encode'] .pm-item { transition-delay: calc(var(--i) * 260ms); }
-
-.pm[data-stage='pickup'] .pm-pickup,
-.pm[data-stage='done'] .pm-pickup { opacity: 1; transform: none; }
-
-.pm[data-stage='pickup'] .pm-obj--plate,
-.pm[data-stage='pickup'] .pm-obj--fork,
-.pm[data-stage='done'] .pm-obj--plate,
-.pm[data-stage='done'] .pm-obj--fork {
-  border-color: var(--pm-hot);
-  color: var(--pm-hot);
+.pm:is(#{$after-see}) {
+  .pm-cone { transform: scaleX(1); }
+  .pm-table { opacity: 1; transform: none; }
+  .pm-obj { opacity: 1; transform: scale(1); }
 }
 
-.pm[data-stage='done'] .pm-verdict,
-.pm[data-stage='done'] .pm-voice { opacity: 1; transform: none; }
+.pm[data-stage='see'] {
+  .pm-table { transition-delay: 60ms; }
+  .pm-obj--banana { transition-delay: 320ms; }
+  .pm-obj--cup    { transition-delay: 470ms; }
+  .pm-obj--plate  { transition-delay: 620ms; }
+  .pm-obj--fork   { transition-delay: 770ms; }
+}
 
+.pm:is(#{$after-hear}) .pm-heard { opacity: 1; transform: none; }
+
+.pm:is(#{$after-encode}) .pm-slot { opacity: 1; transform: none; }
+.pm[data-stage='encode'] .pm-slot { transition-delay: calc(var(--i) * 260ms); }
+
+.pm:is(#{$after-pickup}) {
+  .pm-step--pickup { opacity: 1; transform: none; }
+
+  .pm-obj--plate,
+  .pm-obj--fork {
+    border-color: var(--pm-hot);
+    color: var(--pm-hot);
+  }
+}
+
+.pm:is(#{$after-generate}) .pm-voice { opacity: 1; transform: none; }
+.pm:is(#{$after-evaluate}) .pm-step--verdict { opacity: 1; transform: none; }
+.pm:is(#{$after-play}) .pm-step--play { opacity: 1; transform: none; }
 .pm[data-stage='done'] .pm-voice-hint { opacity: 1; }
-
-// Dimming during an explanation must beat the staging rules above.
-.pm.is-explaining .pm-item:not(.is-relevant):not(.is-displaced) { opacity: 0.4; }
 
 // --- narrow ------------------------------------------------------------------
 @media (max-width: 700px) {
@@ -523,8 +613,7 @@
     min-height: 0;
   }
 
-  .pm-view { min-height: 104px; }
-  .pm-voice { margin-top: 0; }
+  .pm-view { min-height: 132px; }
 
   // Connector geometry assumes the three columns sit side by side.
   .pm-links { display: none; }
@@ -532,14 +621,24 @@
 
 @media (prefers-reduced-motion: reduce) {
   .pm-cone,
+  .pm-table,
   .pm-obj,
   .pm-heard,
+  .pm-slot,
   .pm-item,
-  .pm-pickup,
-  .pm-verdict,
+  .pm-step,
   .pm-voice,
-  .pm-wearer {
+  .pm-user {
     transition: none !important;
     transition-delay: 0ms !important;
   }
+
+  .pm-wave i,
+  .pm-wv {
+    animation: none !important;
+  }
+
+  // Waves would otherwise never appear without their animation.
+  .pm[data-stage='play'] .pm-wv,
+  .pm[data-stage='done'] .pm-wv { opacity: 1; }
 }
