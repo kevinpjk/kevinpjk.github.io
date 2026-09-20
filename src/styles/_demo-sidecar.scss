@@ -1,0 +1,790 @@
+// =============================================================================
+// Sidecar demo — a main agent run with a parallel assistant floating beside it
+//
+// Global rather than component-scoped: the scene markup is injected by the
+// demo module, so Astro's scoping attribute is never applied to it. Every
+// selector is namespaced `sc-`.
+//
+// The main pane is deliberately quiet — grey trace lines, a dark code block —
+// so the violet panel beside it reads as the thing in front.
+// =============================================================================
+
+.sc {
+  --sc-bg: #ffffff;
+  --sc-panel: #f6f7fa;
+  --sc-border: #e3e6ed;
+  --sc-text: #232830;
+  --sc-muted: #737c89;
+  --sc-bar: #e7eaf0;
+
+  --sc-violet: #6c4ae0;       // Sidecar's own colour
+  --sc-violet-fill: #f0ecfe;
+  --sc-amber: #c07a10;        // a decision worth reviewing
+  --sc-red: #d13b2e;          // the conflict in the mockup
+  --sc-green: #2a8a52;
+
+  --sc-code-bg: #252b38;
+  --sc-code-text: #dfe4ee;
+
+  position: relative;
+  // A grid with one stretching row, so the run fills the frame and its
+  // composer can sit at the bottom. The panel and the pointer are out of
+  // flow, so the run is the only thing in it.
+  display: grid;
+  height: 100%;
+  min-height: 428px;
+  padding: 0.65rem;
+  background: var(--sc-bg);
+  color: var(--sc-text);
+  font-size: 0.72rem;
+  line-height: 1.45;
+  overflow: hidden;
+}
+
+[data-theme='dark'] .sc {
+  --sc-bg: #1b2028;
+  --sc-panel: #232b36;
+  --sc-border: #39434f;
+  --sc-text: #e4e9ef;
+  --sc-muted: #98a3b2;
+  --sc-bar: #313b47;
+
+  --sc-violet: #a795f8;
+  --sc-violet-fill: #2b2743;
+  --sc-amber: #e0ad5c;
+  --sc-red: #f08877;
+  --sc-green: #5ac489;
+
+  --sc-code-bg: #141920;
+  --sc-code-text: #d7dde8;
+}
+
+@container demo (min-width: 700px) {
+  .sc {
+    font-size: 0.78rem;
+    min-height: 470px;
+  }
+}
+
+.sc-icon {
+  width: 1.05em;
+  height: 1.05em;
+  display: block;
+  flex-shrink: 0;
+}
+
+// --- the main agent ----------------------------------------------------------
+// Right padding keeps the run clear of the floating panel.
+.sc-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-height: 0;
+  padding-right: 47%;
+}
+
+.sc-prompt-sent {
+  margin: 0;
+  padding: 0.3rem 0.45rem;
+  border-radius: var(--radius-sm);
+  background: var(--sc-panel);
+  border: 1px solid var(--sc-border);
+  font-size: 0.64rem;
+  line-height: 1.35;
+  opacity: 0;
+  transform: translateY(-3px);
+  transition: opacity 320ms ease, transform 320ms ease;
+}
+
+// Takes the slack in the column and keeps its newest lines at the bottom, so
+// the trace reads like a terminal and the code it produced sits just above
+// the composer rather than stranded under a gap.
+.sc-traces {
+  flex: 1;
+  min-height: 4.6em;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 0.22rem;
+  overflow: hidden;
+}
+
+.sc-trace {
+  padding: 0.18rem 0.4rem;
+  border-radius: var(--radius-sm);
+  background: var(--sc-panel);
+  color: var(--sc-muted);
+  font-size: 0.6rem;
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: opacity 260ms ease, transform 260ms ease;
+}
+
+.sc-trace--new { opacity: 0; transform: translateY(4px); }
+
+// The newest line is the one still in flight.
+.sc-trace:last-child {
+  color: var(--sc-text);
+
+  &::after {
+    content: '';
+    display: inline-block;
+    width: 0.4em;
+    height: 0.4em;
+    margin-left: 0.4em;
+    border-radius: 50%;
+    background: var(--sc-violet);
+    animation: sc-pulse 1400ms ease-in-out infinite;
+  }
+}
+
+@keyframes sc-pulse {
+  0%, 100% { opacity: 0.25; transform: scale(0.8); }
+  50%      { opacity: 1; transform: scale(1); }
+}
+
+.sc-code {
+  margin: 0;
+  padding: 0.4rem 0.5rem;
+  border-radius: var(--radius-sm);
+  background: var(--sc-code-bg);
+  color: var(--sc-code-text);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.56rem;
+  line-height: 1.55;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 340ms ease, transform 340ms ease;
+
+  code { font: inherit; }
+}
+
+.sc-t-kw { color: #c9a0ff; }
+.sc-t-fn { color: #8ad6a8; }
+.sc-t-com { color: #8d97a8; }
+
+.sc-changed {
+  margin: 0;
+  font-size: 0.58rem;
+  font-style: italic;
+  color: var(--sc-muted);
+  opacity: 0;
+  transition: opacity 320ms ease;
+}
+
+.sc-compose {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.32rem 0.45rem;
+  border: 1px solid var(--sc-border);
+  border-radius: var(--radius-sm);
+  color: var(--sc-muted);
+  font-size: 0.62rem;
+  opacity: 0;
+  transition: opacity 320ms ease;
+}
+
+.sc-compose-input { flex: 1; min-width: 0; }
+
+// What Sidecar hands back, waiting under the composer for the run to end.
+.sc-staged {
+  margin: 0;
+  padding: 0.35rem 0.45rem;
+  border: 1px solid color-mix(in srgb, var(--sc-violet) 40%, transparent);
+  border-radius: var(--radius-sm);
+  background: var(--sc-violet-fill);
+  color: var(--sc-violet);
+  font-size: 0.62rem;
+  font-weight: 600;
+  line-height: 1.35;
+  opacity: 0;
+  transform: translateY(5px);
+  transition: opacity 340ms ease, transform 340ms ease;
+
+  &[data-on='true'] { opacity: 1; transform: none; }
+}
+
+// --- the floating panel ------------------------------------------------------
+.sc-panel {
+  position: absolute;
+  top: 0.65rem;
+  right: 0.65rem;
+  bottom: 0.65rem;
+  width: 43%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.45rem;
+  border: 1px solid var(--sc-border);
+  border-radius: var(--radius-md);
+  background: var(--sc-bg);
+  box-shadow: 0 8px 26px rgb(0 0 0 / 12%);
+  opacity: 0;
+  transform: translateY(6px) scale(0.99);
+  transition: opacity 360ms ease, transform 360ms ease;
+  z-index: 3;
+}
+
+.sc-panel-head {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  // Clearance for the frame's own Reset control, which floats over this corner.
+  padding: 0 3.2rem 0.3rem 0;
+  border-bottom: 1px solid var(--sc-border);
+}
+
+.sc-live {
+  width: 0.42rem;
+  height: 0.42rem;
+  border-radius: 50%;
+  background: var(--sc-violet);
+  animation: sc-pulse 1800ms ease-in-out infinite;
+}
+
+.sc-panel-title {
+  flex: 1;
+  font-size: 0.64rem;
+  font-weight: 600;
+}
+
+.sc-panel-expand { color: var(--sc-muted); width: 0.8em; height: 0.8em; }
+
+// --- the chat ----------------------------------------------------------------
+.sc-chat {
+  flex: 1;
+  min-height: 0;
+  list-style: none;
+  margin: 0;
+  padding: 0 0.1rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+
+  &::-webkit-scrollbar { width: 3px; }
+  &::-webkit-scrollbar-thumb { background: var(--sc-border); border-radius: 2px; }
+}
+
+.sc-card,
+.sc-msg {
+  transition: opacity 300ms ease, transform 300ms ease;
+
+  &.is-new { opacity: 0; transform: translateY(6px); }
+}
+
+.sc-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.35rem 0.42rem;
+  border: 1px solid var(--sc-border);
+  border-left: 3px solid var(--sc-border);
+  border-radius: var(--radius-sm);
+  background: var(--sc-panel);
+}
+
+.sc-card--decision { border-left-color: var(--sc-amber); }
+.sc-card--explore { border-left-color: var(--sc-violet); }
+.sc-card--draft {
+  border-left-color: var(--sc-violet);
+  background: var(--sc-violet-fill);
+}
+.sc-card--mock { border-left-color: var(--sc-border); }
+
+.sc-card-kind {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.46rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--sc-amber);
+}
+
+.sc-card--explore .sc-card-kind { color: var(--sc-violet); }
+.sc-card-kind--queue { color: var(--sc-violet); }
+
+.sc-card-title {
+  margin: 0;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.62rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.sc-card-body {
+  margin: 0;
+  font-size: 0.56rem;
+  line-height: 1.4;
+  color: var(--sc-muted);
+}
+
+.sc-card-body--draft {
+  color: var(--sc-text);
+  font-style: italic;
+}
+
+.sc-card-sub {
+  margin-top: 0.12rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.44rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--sc-muted);
+}
+
+.sc-card-code {
+  display: block;
+  padding: 0.22rem 0.32rem;
+  border-radius: 3px;
+  background: var(--sc-bar);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.5rem;
+  line-height: 1.4;
+  color: var(--sc-text);
+}
+
+// The "why / what instead…" box: shown, not wired — the answer would have to
+// be invented, and this demo does not invent the agent's side of a exchange.
+.sc-fake-input {
+  display: block;
+  margin-top: 0.2rem;
+  padding: 0.2rem 0.32rem;
+  border: 1px solid var(--sc-border);
+  border-radius: 3px;
+  background: var(--sc-bg);
+  font-size: 0.52rem;
+  font-style: italic;
+  color: var(--sc-muted);
+}
+
+.sc-card-acts {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+}
+
+.sc-mini {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.18rem;
+  padding: 0.14rem 0.36rem;
+  border: 1px solid var(--sc-border);
+  border-radius: 999px;
+  background: var(--sc-bg);
+  color: var(--sc-muted);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.52rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 160ms ease, border-color 160ms ease, background-color 160ms ease;
+
+  .sc-icon { width: 0.72em; height: 0.72em; }
+
+  &:hover { color: var(--sc-violet); border-color: var(--sc-violet); }
+  &:focus-visible { outline: 2px solid var(--sc-violet); outline-offset: 1px; }
+}
+
+.sc-mini--go {
+  border-color: color-mix(in srgb, var(--sc-violet) 42%, transparent);
+  background: color-mix(in srgb, var(--sc-violet) 10%, var(--sc-bg));
+  color: var(--sc-violet);
+}
+
+.sc-reviewed {
+  display: none;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.46rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--sc-green);
+}
+
+.sc-card[data-reviewed] {
+  .sc-reviewed { display: inline; }
+  .sc-mini--ok {
+    border-color: var(--sc-green);
+    color: var(--sc-green);
+  }
+}
+
+.sc-card[data-reviewed='flagged'] .sc-reviewed {
+  color: var(--sc-amber);
+
+  &::before { content: 'Flagged'; }
+}
+
+.sc-card[data-reviewed='flagged'] .sc-reviewed { font-size: 0; }
+.sc-card[data-reviewed='flagged'] .sc-reviewed::before { font-size: 0.46rem; }
+
+.sc-chips {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-top: 0.2rem;
+}
+
+.sc-chip {
+  padding: 0.12rem 0.34rem;
+  border: 1px solid var(--sc-border);
+  border-radius: 999px;
+  background: var(--sc-bg);
+  font-size: 0.52rem;
+  color: var(--sc-text);
+}
+
+// The one control that makes a picture, so it carries Sidecar's colour solid.
+.sc-vis {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.14rem 0.4rem;
+  border: none;
+  border-radius: 999px;
+  background: var(--sc-violet);
+  color: #fff;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.52rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  .sc-icon { width: 0.74em; height: 0.74em; }
+
+  &:hover { filter: brightness(1.1); }
+  &:focus-visible { outline: 2px solid var(--sc-text); outline-offset: 2px; }
+}
+
+[data-theme='dark'] .sc-vis { color: #14181e; }
+
+.sc-msg--you {
+  align-self: flex-end;
+  max-width: 88%;
+  padding: 0.26rem 0.42rem;
+  border-radius: 999px;
+  background: var(--sc-violet);
+  color: #fff;
+  font-size: 0.56rem;
+  line-height: 1.35;
+}
+
+[data-theme='dark'] .sc-msg--you { color: #14181e; }
+
+// --- the generated mockup ----------------------------------------------------
+.sc-mock-cap {
+  margin: 0 0 0.25rem;
+  font-size: 0.52rem;
+  font-style: italic;
+  color: var(--sc-muted);
+}
+
+.sc-mock {
+  border: 1px solid var(--sc-border);
+  border-radius: 4px;
+  background: var(--sc-bg);
+  overflow: hidden;
+}
+
+.sc-mock-bar {
+  display: block;
+  padding: 0.16rem 0.32rem;
+  background: var(--sc-bar);
+  font-size: 0.48rem;
+  font-weight: 600;
+  color: var(--sc-muted);
+}
+
+.sc-dish {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+  margin: 0.3rem;
+  padding: 0.3rem 0.36rem;
+  border: 1px solid var(--sc-border);
+  border-radius: 4px;
+}
+
+.sc-dish-head {
+  display: flex;
+  align-items: center;
+  gap: 0.22rem;
+  font-size: 0.56rem;
+
+  .sc-icon { width: 0.8em; height: 0.8em; color: var(--sc-muted); }
+}
+
+.sc-dish-row {
+  display: flex;
+  align-items: center;
+  gap: 0.22rem;
+  font-size: 0.5rem;
+  color: var(--sc-muted);
+
+  .sc-icon { width: 0.72em; height: 0.72em; }
+}
+
+.sc-dish-row--alert { color: var(--sc-red); }
+.sc-dish-row--meta { color: var(--sc-muted); }
+
+.sc-av {
+  display: grid;
+  place-items: center;
+  width: 0.85em;
+  height: 0.85em;
+  border-radius: 50%;
+  background: var(--sc-green);
+  color: #fff;
+  font-size: 0.4rem;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.sc-conflict {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  margin-top: 0.15rem;
+  padding: 0.12rem 0.34rem;
+  border-radius: 3px;
+  background: var(--sc-red);
+  color: #fff;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.48rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+
+  .sc-icon { width: 0.72em; height: 0.72em; }
+}
+
+// --- the panel's own input ---------------------------------------------------
+.sc-ask {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.sc-ask-input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.26rem 0.4rem;
+  border: 1px solid var(--sc-border);
+  border-radius: var(--radius-sm);
+  background: var(--sc-bg);
+  color: var(--sc-text);
+  font: inherit;
+  font-size: 0.56rem;
+
+  &::placeholder { color: var(--sc-muted); }
+  &:focus-visible { outline: 2px solid var(--sc-violet); outline-offset: -1px; }
+}
+
+.sc-ask-go {
+  padding: 0.26rem 0.5rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--sc-violet);
+  color: #fff;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.54rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover { filter: brightness(1.1); }
+  &:focus-visible { outline: 2px solid var(--sc-text); outline-offset: 2px; }
+}
+
+[data-theme='dark'] .sc-ask-go { color: #14181e; }
+
+// --- the two stacks ----------------------------------------------------------
+.sc-stacks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.sc-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding-left: 0.35rem;
+  border-left: 2px solid var(--sc-amber);
+}
+
+.sc-stack--explore { border-left-color: var(--sc-violet); }
+
+.sc-stack-head {
+  margin: 0;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.46rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--sc-amber);
+}
+
+.sc-stack--explore .sc-stack-head { color: var(--sc-violet); }
+
+.sc-item {
+  padding: 0.18rem 0.3rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--sc-text);
+  font: inherit;
+  font-size: 0.56rem;
+  line-height: 1.3;
+  text-align: left;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity 300ms ease, transform 300ms ease,
+              border-color 160ms ease, background-color 160ms ease;
+
+  &:hover { border-color: var(--sc-border); background: var(--sc-panel); }
+  &:focus-visible { outline: 2px solid var(--sc-violet); outline-offset: 1px; }
+}
+
+.sc-item[data-used='true'] { color: var(--sc-muted); }
+
+// --- the scripted pointer ----------------------------------------------------
+.sc-cursor {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 9;
+  transition: transform 640ms cubic-bezier(0.33, 0.9, 0.35, 1), opacity 240ms ease;
+
+  &[data-on='true'] { opacity: 1; }
+
+  svg {
+    position: absolute;
+    left: -2px;
+    top: -2px;
+    width: 15px;
+    height: 15px;
+    fill: var(--sc-text);
+    stroke: var(--sc-bg);
+    stroke-width: 1.4;
+    filter: drop-shadow(0 1px 2px rgb(0 0 0 / 35%));
+  }
+}
+
+.sc-cursor-ring {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 18px;
+  height: 18px;
+  margin: -9px 0 0 -9px;
+  border-radius: 50%;
+  border: 2px solid var(--sc-violet);
+  opacity: 0;
+}
+
+@keyframes sc-click {
+  0%   { opacity: 0.9; transform: scale(0.3); }
+  100% { opacity: 0; transform: scale(1.5); }
+}
+
+.sc-cursor[data-click='true'] .sc-cursor-ring {
+  animation: sc-click 420ms ease-out;
+}
+
+// --- staging -----------------------------------------------------------------
+// Each stage reveals the next part of the run. `done` shows everything, so a
+// reduced-motion visitor and the static server-rendered scene both land there.
+
+$after-prompt: "[data-stage='prompt'], [data-stage='traces'], [data-stage='stacks'], [data-stage='act'], [data-stage='done']";
+$after-traces: "[data-stage='traces'], [data-stage='stacks'], [data-stage='act'], [data-stage='done']";
+$after-stacks: "[data-stage='stacks'], [data-stage='act'], [data-stage='done']";
+
+.sc:is(#{$after-prompt}) .sc-prompt-sent { opacity: 1; transform: none; }
+
+.sc:is(#{$after-traces}) {
+  .sc-panel { opacity: 1; transform: none; }
+  .sc-code { opacity: 1; transform: none; }
+  .sc-changed { opacity: 1; }
+  .sc-compose { opacity: 1; }
+}
+
+.sc[data-stage='traces'] {
+  .sc-code { transition-delay: 700ms; }
+  .sc-changed { transition-delay: 1100ms; }
+  .sc-compose { transition-delay: 1300ms; }
+}
+
+.sc:is(#{$after-stacks}) .sc-item { opacity: 1; transform: none; }
+.sc[data-stage='stacks'] .sc-stack--explore .sc-item { transition-delay: 420ms; }
+
+// --- narrow ------------------------------------------------------------------
+// The threshold is the frame's own width, not the viewport: the same demo sits
+// in a Selected Work row and in a detail overlay column at different widths.
+@container demo (max-width: 560px) {
+  .sc {
+    min-height: 0;
+    overflow: visible;
+  }
+
+  // The panel stops floating and falls below the run: overlaying a column
+  // this narrow would bury the agent it is meant to sit beside.
+  .sc-main { padding-right: 0; }
+
+  .sc-panel {
+    position: static;
+    width: auto;
+    margin-top: 0.6rem;
+    box-shadow: none;
+  }
+
+  .sc-chat { max-height: 16rem; }
+
+  // The frame's Reset control floats over this corner, which in one column is
+  // where the prompt is rather than the panel header.
+  .sc-prompt-sent { padding-right: 3.6rem; }
+  .sc-panel-head { padding-right: 0; }
+
+  // The pointer is placed from measured boxes; with the panel in flow those
+  // are still right, but a pointer that walks off a scrolling page is noise.
+  .sc-cursor { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sc-prompt-sent,
+  .sc-trace,
+  .sc-code,
+  .sc-changed,
+  .sc-compose,
+  .sc-staged,
+  .sc-panel,
+  .sc-item,
+  .sc-card,
+  .sc-msg,
+  .sc-cursor {
+    transition: none !important;
+    transition-delay: 0ms !important;
+  }
+
+  .sc-live,
+  .sc-trace:last-child::after,
+  .sc-cursor-ring {
+    animation: none !important;
+  }
+
+  .sc-cursor { display: none; }
+}

@@ -215,7 +215,8 @@
   font: inherit;
   font-size: 0.66rem;
   line-height: 1.35;
-  cursor: pointer;
+  white-space: pre-wrap;
+  cursor: text;
   transition: background-color 180ms ease, border-color 180ms ease,
               box-shadow 180ms ease;
 
@@ -270,7 +271,9 @@
   line-height: 1.35;
   color: var(--cc-muted);
 
-  &:has([data-out]:empty) { display: none; }
+  // An edited step keeps its row even before it has run again: the badge
+  // lives here, and hiding the row would hide the badge with it.
+  .cc-cell:not([data-edited='true']) &:has([data-out]:empty) { display: none; }
 }
 
 .cc-out-arrow { color: var(--cc-muted); }

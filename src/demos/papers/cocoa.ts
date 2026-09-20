@@ -151,10 +151,11 @@ function cellMarkup(cell: CellDef, index: number, final = false): string {
     <span class="cc-mark" aria-hidden="true">${icon('check', 'cc-mark-icon')}${icon('help', 'cc-mark-icon cc-mark-icon--help')}</span>
 
     <div class="cc-cell-main">
-      <button class="cc-cell-text" type="button" data-open="${cell.id}"
-              aria-label="Show this step's output in the sidebar">
-        <span data-label="${cell.id}">${esc(text)}</span>
-      </button>
+      <div class="cc-cell-text" data-open="${cell.id}" data-label="${cell.id}"
+           contenteditable="plaintext-only" role="textbox" aria-multiline="true"
+           tabindex="0"
+           aria-label="Step text. Edit it, or select it to show its output in the sidebar."
+        >${esc(text)}</div>
 
       <p class="cc-out">
         <span class="cc-edited" data-edited="${cell.id}">Edited</span>
@@ -297,9 +298,9 @@ function mount(root: HTMLElement, ctx: DemoContext): DemoController {
    * researcher, so the sidebar says so rather than showing a stale list.
    */
   const SIDE_LABEL: Record<string, string> = {
-    topics: 'Topics, grounded in literature',
-    seed: 'Papers for this step',
-    connect: 'Waiting on your guidance',
+    topics: 'Output · topics & sources',
+    seed: 'Output · papers found',
+    connect: 'Output · pending',
   };
 
   function openCell(id: string, label?: string) {
@@ -344,7 +345,10 @@ function mount(root: HTMLElement, ctx: DemoContext): DemoController {
   }
 
   function restoreCells() {
-    cells.innerHTML = CELLS.map(cellMarkup).join('');
+    // Not `CELLS.map(cellMarkup)`: map passes the array as a third argument,
+    // which lands in `final` and renders the finished plan straight away —
+    // the "Edited" badge showed before anything had been edited.
+    cells.innerHTML = CELLS.map((c, i) => cellMarkup(c, i)).join('');
     cells.hidden = false;
     empty.hidden = true;
     added = 0;
@@ -411,6 +415,18 @@ function mount(root: HTMLElement, ctx: DemoContext): DemoController {
     }
   }, listen);
 
+  // Any step can be rewritten in place, as the researcher rewrites the second
+  // one during the intro. The badge is driven by real input, so the scripted
+  // rewrite (which sets textContent directly and fires nothing) can raise it
+  // itself only once the typing has finished.
+  cells.addEventListener('input', event => {
+    const el = (event.target as Element).closest<HTMLElement>('[data-label]');
+    const cell = el?.closest<HTMLElement>('.cc-cell');
+    if (!cell || cell.dataset.edited === 'true') return;
+    cell.dataset.edited = 'true';
+    ctx.announce('Step edited.');
+  }, listen);
+
   /** The cell that asked for guidance takes it, and stops asking. */
   cells.addEventListener('submit', event => {
     const form = (event.target as Element).closest<HTMLFormElement>('[data-guide]');
@@ -425,7 +441,7 @@ function mount(root: HTMLElement, ctx: DemoContext): DemoController {
     if (el) el.dataset.state = 'done';
     const out = outEl(id);
     if (out) out.textContent = `Guidance received: ${text}`;
-    openCell(id, 'Guidance recorded');
+    openCell(id, 'Output · notes for this step');
     ctx.announce(`Guidance sent: ${text}`);
   }, listen);
 

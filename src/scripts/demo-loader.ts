@@ -29,6 +29,15 @@ const observers = new Set<IntersectionObserver>();
 let activeRoot: HTMLElement | null = null;
 const roots = new Set<HTMLElement>();
 
+/**
+ * Demos the visitor stopped by hand. Interacting with a demo normally claims
+ * the autoplay slot for it, which restarts its sequence — so without this, the
+ * first click after Pause silently started the whole thing over again. A demo
+ * in here still takes the slot (so nothing else animates over it) but does not
+ * play; Reset is what lets it run again.
+ */
+const pausedByUser = new WeakSet<HTMLElement>();
+
 /** How much of a demo must be on screen before it may start on its own. */
 const AUTO_PLAY_RATIO = 0.55;
 
@@ -62,7 +71,7 @@ async function makeActive(root: HTMLElement) {
 
   const controller = await activate(root);
   // Another demo may have taken over while this one was loading.
-  if (controller && activeRoot === root) controller.play();
+  if (controller && activeRoot === root && !pausedByUser.has(root)) controller.play();
 }
 
 /**
@@ -173,12 +182,14 @@ function wire(root: HTMLElement) {
     if (!controller) return;
 
     if (button.dataset.demoAction === 'reset') {
+      pausedByUser.delete(root);
       await makeActive(root);
       mounted.get(root)?.reset();
       return;
     }
     if (button.dataset.demoAction === 'pause') {
       controller.pause();
+      pausedByUser.add(root);
       if (activeRoot === root) activeRoot = null;
     }
   });
