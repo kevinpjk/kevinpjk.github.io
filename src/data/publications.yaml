@@ -305,16 +305,16 @@
   category: null
   award: null
   links:
-    pdf: null
+    pdf: /assets/pdf/revibe_uist_workshop_2026.pdf
     video: null
     arxiv: null
-    website: https://uist.acm.org/2026/workshops/
+    website: https://revibe-hci.github.io/
     doi: null
     code: null
   summary: ""
   selected: false
-  teaser: null
-  teaser_type: null
+  teaser: revibe.png
+  teaser_type: image
   ring_concept: "agentic reimplementation"
   ring_keywords: ["community", "reimplementation", "agents", "HCI"]
 
@@ -331,7 +331,7 @@
   category: null
   award: null
   links:
-    pdf: null
+    pdf: /assets/pdf/loom_aaai_workshop_2026.pdf
     video: null
     arxiv: null
     website: null
@@ -339,7 +339,7 @@
     code: null
   summary: ""
   selected: false
-  teaser: null
-  teaser_type: null
+  teaser: loom.png
+  teaser_type: image
   ring_concept: "learner memory graph"
   ring_keywords: ["personalization", "learning", "memory", "LLM"]
