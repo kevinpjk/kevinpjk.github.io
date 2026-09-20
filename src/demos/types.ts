@@ -35,8 +35,17 @@ export interface DemoController {
   play(): void;
   /** Restore the demo to its initial state and restart any intro sequence. */
   reset(): void;
-  /** Halt automated motion. Direct interaction stays available. */
+  /** Halt automated motion where it is. Direct interaction stays available. */
   pause(): void;
+  /**
+   * Stop animating and settle into the finished state.
+   *
+   * Called when a demo loses the autoplay slot. A demo autoplays once and
+   * then rests, so one that is interrupted has to come to rest showing its
+   * outcome rather than freeze halfway and stay that way. A demo that has not
+   * started is already at rest, and ignores this.
+   */
+  finish(): void;
   /** Resume automated motion, if any remains. */
   resume(): void;
   /** Cancel timers, drop listeners, release everything. */

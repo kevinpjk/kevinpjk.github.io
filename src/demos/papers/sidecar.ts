@@ -568,10 +568,24 @@ function mount(root: HTMLElement, ctx: DemoContext): DemoController {
       pointer.dataset.on = 'false';
       ctx.setRunning(false);
     },
+    finish() {
+      // Already at rest, or stopped by hand: leave it where it is.
+      if (!running) return;
+      clearTimers();
+      stopTrace();
+      paused = true;
+      running = false;
+      finished = true;
+      pointer.dataset.on = 'false';
+      ctx.setRunning(false);
+      showEnd();
+    },
     resume() {
+      // The agent's trace is this demo's whole premise, so it comes back to
+      // life whenever the demo is the one on screen — played out or not.
+      startTrace();
       if (!paused) return;
       paused = false;
-      startTrace();
       if (!finished) void run();
     },
     destroy() {

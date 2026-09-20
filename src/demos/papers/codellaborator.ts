@@ -137,6 +137,8 @@ function mount(root: HTMLElement, ctx: DemoContext): DemoController {
   const breakoutInput = q<HTMLInputElement>('[data-breakout-input]');
   const connV = q<HTMLElement>('[data-connector-v]');
   const connH = q<HTMLElement>('[data-connector-h]');
+  /** Pending frame for the connector's measurement, so it can be called off. */
+  let connectorFrame = 0;
 
   const aborter = new AbortController();
   const listen = { signal: aborter.signal };
@@ -306,7 +308,13 @@ function mount(root: HTMLElement, ctx: DemoContext): DemoController {
     // which sits to the right, so the two never visibly connected.
     if (!anchor) return;
 
-    requestAnimationFrame(() => {
+    // Deferred a frame so the panel has a measurable box — and cancellable,
+    // because the breakout can be closed before that frame arrives. It used
+    // to fire anyway, painting the elbow across a rewound editor at geometry
+    // that no longer described anything.
+    connectorFrame = requestAnimationFrame(() => {
+      connectorFrame = 0;
+      if (breakout.dataset.open !== 'true') return;
       const box = editor.getBoundingClientRect();
       const lineBox = anchor.getBoundingClientRect();
       const panelBox = breakout.getBoundingClientRect();
@@ -330,6 +338,10 @@ function mount(root: HTMLElement, ctx: DemoContext): DemoController {
   }
 
   function closeBreakout() {
+    if (connectorFrame) {
+      cancelAnimationFrame(connectorFrame);
+      connectorFrame = 0;
+    }
     breakout.dataset.open = 'false';
     // Let the fade finish before removing it from the layout.
     timers.push(window.setTimeout(() => { breakout.hidden = true; }, ctx.reducedMotion ? 0 : 260));
@@ -540,6 +552,14 @@ function mount(root: HTMLElement, ctx: DemoContext): DemoController {
       paused = true;
       stopIntro();
       setCaretMode('dot');
+    },
+    finish() {
+      // Already at rest, or stopped by hand: leave it where it is.
+      if (!running) return;
+      paused = true;
+      stopIntro();
+      finished = true;
+      showEnd();
     },
     resume() {
       if (!paused) return;

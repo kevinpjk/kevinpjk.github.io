@@ -38,6 +38,16 @@ const roots = new Set<HTMLElement>();
  */
 const pausedByUser = new WeakSet<HTMLElement>();
 
+/**
+ * Demos that have had their one automatic run.
+ *
+ * A demo plays the first time it is scrolled into view and rests at its end
+ * state from then on. Replaying on every pass turns an ordinary scroll back
+ * up the page into a wall of restarting animation; Reset is how you watch it
+ * again.
+ */
+const autoplayed = new WeakSet<HTMLElement>();
+
 /** How much of a demo must be on screen before it may start on its own. */
 const AUTO_PLAY_RATIO = 0.55;
 
@@ -76,12 +86,19 @@ async function makeActive(root: HTMLElement, autoplay = true) {
 
   const previous = activeRoot;
   activeRoot = root;
-  if (previous) mounted.get(previous)?.pause();
+  // Settled, not frozen: the demo losing the slot will not get a second
+  // automatic run, so it has to come to rest showing its outcome.
+  if (previous) mounted.get(previous)?.finish();
 
   const controller = await activate(root);
   // Another demo may have taken over while this one was loading.
   if (!controller || activeRoot !== root || pausedByUser.has(root)) return;
-  if (!autoplay) return;
+
+  if (!autoplay || autoplayed.has(root)) {
+    controller.resume();
+    return;
+  }
+  autoplayed.add(root);
 
   // Transitions off for the frame the rewind lands in, so it reads as a cut.
   root.dataset.demoRewind = 'true';
@@ -118,7 +135,7 @@ function rebalance() {
     if (best) {
       void makeActive(best);
     } else if (activeRoot) {
-      mounted.get(activeRoot)?.pause();
+      mounted.get(activeRoot)?.finish();
       activeRoot = null;
     }
   });
@@ -248,10 +265,14 @@ function wire(root: HTMLElement) {
  */
 document.addEventListener('demo:rebalance', rebalance);
 
+/**
+ * A hidden tab gets no animation. Settling rather than freezing, because a
+ * demo only autoplays once: frozen half-way is where it would stay.
+ */
 function pauseAllIfHidden() {
   if (!document.hidden) return;
   document.querySelectorAll<HTMLElement>('[data-paper-demo]').forEach(root => {
-    mounted.get(root)?.pause();
+    mounted.get(root)?.finish();
   });
   activeRoot = null;
 }
