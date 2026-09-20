@@ -57,6 +57,30 @@ const venues = getVenues();
     // the row the reader came from rather than the top of the page.
     let restoreScrollY = 0;
 
+    // What had focus when the overlay opened, so it can be given back.
+    let restoreFocus: HTMLElement | null = null;
+    // Everything outside the overlay, made inert while it is up.
+    let inerted: HTMLElement[] = [];
+
+    /**
+     * The detail is a modal dialog, so the page behind it must not be
+     * reachable. `inert` does the whole job at once: it takes the background
+     * out of the tab order, out of the accessibility tree, and out of
+     * pointer reach, which is also why Tab stays inside without any key
+     * handling of our own.
+     */
+    function sealBackground(active: HTMLElement) {
+      inerted = Array.from(document.body.children).filter(
+        (el): el is HTMLElement => el instanceof HTMLElement && el !== active && !el.inert,
+      );
+      inerted.forEach(el => { el.inert = true; });
+    }
+
+    function unsealBackground() {
+      inerted.forEach(el => { el.inert = false; });
+      inerted = [];
+    }
+
     /** Which demos may autoplay depends on whether an overlay is open. */
     const notifyDemos = () => {
       document.dispatchEvent(new CustomEvent('demo:rebalance'));
@@ -78,10 +102,15 @@ const venues = getVenues();
         mainContent.style.pointerEvents = 'none';
       }
 
+      restoreFocus = document.activeElement as HTMLElement | null;
+
       detail.classList.add('visible');
       void detail.offsetHeight; // reflow so the animation kicks in
       detail.classList.add('active');
       detail.setAttribute('aria-hidden', 'false');
+      sealBackground(detail);
+      // Into the dialog, at the control that leaves it.
+      detail.querySelector<HTMLElement>('.back-btn')?.focus();
       // The overlay scrolls internally, so it is this element that starts at
       // the top — not the page, whose offset we are preserving.
       detail.scrollTop = 0;
@@ -100,7 +129,12 @@ const venues = getVenues();
 
       active.classList.remove('active');
       active.setAttribute('aria-hidden', 'true');
+      unsealBackground();
       notifyDemos();
+
+      // Back where they were, not at the top of the document.
+      restoreFocus?.focus({ preventScroll: true });
+      restoreFocus = null;
 
       setTimeout(() => {
         active.classList.remove('visible');

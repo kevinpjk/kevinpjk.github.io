@@ -4,13 +4,13 @@
 # =============================================================================
 
 - date: "2026-09-15"
-  content: "I am on the job market! I am applying for **tenure-track faculty and industry research positions** for 2027. Please reach out if you think there is a fit \u2014 my [CV](/assets/pdf/Kevin_Jiankai_Pu_Research_CV.pdf) has the details."
+  content: "I am on the job market! I am applying for **tenure-track faculty and industry research positions**. Please reach out if you have opportunities that fit \u2014 my [CV](/assets/pdf/Kevin_Jiankai_Pu_Research_CV.pdf) has the details."
 
 - date: "2026-09-10"
-  content: "Co-organizing the [Revibing HCI: Agentic Reimplementation as Community Practice](https://uist.acm.org/2026/workshops/) workshop at _UIST 2026_. More details to come!"
+  content: "Co-organizing the [Revibing HCI: Agentic Reimplementation as Community Practice](https://revibe-hci.github.io/) workshop at _UIST 2026_. More details to come!"
 
 - date: "2026-06-08"
-  content: "Spent the summer in New York as a Student Researcher on the [PAIR (People + AI Research)](https://pair.withgoogle.com/) team at _Google DeepMind_ (June\u2013September 2026). Thank you to my hosts and collaborators!"
+  content: "Excited to spend the summer as a Student Researcher on the [PAIR (People + AI Research)](https://pair.withgoogle.com/) team at _Google DeepMind_ ! I'll be in New York City for the next few months, happy to connect!"
 
 - date: "2026-04-10"
   content: "I am traveling to _CHI 2026_ in Barcelona, Spain! Looking forward to connecting with folks!"
@@ -19,8 +19,10 @@
   content: "[Cocoa](https://arxiv.org/abs/2412.10999) has received a **🏆 Best Paper Award** (top 1% of submissions)! Congratulations to first author [Kevin Feng](https://kjfeng.me/#/) and all collaborators!"
 
 - date: "2026-02-09"
-  content: "Visited [Bjoern Hartmann](https://people.eecs.berkeley.edu/~bjoern/)'s lab at UC Berkeley as a visiting scholar (January\u2013June 2026)."
+  content: "I am visiting [Bjoern Hartmann](https://people.eecs.berkeley.edu/~bjoern/)'s lab at UC Berkeley from January to May 2026 as a visiting scholar! Looking forward to new collaborations and connections!"
 
+- date: "2026-01-31"
+  content: "One co-authored paper is conditionally accepted to _CHI 2026_ ! Congrats to [Kevin Feng](https://kjfeng.me/#/) and other collaborators!"
 
 - date: "2025-09-28"
   content: "Super excited to attend _UIST 2025_ in Busan! I will be presenting my Meta internship paper on [proactive assistant in smart glasses](https://arxiv.org/abs/2507.21378) and a co-authored paper on [interactive co-design with AI](https://arxiv.org/abs/2508.03182)!"
@@ -28,6 +30,8 @@
 - date: "2025-09-26"
   content: "It was my pleasure to visit KAIST and give a research talk at the [KIXLAB](https://www.kixlab.org/). Thank you for hosting me!"
 
+- date: "2025-07-10"
+  content: "Two papers are conditionally accepted to _UIST 2025_! Excited to present soon in Busan, South Korea!"
 
 - date: "2025-05-14"
   content: "Invited to give a research talk at the [VisLab](http://vis.cse.ust.hk/) at HKUST. Thank you for hosting me!"
@@ -38,6 +42,8 @@
 - date: "2025-03-28"
   content: "Wrapped up my internship at Meta Reality Labs and submitted to _UIST 2025_. Fingers crossed!"
 
+- date: "2025-01-16"
+  content: "Two papers conditionally accepted to _CHI 2025_!! See you in Yokohama, Japan!"
 
 - date: "2024-10-28"
   content: "Started my internship as a Research Scientist intern at Meta Reality Labs in Toronto!"

@@ -56,8 +56,13 @@ const { job_market_banner: banner } = getSiteConfig();
     color: var(--color-text);
   }
 
+  // The heading is the line that has to land from across the page, so it sits
+  // a size up from the sentence that follows it rather than only a weight up.
   .job-banner-heading {
+    font-family: 'Fraunces', serif;
+    font-size: 1.06rem;
     font-weight: 600;
+    letter-spacing: -0.005em;
     color: var(--color-primary);
   }
 
@@ -103,6 +108,7 @@ const { job_market_banner: banner } = getSiteConfig();
     }
 
     .job-banner-text { font-size: 0.88rem; }
+    .job-banner-heading { font-size: 1rem; }
   }
 </style>
 

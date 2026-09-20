@@ -93,6 +93,10 @@ for (const folder of folders) {
   events.push({
     event,
     location: prev?.location || 'TODO',
+    // A NEW album gets January of its year as a placeholder, purely so the
+    // sort below has something to work with. Correct it by hand in
+    // gallery.yaml to the month the conference actually ran; existing
+    // albums keep whatever is already there.
     date: prev?.date || (year ? `${year}-01` : 'TODO'),
     photos,
   });

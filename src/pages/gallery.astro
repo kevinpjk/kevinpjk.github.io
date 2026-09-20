@@ -22,7 +22,13 @@ const events = getGallery();
       <div class="canopy" aria-hidden="true"></div>
 
       {events.map((ev, idx) => {
-        const dateLabel = new Date(ev.date + '-01').toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+        // Built from local parts, not from `new Date('2026-04-01')`. That form
+        // parses as UTC midnight and then formats in the *build machine's*
+        // zone, so anywhere west of UTC every album rendered a month early —
+        // April 2026 came out as March, and January as the previous December.
+        const [evYear, evMonth] = ev.date.split('-').map(Number);
+        const dateLabel = new Date(evYear, evMonth - 1, 1)
+          .toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
         const side = idx % 2 === 0 ? 'left' : 'right';
 
         return (
@@ -99,7 +105,9 @@ const events = getGallery();
     <button class="lightbox-prev" aria-label="Previous photo">&#8249;</button>
     <button class="lightbox-next" aria-label="Next photo">&#8250;</button>
     <div class="lightbox-content">
-      <img class="lightbox-img" src="" alt="" />
+      {/* No `src=""`: an empty one is a request for the page itself on every
+          gallery load. The lightbox sets src and alt when a photo opens. */}
+      <img class="lightbox-img" alt="" />
       <video class="lightbox-video" src="" muted loop playsinline style="display:none"></video>
       <p class="lightbox-caption"></p>
     </div>

@@ -127,12 +127,21 @@ const contactLinks = [
 
       <div class="home-main">
         <section class="home-bio" aria-label="About">
+          {/*
+            One idea per sentence. The previous version packed three parallel
+            clauses into one, which is what made it hard to follow. `when` and
+            `what` link to the two Selected Work themes that actually render;
+            `direction` is the outcome they serve rather than a third sibling,
+            because no selected paper sits under that theme yet.
+          */}
           <p>
-            I work at the intersection of human-computer interaction and AI. I build and study
-            interactive systems that decide <a class="bio-jump" href="#theme-when-ai-acts"><strong>when</strong></a>{' '}
-            an AI system should act, make <a class="bio-jump" href="#theme-what-it-shows"><strong>what</strong></a>{' '}
-            it did inspectable, and carry a person's <strong>direction</strong> across tasks and
-            sessions &mdash; keeping people in control of increasingly autonomous tools.
+            I work at the intersection of human-computer interaction and AI. As AI systems take on
+            longer and more autonomous work, the hard problem shifts from what a model can do to
+            whether a person can still direct it. I build and study the interfaces for that shift:
+            deciding <a class="bio-jump" href="#theme-when-ai-acts"><strong>when</strong></a>{' '}
+            an agent should act on its own, and surfacing{' '}
+            <a class="bio-jump" href="#theme-what-it-shows"><strong>what</strong></a>{' '}
+            it did so your <strong>direction</strong> reaches the work.
           </p>
         </section>
 

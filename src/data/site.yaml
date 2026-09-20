@@ -10,8 +10,8 @@ job_market_banner:
   enabled: true
   heading: "On the job market"
   body: >-
-    I am applying for tenure-track faculty and industry research positions for
-    2027. I expect to complete my PhD in June 2027.
+    I am applying for tenure-track faculty and industry research positions.
+    Please reach out if you have opportunities that fit.
   links:
     - { label: "CV", href: "/assets/pdf/Kevin_Jiankai_Pu_Research_CV.pdf" }
     - { label: "Email", href: "mailto:jpu@dgp.toronto.edu" }
