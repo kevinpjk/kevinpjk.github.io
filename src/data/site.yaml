@@ -11,7 +11,7 @@ job_market_banner:
   heading: "On the job market"
   body: >-
     I am applying for tenure-track faculty and industry research positions.
-    Please reach out if you have opportunities that fit.
+    Please reach out if you have opportunities that fit!
   links:
     - { label: "CV", href: "/assets/pdf/Kevin_Jiankai_Pu_Research_CV.pdf" }
     - { label: "Email", href: "mailto:jpu@dgp.toronto.edu" }
