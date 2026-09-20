@@ -341,6 +341,35 @@ function mount(root: HTMLElement, ctx: DemoContext): DemoController {
 
   // --- the automated intro ------------------------------------------------
 
+  /** Where the intro ends up, without having travelled and typed to get there. */
+  function showEnd() {
+    lines[EDIT_FROM] = TARGET_LINE;
+    // Guarded by length, not by content: calling this twice without a rewind
+    // in between would otherwise eat a real line.
+    if (lines.length === INITIAL_LINES.length) lines.splice(EDIT_TO, 1);
+    renderAll();
+    setProvenance([EDIT_FROM]);
+    const at = charPos(EDIT_FROM, TARGET_LINE.length);
+    placeCaret(at.x, at.y, false);
+    setCaretMode('dot');
+    openBreakout(BREAKOUT_SEED);
+  }
+
+  /** Back to the untouched stub, ready for the intro to run. */
+  function rewind() {
+    clearTimers();
+    lines = [...INITIAL_LINES];
+    renderAll();
+    setSelection(0, null);
+    setProvenance([]);
+    closeBreakout();
+    sideLog.innerHTML = chatMarkup(SIDE_CHAT_SEED);
+    sideInput.value = '';
+    breakoutInput.value = '';
+    caret.dataset.visible = 'false';
+    setCaretMode('dot');
+  }
+
   function stopIntro() {
     if (!running) return;
     clearTimers();
@@ -363,13 +392,7 @@ function mount(root: HTMLElement, ctx: DemoContext): DemoController {
 
     if (ctx.reducedMotion) {
       // No travel and no typing: show the end state immediately.
-      lines[EDIT_FROM] = TARGET_LINE;
-      lines.splice(EDIT_TO, 1);
-      renderAll();
-      setProvenance([EDIT_FROM]);
-      const p = charPos(EDIT_FROM, TARGET_LINE.length);
-      placeCaret(p.x, p.y, false);
-      openBreakout(BREAKOUT_SEED);
+      showEnd();
       ctx.announce('Cody implemented get_sorted_events and opened a breakout conversation.');
       settle();
       return;
@@ -493,29 +516,23 @@ function mount(root: HTMLElement, ctx: DemoContext): DemoController {
   // --- lifecycle ----------------------------------------------------------
 
   wireEditing();
-  // Deliberately not started here: the loader calls play() when this demo
-  // becomes the active one.
+  // At rest the editor shows where the intro ends up, so a visitor who only
+  // half-scrolls past sees Cody's work rather than an untouched stub. The
+  // intro is not started here: the loader calls play() when this demo becomes
+  // the active one, and play() rewinds first.
+  showEnd();
 
   return {
     play() {
       if (running || finished) return;
       paused = false;
+      rewind();
       void runIntro();
     },
     reset() {
-      clearTimers();
       paused = false;
-      lines = [...INITIAL_LINES];
-      renderAll();
-      setSelection(0, null);
-      setProvenance([]);
-      closeBreakout();
-      sideLog.innerHTML = chatMarkup(SIDE_CHAT_SEED);
-      sideInput.value = '';
-      breakoutInput.value = '';
-      caret.dataset.visible = 'false';
-      setCaretMode('dot');
       finished = false;
+      rewind();
       ctx.announce('Demo reset.');
       void runIntro();
     },

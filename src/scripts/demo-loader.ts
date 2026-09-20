@@ -62,7 +62,16 @@ function visibleFraction(root: HTMLElement): number {
   return Math.max(0, Math.min(1, shown / box.height));
 }
 
-async function makeActive(root: HTMLElement) {
+/**
+ * Hands the slot to a demo.
+ *
+ * `autoplay` is what separates scrolling a demo into view from reaching for
+ * one. A demo rests in its finished state — so a visitor who only half-scrolls
+ * past never sees an empty frame — and playing rewinds it to the start. That
+ * is what you want when it comes into view, and the last thing you want when
+ * someone has just clicked one of its controls.
+ */
+async function makeActive(root: HTMLElement, autoplay = true) {
   if (activeRoot === root) return;
 
   const previous = activeRoot;
@@ -71,7 +80,14 @@ async function makeActive(root: HTMLElement) {
 
   const controller = await activate(root);
   // Another demo may have taken over while this one was loading.
-  if (controller && activeRoot === root && !pausedByUser.has(root)) controller.play();
+  if (!controller || activeRoot !== root || pausedByUser.has(root)) return;
+  if (!autoplay) return;
+
+  // Transitions off for the frame the rewind lands in, so it reads as a cut.
+  root.dataset.demoRewind = 'true';
+  controller.play();
+  void root.offsetHeight;
+  delete root.dataset.demoRewind;
 }
 
 /**
@@ -195,8 +211,9 @@ function wire(root: HTMLElement) {
   });
 
   // Direct interaction always wins over the visibility heuristic: if the
-  // visitor reaches for a demo, that is the one they mean.
-  const claim = () => void makeActive(root);
+  // visitor reaches for a demo, that is the one they mean — but it takes the
+  // slot without replaying, so a click is not answered by a rewind.
+  const claim = () => void makeActive(root, false);
   root.addEventListener('pointerdown', claim);
   root.addEventListener('focusin', claim);
 

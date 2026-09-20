@@ -1,0 +1,18 @@
+// =============================================================================
+// Rules shared by every demo frame.
+//
+// Global, because the scene markup is injected by each demo module and so
+// never carries Astro's scoping attribute.
+// =============================================================================
+
+// A demo at rest shows its finished state; becoming the active one rewinds it
+// and replays. The loader sets this for the single frame the rewind happens
+// in, so the jump back is a cut rather than every element transitioning out
+// and then in again.
+[data-paper-demo][data-demo-rewind] {
+  &,
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}

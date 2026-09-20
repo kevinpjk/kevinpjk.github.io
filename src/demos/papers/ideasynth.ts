@@ -904,16 +904,31 @@ function mount(root: HTMLElement, ctx: DemoContext): DemoController {
     settle();
   }
 
+  /** The finished canvas, without having animated its way there. */
+  function showEnd() {
+    Object.keys(AI_FULL).forEach(stage => {
+      const el = aiText(stage);
+      if (el) el.textContent = AI_FULL[stage];
+    });
+    setStage('done');
+    layoutEdges();
+  }
+
   buildMarks();
-  setStage('idle');
-  resetScene();
-  // Geometry is only measurable once the browser has laid the canvas out.
+  // At rest the canvas shows its finished state, so a visitor who only
+  // half-scrolls past sees the idea rather than an empty frame. Playing
+  // rewinds it first — which is why this runs now and not in a frame
+  // callback: deferred, it would land after the rewind and undo it.
+  showEnd();
+  // Edge geometry is worth re-measuring once the browser has settled.
   requestAnimationFrame(layoutEdges);
 
   return {
     play() {
       if (running || finished) return;
       paused = false;
+      setStage('idle');
+      resetScene();
       void run();
     },
     reset() {

@@ -49,22 +49,6 @@ const demo = demos[slug];
       {demo.transcript.map(line => <li>{line}</li>)}
     </ol>
   </figure>
-  <script is:inline>
-    // A staged scene ships in its finished state, so that a visitor without
-    // JavaScript sees the diagram rather than an empty frame. With scripting,
-    // this rewinds it to the start.
-    //
-    // Inline and classic, not a module: it has to run during parsing, before
-    // the scene is ever painted. A deferred script would let the finished
-    // state flash first.
-    (function () {
-      var figure = document.currentScript.previousElementSibling;
-      if (!figure) return;
-      figure.querySelectorAll('[data-stage]').forEach(function (el) {
-        el.setAttribute('data-stage', 'idle');
-      });
-    })();
-  </script>
 ) : (
   <div class="paper-demo paper-demo--placeholder">
     <p class="demo-placeholder-text">Interactive demo in progress.</p>

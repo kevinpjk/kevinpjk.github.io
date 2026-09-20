@@ -128,20 +128,27 @@ function exploreCard(): string {
   </li>`;
 }
 
-/** A hand-drawn stand-in for a generated mockup: no image to fetch. */
+/**
+ * The panel generates an image here. Rather than ship a picture, the mockup is
+ * drawn in markup and mounted in a frame that reads as one — matted, centred
+ * and captioned — so it costs no network and themes with the page.
+ */
 function mockCard(): string {
   return `<li class="sc-card sc-card--mock" data-chat="mock">
-    <p class="sc-mock-cap">UI concept: an automated allergen conflict warning on dish cards.</p>
-    <div class="sc-mock">
-      <span class="sc-mock-bar">Potluck Dashboard</span>
-      <div class="sc-dish">
-        <span class="sc-dish-head">${icon('bowl')}<b>Spicy Thai Noodles</b></span>
-        <span class="sc-dish-row"><i class="sc-av">S</i>Assigned to Sarah M.</span>
-        <span class="sc-dish-row sc-dish-row--alert">${icon('warn')}Contains peanuts</span>
-        <span class="sc-conflict">${icon('warn')}Allergen conflict</span>
-        <span class="sc-dish-row sc-dish-row--meta">Serves 8–10 · Main dish</span>
+    <span class="sc-card-kind sc-card-kind--img">${icon('image')}Generated image</span>
+    <figure class="sc-shot">
+      <div class="sc-mock">
+        <span class="sc-mock-bar">Potluck Dashboard</span>
+        <div class="sc-dish">
+          <span class="sc-dish-head">${icon('bowl')}<b>Spicy Thai Noodles</b></span>
+          <span class="sc-dish-row"><i class="sc-av">S</i>Assigned to Sarah M.</span>
+          <span class="sc-dish-row sc-dish-row--alert">${icon('warn')}Contains peanuts</span>
+          <span class="sc-conflict">${icon('warn')}Allergen conflict</span>
+          <span class="sc-dish-row sc-dish-row--meta">Serves 8–10 · Main dish</span>
+        </div>
       </div>
-    </div>
+      <figcaption class="sc-mock-cap">UI concept: an allergen conflict warning on dish cards.</figcaption>
+    </figure>
     <span class="sc-card-acts">
       <button class="sc-mini sc-mini--go" type="button" data-act="mock-send">${icon('arrow')}Send</button>
       <button class="sc-mini sc-mini--go" type="button" data-act="mock-attach">${icon('paperclip')}Attach</button>
@@ -174,7 +181,7 @@ function scene(): string {
     <p class="sc-prompt-sent">${esc(PROMPT)}</p>
 
     <ul class="sc-traces" data-traces>
-      ${TRACES.slice(0, 6).map(t => `<li class="sc-trace">${esc(t)}</li>`).join('')}
+      ${TRACES.slice(0, 4).map(t => `<li class="sc-trace">${esc(t)}</li>`).join('')}
     </ul>
 
     <pre class="sc-code" data-code><code><span class="sc-t-kw">def</span> <span class="sc-t-fn">assign_dishes</span>(people, dishes):
@@ -277,7 +284,7 @@ function mount(root: HTMLElement, ctx: DemoContext): DemoController {
     traceAt += 1;
     traces.appendChild(line);
     requestAnimationFrame(() => line.classList.remove('sc-trace--new'));
-    while (traces.children.length > 6) traces.removeChild(traces.firstElementChild!);
+    while (traces.children.length > 4) traces.removeChild(traces.firstElementChild!);
   }
 
   function startTrace() {
@@ -431,7 +438,7 @@ function mount(root: HTMLElement, ctx: DemoContext): DemoController {
     ctx.setRunning(true);
 
     if (ctx.reducedMotion) {
-      traces.innerHTML = TRACES.slice(0, 6)
+      traces.innerHTML = TRACES.slice(0, 4)
         .map(t => `<li class="sc-trace">${esc(t)}</li>`).join('');
       chat.innerHTML = decisionCard() + exploreCard() + mockCard() + userMsg(ASK_TEXT) + draftCard();
       const card = chat.querySelector<HTMLElement>('[data-chat="decision"]');
@@ -515,13 +522,32 @@ function mount(root: HTMLElement, ctx: DemoContext): DemoController {
     settle();
   }
 
-  setStage('idle');
-  resetScene();
+  /** The finished run, without having animated its way there. */
+  function showEnd() {
+    traces.innerHTML = TRACES.slice(0, 4)
+      .map(t => `<li class="sc-trace">${esc(t)}</li>`).join('');
+    traceAt = 4;
+    chat.innerHTML = decisionCard() + exploreCard() + mockCard() + userMsg(ASK_TEXT) + draftCard();
+    const card = chat.querySelector<HTMLElement>('[data-chat="decision"]');
+    if (card) card.dataset.reviewed = 'ok';
+    staged.dataset.on = 'true';
+    setStage('done');
+  }
+
+  // At rest the run shows where it got to, which is what the static markup
+  // already renders — so a visitor who only half-scrolls past sees the panel
+  // at work rather than an empty frame. Playing rewinds it first. The trace
+  // stays still until then: one demo animates at a time.
+  showEnd();
 
   return {
     play() {
-      if (running || finished) return;
+      if (running) return;
+      // Already played: keep the agent's trace alive rather than replaying.
+      if (finished) { startTrace(); return; }
       paused = false;
+      setStage('idle');
+      resetScene();
       void run();
     },
     reset() {

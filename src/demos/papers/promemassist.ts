@@ -415,23 +415,32 @@ function mount(root: HTMLElement, ctx: DemoContext): DemoController {
     settle();
   }
 
-  setStage('idle');
-  voiceText.textContent = '';
+  /** Back to the blank start, ready to play. */
+  function rewind() {
+    explainTiming(false);
+    lightSource(null);
+    voiceText.textContent = '';
+    setStage('idle');
+  }
+
+  // At rest the scene shows its finished state, which is what the static
+  // markup already renders — so a visitor who only half-scrolls past sees the
+  // diagram rather than an empty frame. Playing rewinds it first.
+  voiceText.textContent = ASSIST;
+  setStage('done');
 
   return {
     play() {
       if (running || finished) return;
       paused = false;
+      rewind();
       void run();
     },
     reset() {
       clearTimers();
       paused = false;
       finished = false;
-      explainTiming(false);
-      lightSource(null);
-      voiceText.textContent = '';
-      setStage('idle');
+      rewind();
       ctx.announce('Demo reset.');
       void run();
     },

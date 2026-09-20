@@ -344,11 +344,11 @@ function mount(root: HTMLElement, ctx: DemoContext): DemoController {
     el.querySelector('[data-toggle]')?.setAttribute('aria-checked', String(owner === 'user'));
   }
 
-  function restoreCells() {
+  function restoreCells(final = false) {
     // Not `CELLS.map(cellMarkup)`: map passes the array as a third argument,
     // which lands in `final` and renders the finished plan straight away —
     // the "Edited" badge showed before anything had been edited.
-    cells.innerHTML = CELLS.map((c, i) => cellMarkup(c, i)).join('');
+    cells.innerHTML = CELLS.map((c, i) => cellMarkup(c, i, final)).join('');
     cells.hidden = false;
     empty.hidden = true;
     added = 0;
@@ -555,13 +555,25 @@ function mount(root: HTMLElement, ctx: DemoContext): DemoController {
     settle();
   }
 
-  setStage('idle');
-  resetScene();
+  /** The finished plan, without having animated its way there. */
+  function showEnd() {
+    restoreCells(true);
+    cc.dataset.collapsed = 'false';
+    openCell('connect');
+    setStage('done');
+  }
+
+  // At rest the plan shows its finished state, which is what the static
+  // markup already renders — so a visitor who only half-scrolls past sees the
+  // plan rather than an empty frame. Playing rewinds it first.
+  showEnd();
 
   return {
     play() {
       if (running || finished) return;
       paused = false;
+      setStage('idle');
+      resetScene();
       void run();
     },
     reset() {

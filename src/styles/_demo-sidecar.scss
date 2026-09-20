@@ -32,7 +32,7 @@
   // flow, so the run is the only thing in it.
   display: grid;
   height: 100%;
-  min-height: 428px;
+  min-height: 352px;
   padding: 0.65rem;
   background: var(--sc-bg);
   color: var(--sc-text);
@@ -62,7 +62,7 @@
 @container demo (min-width: 700px) {
   .sc {
     font-size: 0.78rem;
-    min-height: 470px;
+    min-height: 386px;
   }
 }
 
@@ -96,20 +96,17 @@
   transition: opacity 320ms ease, transform 320ms ease;
 }
 
-// Takes the slack in the column and keeps its newest lines at the bottom, so
-// the trace reads like a terminal and the code it produced sits just above
-// the composer rather than stranded under a gap.
+// Sized by its own lines. The column's slack goes below the code instead, so
+// the run reads top-down — prompt, trace, what it produced — with the
+// composer waiting at the bottom, rather than with a hole punched above it.
 .sc-traces {
-  flex: 1;
-  min-height: 4.6em;
+  flex: none;
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
   gap: 0.22rem;
-  overflow: hidden;
 }
 
 .sc-trace {
@@ -182,6 +179,7 @@
   display: flex;
   align-items: center;
   gap: 0.4rem;
+  margin-top: auto;
   padding: 0.32rem 0.45rem;
   border: 1px solid var(--sc-border);
   border-radius: var(--radius-sm);
@@ -311,6 +309,15 @@
 
 .sc-card--explore .sc-card-kind { color: var(--sc-violet); }
 .sc-card-kind--queue { color: var(--sc-violet); }
+
+.sc-card-kind--img {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  color: var(--sc-muted);
+
+  .sc-icon { width: 0.78em; height: 0.78em; }
+}
 
 .sc-card-title {
   margin: 0;
@@ -481,17 +488,41 @@
 [data-theme='dark'] .sc-msg--you { color: #14181e; }
 
 // --- the generated mockup ----------------------------------------------------
+// A mat around the drawing, so it reads as an image the panel produced rather
+// than as more interface inside the card.
+.sc-shot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.28rem;
+  margin: 0.1rem 0 0;
+  padding: 0.45rem 0.4rem 0.35rem;
+  border: 1px solid var(--sc-border);
+  border-radius: 4px;
+  background:
+    repeating-linear-gradient(45deg,
+      color-mix(in srgb, var(--sc-bar) 55%, transparent) 0 6px,
+      transparent 6px 12px),
+    var(--sc-bg);
+}
+
 .sc-mock-cap {
-  margin: 0 0 0.25rem;
-  font-size: 0.52rem;
+  margin: 0;
+  max-width: 96%;
+  font-size: 0.5rem;
   font-style: italic;
+  line-height: 1.35;
+  text-align: center;
   color: var(--sc-muted);
 }
 
 .sc-mock {
+  width: 100%;
+  max-width: 12rem;
   border: 1px solid var(--sc-border);
-  border-radius: 4px;
+  border-radius: 3px;
   background: var(--sc-bg);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 14%);
   overflow: hidden;
 }
 
