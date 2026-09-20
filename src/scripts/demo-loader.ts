@@ -32,8 +32,21 @@ const roots = new Set<HTMLElement>();
 /** How much of a demo must be on screen before it may start on its own. */
 const AUTO_PLAY_RATIO = 0.55;
 
+/**
+ * Demos exist twice over: once in a Selected Work row and once inside that
+ * paper's detail overlay. A closed overlay is `display: none`, so its demos
+ * measure zero and drop out on their own. An open one is the reverse case:
+ * the homepage behind it is faded but still laid out, so its demos would
+ * otherwise keep winning the autoplay slot from behind the overlay.
+ */
+function eligible(root: HTMLElement): boolean {
+  const open = document.querySelector<HTMLElement>('.paper-detail.active');
+  return open ? open.contains(root) : true;
+}
+
 /** Fraction of a demo currently within the viewport, measured live. */
 function visibleFraction(root: HTMLElement): number {
+  if (!eligible(root)) return 0;
   const box = root.getBoundingClientRect();
   if (box.height === 0) return 0;
   const shown = Math.min(box.bottom, window.innerHeight) - Math.max(box.top, 0);
@@ -185,7 +198,7 @@ function wire(root: HTMLElement) {
 
       // Mount as soon as any part is on screen so hover and keyboard
       // interactions are live even while a different demo is animating.
-      if (entry.isIntersecting) void activate(root);
+      if (entry.isIntersecting && eligible(root)) void activate(root);
     }
     rebalance();
   }, { threshold: [0, 0.2, 0.4, AUTO_PLAY_RATIO, 0.75, 1] });
@@ -195,9 +208,17 @@ function wire(root: HTMLElement) {
   observers.add(observer);
 
   // Scrolling between two thresholds still changes which demo is most
-  // visible, so re-check on scroll as well as on threshold crossings.
-  window.addEventListener('scroll', rebalance, { passive: true });
+  // visible, so re-check on scroll as well as on threshold crossings. Capture
+  // phase, because the detail overlay is its own scroll container and scroll
+  // events do not bubble out of it.
+  document.addEventListener('scroll', rebalance, { passive: true, capture: true });
 }
+
+/**
+ * Opening or closing a paper detail changes which demos are eligible without
+ * any scrolling, so the overlay tells us when to re-pick.
+ */
+document.addEventListener('demo:rebalance', rebalance);
 
 function pauseAllIfHidden() {
   if (!document.hidden) return;

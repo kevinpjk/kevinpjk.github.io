@@ -49,9 +49,28 @@ const venues = getVenues();
 
     const mainContent = document.getElementById('main-content');
 
+    // Where the reader was on the page before a detail took over. The overlay
+    // is its own fixed scroll container, so the page underneath never needs to
+    // move — but locking it can clamp the offset, and the browser's own
+    // restoration does not know about an overlay that changes only the hash.
+    // Remembering the offset and putting it back is what makes Back return to
+    // the row the reader came from rather than the top of the page.
+    let restoreScrollY = 0;
+
+    /** Which demos may autoplay depends on whether an overlay is open. */
+    const notifyDemos = () => {
+      document.dispatchEvent(new CustomEvent('demo:rebalance'));
+    };
+
     function openDetail(slug: string) {
       const detail = document.querySelector<HTMLElement>(`.paper-detail[data-slug="${slug}"]`);
       if (!detail) return;
+
+      // Only the first open records a position; re-entering from popstate
+      // while one is already up would otherwise save the locked offset.
+      if (!document.querySelector('.paper-detail.active')) {
+        restoreScrollY = window.scrollY;
+      }
 
       if (mainContent) {
         mainContent.style.transition = 'opacity 150ms ease';
@@ -63,8 +82,11 @@ const venues = getVenues();
       void detail.offsetHeight; // reflow so the animation kicks in
       detail.classList.add('active');
       detail.setAttribute('aria-hidden', 'false');
-      window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+      // The overlay scrolls internally, so it is this element that starts at
+      // the top — not the page, whose offset we are preserving.
+      detail.scrollTop = 0;
       document.body.style.overflow = 'hidden';
+      notifyDemos();
 
       // Update hash so detail is linkable / back-button closeable
       if (window.location.hash !== `#paper-${slug}`) {
@@ -78,6 +100,7 @@ const venues = getVenues();
 
       active.classList.remove('active');
       active.setAttribute('aria-hidden', 'true');
+      notifyDemos();
 
       setTimeout(() => {
         active.classList.remove('visible');
@@ -86,6 +109,9 @@ const venues = getVenues();
           mainContent.style.opacity = '1';
           mainContent.style.pointerEvents = '';
         }
+        // After the lock lifts, so the page can actually take the offset.
+        window.scrollTo({ top: restoreScrollY, behavior: 'instant' as ScrollBehavior });
+        notifyDemos();
       }, 200);
 
       if (updateHistory && window.location.hash.startsWith('#paper-')) {

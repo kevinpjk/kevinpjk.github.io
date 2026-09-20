@@ -56,9 +56,13 @@
   --pm-wood: #3a3430;
 }
 
-.paper-demo--full .pm {
-  font-size: 0.78rem;
-  min-height: 372px;
+// Sized against the demo frame, not the viewport: the same demo sits in a
+// Selected Work row and in a detail overlay column at different widths.
+@container demo (min-width: 700px) {
+  .pm {
+    font-size: 0.78rem;
+    min-height: 372px;
+  }
 }
 
 // --- columns -----------------------------------------------------------------
@@ -101,28 +105,32 @@
 .pm-view {
   position: relative;
   flex: 1;
-  min-height: 150px;
+  min-height: 176px;
   border: 1px solid var(--pm-border);
   border-radius: var(--radius-md);
   background: var(--pm-panel);
   overflow: hidden;
 }
 
+// The wearer stands at the near edge, centred, looking up the table. Putting
+// them at the bottom rather than the side makes the scene symmetrical: the
+// table sits squarely above them and the field of view opens straight ahead.
 .pm-user {
   position: absolute;
-  left: 0.45rem;
-  bottom: 0.5rem;
+  left: 50%;
+  bottom: 0.15rem;
+  transform: translateX(-50%);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.1rem;
+  gap: 0.05rem;
   color: var(--pm-text);
   opacity: 0;
   transition: opacity 400ms ease;
-  z-index: 3;
+  z-index: 4;
 }
 
-.pm-user-icon { width: 2.5em; height: 2.5em; }
+.pm-user-icon { width: 2.8em; height: 2.8em; }
 
 .pm-user-tag {
   font-family: 'JetBrains Mono', monospace;
@@ -132,41 +140,51 @@
   white-space: nowrap;
 }
 
-// The wearer's field of view, fanning up and right from where they stand.
+// The field of view, opening upward from the wearer's eyes.
 .pm-cone {
   position: absolute;
-  left: 1.9rem;
+  left: 0;
   right: 0;
-  top: 0;
-  bottom: 0;
-  transform: scaleX(0);
-  transform-origin: left center;
+  top: 0.25rem;
+  bottom: 2.4em;
+  transform: scaleY(0);
+  transform-origin: bottom center;
   background: linear-gradient(
-    to right,
-    color-mix(in srgb, var(--pm-see) 24%, transparent),
-    color-mix(in srgb, var(--pm-see) 5%, transparent)
+    to top,
+    color-mix(in srgb, var(--pm-see) 20%, transparent),
+    color-mix(in srgb, var(--pm-see) 3%, transparent)
   );
-  clip-path: polygon(0 74%, 100% 4%, 100% 98%, 0 90%);
+  // A blunt apex, not a point. A true point is so narrow near the wearer that
+  // the table's near edge falls outside it, which reads as a clipping bug
+  // rather than as peripheral vision.
+  clip-path: polygon(34% 100%, 66% 100%, 100% 0, 0 0);
   transition: transform 720ms cubic-bezier(0.22, 0.61, 0.36, 1);
-  z-index: 0;
+  // Over the table rather than behind it. Behind, the only parts left showing
+  // were the two top corners and a sliver below the table, which read as
+  // stray wedges instead of one field of view.
+  pointer-events: none;
+  z-index: 2;
 }
 
-// A tabletop seen at an angle: narrower at the far edge.
+// A tabletop set inside the field of view: it narrows toward the wearer, so
+// it nests in the cone rather than spilling out of its sides.
 .pm-table {
   position: absolute;
-  left: 32%;
-  right: 6%;
-  top: 34%;
-  bottom: 14%;
+  left: 14%;
+  right: 14%;
+  top: 16%;
+  bottom: 28%;
   background: var(--pm-wood);
   border-radius: 3px;
-  clip-path: polygon(14% 0, 86% 0, 100% 100%, 0 100%);
+  clip-path: polygon(0 0, 100% 0, 76% 100%, 24% 100%);
   opacity: 0;
   transform: translateY(6px);
   transition: opacity 420ms ease, transform 420ms ease;
   z-index: 1;
 }
 
+// Positioned by their centres, so a percentage reads as a place on the table
+// rather than as the corner of a box.
 .pm-obj {
   position: absolute;
   display: grid;
@@ -178,19 +196,19 @@
   background: var(--pm-bg);
   color: var(--pm-see);
   opacity: 0;
-  transform: scale(0.7);
+  transform: translate(-50%, -50%) scale(0.7);
   transition: opacity 320ms ease, transform 320ms cubic-bezier(0.22, 0.61, 0.36, 1),
               box-shadow 200ms ease, border-color 200ms ease, color 200ms ease;
-  z-index: 2;
+  z-index: 3;
 
   .pm-icon { width: 1.5em; height: 1.5em; }
 }
 
 // Laid out as a place setting: banana further back, then cup, plate, fork.
-.pm-obj--banana { left: 56%; top: 39%; }
-.pm-obj--cup    { left: 40%; top: 58%; }
-.pm-obj--plate  { left: 58%; top: 60%; }
-.pm-obj--fork   { left: 76%; top: 62%; }
+.pm-obj--banana { left: 50%; top: 27%; }
+.pm-obj--cup    { left: 34%; top: 52%; }
+.pm-obj--plate  { left: 50%; top: 58%; }
+.pm-obj--fork   { left: 66%; top: 52%; }
 
 .pm-obj.is-lit,
 .pm-heard.is-lit {
@@ -355,6 +373,17 @@
 .pm-item.is-relevant {
   border-color: var(--pm-hot);
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--pm-hot) 26%, transparent);
+}
+
+// Closes the column, and says plainly what the list above is.
+.pm-col-foot {
+  margin: 0;
+  font-size: 0.58rem;
+  line-height: 1.45;
+  font-style: italic;
+  color: var(--pm-muted);
+  opacity: 0;
+  transition: opacity 340ms ease;
 }
 
 // --- the displaced slot ------------------------------------------------------
@@ -524,8 +553,19 @@
 .pm-wv--2 { animation-delay: 170ms; }
 .pm-wv--3 { animation-delay: 340ms; }
 
+// The consequence of speaking: the line the glasses just said is itself new
+// audio information, and has to fit in a memory that is already full.
+.pm-step--displace {
+  align-items: flex-start;
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--pm-drop) 48%, transparent);
+  background: color-mix(in srgb, var(--pm-drop) 7%, transparent);
+
+  .pm-step-text { font-size: 0.6rem; }
+}
+
 .pm-voice-hint {
-  margin: 0.05rem 0 0;
+  margin: auto 0 0;
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.48rem;
   letter-spacing: 0.05em;
@@ -572,9 +612,9 @@ $after-play: "[data-stage='play'], [data-stage='done']";
 .pm:is(#{$after-look}) .pm-user { opacity: 1; }
 
 .pm:is(#{$after-see}) {
-  .pm-cone { transform: scaleX(1); }
+  .pm-cone { transform: scaleY(1); }
   .pm-table { opacity: 1; transform: none; }
-  .pm-obj { opacity: 1; transform: scale(1); }
+  .pm-obj { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 }
 
 .pm[data-stage='see'] {
@@ -589,6 +629,8 @@ $after-play: "[data-stage='play'], [data-stage='done']";
 
 .pm:is(#{$after-encode}) .pm-slot { opacity: 1; transform: none; }
 .pm[data-stage='encode'] .pm-slot { transition-delay: calc(var(--i) * 260ms); }
+.pm:is(#{$after-encode}) .pm-col-foot { opacity: 1; }
+.pm[data-stage='encode'] .pm-col-foot { transition-delay: 1.3s; }
 
 .pm:is(#{$after-pickup}) {
   .pm-step--pickup { opacity: 1; transform: none; }
@@ -603,17 +645,24 @@ $after-play: "[data-stage='play'], [data-stage='done']";
 .pm:is(#{$after-generate}) .pm-voice { opacity: 1; transform: none; }
 .pm:is(#{$after-evaluate}) .pm-step--verdict { opacity: 1; transform: none; }
 .pm:is(#{$after-play}) .pm-step--play { opacity: 1; transform: none; }
+.pm:is(#{$after-play}) .pm-step--displace { opacity: 1; transform: none; }
+.pm[data-stage='play'] .pm-step--displace { transition-delay: 420ms; }
 .pm[data-stage='done'] .pm-voice-hint { opacity: 1; }
 
 // --- narrow ------------------------------------------------------------------
-@media (max-width: 700px) {
+// The threshold is the frame's own width. On the homepage a demo already runs
+// three columns at ~610px, so stacking is reserved for genuinely narrow frames.
+@container demo (max-width: 560px) {
   .pm {
     grid-template-columns: 1fr;
     gap: 0.55rem;
     min-height: 0;
   }
 
-  .pm-view { min-height: 132px; }
+  // The scene's parts are placed by percentage but the wearer is a fixed
+  // size, so a short frame puts their head on top of the table. Stacked, the
+  // column is full width and can afford the height.
+  .pm-view { min-height: 228px; }
 
   // Connector geometry assumes the three columns sit side by side.
   .pm-links { display: none; }
@@ -628,6 +677,7 @@ $after-play: "[data-stage='play'], [data-stage='done']";
   .pm-item,
   .pm-step,
   .pm-voice,
+  .pm-col-foot,
   .pm-user {
     transition: none !important;
     transition-delay: 0ms !important;

@@ -83,6 +83,12 @@ const linkItems = [
       )}
     </div>
 
+    {pub.selected && (
+      <div class="paper-demo-row">
+        <PaperDemo slug={pub.slug} />
+      </div>
+    )}
+
     <div class="paper-visuals">
       {teaser && (
         <div class="paper-image-wrap">
@@ -90,7 +96,7 @@ const linkItems = [
             src={teaser}
             alt={`Teaser figure for ${pub.title}`}
             widths={[400, 800, 1200]}
-            sizes="(max-width: 900px) 92vw, 520px"
+            sizes="(max-width: 1180px) 92vw, 520px"
             loading="lazy"
             decoding="async"
           />
@@ -100,11 +106,6 @@ const linkItems = [
     </div>
   </div>
 
-  {pub.selected && (
-    <div class="paper-demo-row">
-      <PaperDemo slug={pub.slug} size="full" />
-    </div>
-  )}
   <div class="ring-tooltip" role="tooltip" aria-hidden="true"></div>
 </article>
 
@@ -194,15 +195,25 @@ const linkItems = [
     }
   }
 
+  // Two columns, two rows: the citation sits above the demo on the left, with
+  // the teaser and tree ring beside them. The demo used to run full-bleed
+  // under both, which put it below the fold — it now fills the space the
+  // citation leaves, at roughly the width it has in a Selected Work row.
   .paper-detail-inner {
     max-width: var(--max-width);
     margin: 0 auto;
-    padding: 3rem 1.5rem 2rem;
+    padding: 3rem 1.5rem 4rem;
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 3rem;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: 2.5rem 3rem;
     align-items: start;
   }
+
+  .paper-meta { grid-area: 1 / 1; min-width: 0; }
+  .paper-demo-row { grid-area: 2 / 1; min-width: 0; }
+
+  // Spans both rows so it has room to stick against the taller left column.
+  .paper-visuals { grid-area: 1 / 2 / 3 / 3; min-width: 0; }
 
   .back-btn {
     display: inline-flex;
@@ -265,14 +276,6 @@ const linkItems = [
       text-decoration-thickness: 1.5px;
     }
     a { color: var(--color-primary); &:hover { color: var(--color-secondary); } }
-  }
-
-  // Sibling of .paper-detail-inner, so it matches that block's gutters
-  // rather than participating in its grid.
-  .paper-demo-row {
-    max-width: var(--max-width);
-    margin: 0 auto;
-    padding: 0 1.5rem 4rem;
   }
 
   .paper-summary {
@@ -364,13 +367,23 @@ const linkItems = [
     }
   }
 
-  @media (max-width: 768px) {
+  // Below this the left column is too narrow to hold a demo comfortably, so
+  // everything stacks and the demo takes the full measure instead.
+  @media (max-width: 1180px) {
     .paper-detail-inner {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
       gap: 2rem;
-      padding-top: 2rem;
     }
-    .paper-visuals { position: static; }
+    // The demo keeps its place directly under the citation, so it is still
+    // the first thing below the text rather than something to hunt for
+    // past the teaser and the tree ring.
+    .paper-meta { grid-area: 1 / 1; }
+    .paper-demo-row { grid-area: 2 / 1; }
+    .paper-visuals { grid-area: 3 / 1; position: static; }
+  }
+
+  @media (max-width: 768px) {
+    .paper-detail-inner { padding-top: 2rem; }
     .paper-title { font-size: 1.3rem; }
     .paper-detail-margin { display: none; }
   }

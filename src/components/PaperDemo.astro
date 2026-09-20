@@ -14,17 +14,15 @@ import { demos } from '../demos/registry';
 
 interface Props {
   slug: string;
-  /** Larger stage for the detail overlay; compact for the homepage row. */
-  size?: 'compact' | 'full';
 }
 
-const { slug, size = 'compact' } = Astro.props;
+const { slug } = Astro.props;
 const demo = demos[slug];
 ---
 
 {demo ? (
   <figure
-    class:list={['paper-demo', `paper-demo--${size}`]}
+    class="paper-demo"
     data-paper-demo
     data-demo-id={demo.id}
   >
@@ -52,17 +50,22 @@ const demo = demos[slug];
     </ol>
   </figure>
 ) : (
-  <div class:list={['paper-demo', 'paper-demo--placeholder', `paper-demo--${size}`]}>
+  <div class="paper-demo paper-demo--placeholder">
     <p class="demo-placeholder-text">Interactive demo in progress.</p>
   </div>
 )}
 
 <style lang="scss">
+  // A query container, so a demo scene lays itself out from the width it
+  // actually has rather than from the viewport. The same demo appears in a
+  // Selected Work row and in a detail overlay column, at different widths on
+  // the same screen, so the viewport says nothing useful about either.
   .paper-demo {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
     min-width: 0;
+    container: demo / inline-size;
   }
 
   .demo-stage-wrap {
@@ -88,6 +91,11 @@ const demo = demos[slug];
     display: flex;
     gap: 0.3rem;
     z-index: 6;
+
+    // `display: flex` outranks the UA rule for [hidden], so without this the
+    // loader's "stay hidden until JS is ready" guarantee does nothing and a
+    // visitor with JavaScript off gets a Reset button that cannot work.
+    &[hidden] { display: none; }
   }
 
   .demo-btn {

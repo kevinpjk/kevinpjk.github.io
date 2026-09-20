@@ -46,9 +46,16 @@
   --cd-dot: #FF87BE;
 }
 
-.paper-demo--full .cd {
-  font-size: 0.82rem;
-  min-height: 360px;
+// Sized against the demo frame, not the viewport: the same demo sits in a
+// Selected Work row and in a detail overlay column at different widths.
+@container demo (min-width: 700px) {
+  .cd {
+    font-size: 0.82rem;
+    min-height: 360px;
+  }
+
+  .cd-breakout { width: min(62%, 320px); }
+  .cd-breakout-log { max-height: 130px; }
 }
 
 // --- top bar -----------------------------------------------------------------
@@ -383,8 +390,6 @@
   transform: none;
 }
 
-.paper-demo--full .cd-breakout { width: min(62%, 320px); }
-
 .cd-breakout-head {
   display: flex;
   align-items: center;
@@ -430,8 +435,6 @@
   &::-webkit-scrollbar-thumb { background: var(--cd-border); border-radius: 2px; }
 }
 
-.paper-demo--full .cd-breakout-log { max-height: 130px; }
-
 .cd-breakout-form {
   display: flex;
   gap: 0.25rem;
@@ -453,7 +456,9 @@
 }
 
 // --- narrow ------------------------------------------------------------------
-@media (max-width: 700px) {
+// The threshold is the frame's own width. On the homepage a demo already runs
+// three columns at ~610px, so stacking is reserved for genuinely narrow frames.
+@container demo (max-width: 560px) {
   .cd { min-height: 0; }
 
   .cd-body { grid-template-columns: 1fr; }

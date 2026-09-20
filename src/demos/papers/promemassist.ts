@@ -58,12 +58,13 @@ const ASSIST = 'You might need more utensils for four guests';
 // 24x24 line icons, stroked with currentColor so each inherits its state colour.
 
 const ICONS: Record<string, string> = {
-  // A person wearing the glasses, seen head-on.
-  user: `<circle cx="12" cy="7.6" r="4.6"/>
-    <rect x="6.6" y="6" width="4.4" height="3.2" rx="1.4"/>
-    <rect x="13" y="6" width="4.4" height="3.2" rx="1.4"/>
-    <path d="M11 7.6h2"/>
-    <path d="M3.6 21.4c0-4.1 3.8-6.6 8.4-6.6s8.4 2.5 8.4 6.6"/>`,
+  // A person wearing the glasses, seen head-on. One bar across both eyes
+  // rather than two lenses: at the size this renders, separate lenses inside
+  // the head outline merge into a smudge.
+  user: `<circle cx="12" cy="7.6" r="5.4"/>
+    <rect x="6.7" y="5.9" width="10.6" height="3.5" rx="1.7"/>
+    <path d="M12 5.9v3.5"/>
+    <path d="M3.4 21.6c0-4.2 3.9-6.8 8.6-6.8s8.6 2.6 8.6 6.8"/>`,
 
   // A crescent with a stem, lying at an angle.
   banana: `<path d="M3.8 4.6c.4 7.8 6.9 14 14.8 14 1.4 0 2.8-.2 4.1-.6-.6-2.6-3-4.5-5.8-4.5-5.4 0-9.9-4.1-10.4-9.4a1.4 1.4 0 0 0-2.7.5z"/>`,
@@ -172,6 +173,10 @@ function scene(): string {
       <span class="pm-col-note">estimated from what is seen and heard</span>
     </h4>
     <ol class="pm-items" data-items>${ITEMS.map(slotMarkup).join('')}</ol>
+
+    <p class="pm-col-foot" data-step="encoded">
+      Visual and audio signals are encoded and stored as working memory items.
+    </p>
   </section>
 
   <section class="pm-col pm-col--assist">
@@ -196,6 +201,13 @@ function scene(): string {
     <div class="pm-step pm-step--play" data-step="play">
       ${speakerIcon()}
       <span class="pm-step-text">spoken aloud to the wearer</span>
+    </div>
+
+    <div class="pm-step pm-step--displace" data-step="displace">
+      <span class="pm-step-text">
+        What was said becomes new audio information, displacing the memory item
+        with the lowest cost of displacement and interference
+      </span>
     </div>
 
     <p class="pm-voice-hint" data-voice-hint>hover the message to see why</p>
