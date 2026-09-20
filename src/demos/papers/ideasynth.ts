@@ -198,7 +198,7 @@ const ICONS: Record<string, string> = {
     <path d="M18.4 15.6l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/>`,
   link: `<path d="M10 13.8a4 4 0 0 0 5.7 0l2.6-2.6a4 4 0 0 0-5.7-5.7l-1.3 1.3"/>
     <path d="M14 10.2a4 4 0 0 0-5.7 0l-2.6 2.6a4 4 0 1 0 5.7 5.7l1.3-1.3"/>`,
-  caret: `<path d="M14.5 5.5 8 12l6.5 6.5"/>`,
+  caret: `<path d="M9.5 5.5 16 12l-6.5 6.5"/>`,
   grip: `<circle cx="9" cy="6" r="1.3"/><circle cx="15" cy="6" r="1.3"/>
     <circle cx="9" cy="12" r="1.3"/><circle cx="15" cy="12" r="1.3"/>
     <circle cx="9" cy="18" r="1.3"/><circle cx="15" cy="18" r="1.3"/>`,
@@ -242,7 +242,8 @@ function nodeMarkup(node: NodeDef): string {
       data-layer="${node.layer}"${live} style="${style}" tabindex="0"
       aria-label="${esc(FACET_LABEL[node.facet])}: ${esc(node.title)}">
     ${node.suggestions ? `<button class="ix-caret" type="button" data-caret="${node.id}"
-        aria-expanded="false" aria-label="Suggestions for this node">${icon('caret')}</button>` : ''}
+        aria-expanded="false" aria-label="Suggestions for this node"
+      >${icon('spark', 'ix-caret-spark')}${icon('caret', 'ix-caret-chev')}</button>` : ''}
     <span class="ix-facet">${esc(FACET_LABEL[node.facet])}</span>
     <h5 class="ix-title">${esc(node.title)}</h5>
     ${node.body ? `<p class="ix-body">${esc(node.body)}</p>` : ''}
@@ -480,15 +481,15 @@ function mount(root: HTMLElement, ctx: DemoContext): DemoController {
     panel.dataset.owner = id;
     panel.hidden = false;
 
-    // Beside the node, on whichever side has room. Clamping a left-hand panel
+    // Beside the node, on the caret's side where there is room. Clamping it
     // back into the canvas would just park it on top of its own node.
     const box = canvas.getBoundingClientRect();
     const rect = el.getBoundingClientRect();
     const width = panel.offsetWidth;
-    const onLeft = rect.left - box.left - width - 8;
-    const left = onLeft >= 4
-      ? onLeft
-      : Math.min(rect.right - box.left + 8, box.width - width - 4);
+    const onRight = rect.right - box.left + 10;
+    const left = onRight + width <= box.width - 4
+      ? onRight
+      : Math.max(4, rect.left - box.left - width - 10);
     const top = Math.max(4, Math.min(rect.top - box.top, box.height - panel.offsetHeight - 4));
     panel.style.left = `${left}px`;
     panel.style.top = `${top}px`;
@@ -883,6 +884,13 @@ function mount(root: HTMLElement, ctx: DemoContext): DemoController {
     await wait(1500);
     if (paused || aborter.signal.aborted) return;
 
+    setStage('assist');
+    ctx.announce('The editor gets its own suggestion, grounded in a second paper.');
+    await streamAi('assist');
+    if (paused || aborter.signal.aborted) return;
+    await wait(700);
+    if (paused || aborter.signal.aborted) return;
+
     setStage('edges');
     layoutEdges();
     ctx.announce('Each connection carries a verdict on how well the two facets fit.');
@@ -892,12 +900,6 @@ function mount(root: HTMLElement, ctx: DemoContext): DemoController {
     await wait(2400);
     if (paused || aborter.signal.aborted) return;
     toggleMark(-1, false);
-
-    setStage('assist');
-    await streamAi('assist');
-    if (paused || aborter.signal.aborted) return;
-    await wait(600);
-    if (paused || aborter.signal.aborted) return;
 
     settle();
   }
@@ -946,13 +948,13 @@ export const demo: PaperDemo = {
   id: 'ideasynth',
   stageLabel:
     'A research idea laid out as a canvas: two research-question nodes above three proposed-design nodes, connected by edges that each carry a verdict on how well the two facets fit, with a rail of collected papers and a question box beside it',
-  hint: 'Select a node and open its caret to drag out a new one, or open a connection to see how well two facets fit.',
+  hint: 'Select a node and open the tab on its right to drag out a new one, or open a connection to see how well two facets fit.',
   transcript: [
     'A canvas holds the facets of one research idea. Two research questions sit on the upper layer: using AI to generate interesting fictional characters, and balancing AI creativity with authorship.',
     'Three proposed designs sit below them: an interactive AI-driven character editor, AI-driven character complexity enhancement, and a multi-modal AI-driven character generator.',
     'One node in each layer carries an AI suggestion grounded in a paper from the collected library, shown with the paper it draws on.',
     'Edges run from each question down to the designs that answer it. Every scripted edge carries an indicator that expands to say how well the two facets fit: strong, partial or weak, and why.',
-    'Selecting a node with suggestions reveals a caret on its left edge. Opening it lists two further facets to add.',
+    'Selecting a node with suggestions reveals a tab on its right edge. Opening it lists two further facets to add.',
     'A suggestion can be dragged onto the canvas to become a new node, or placed with the keyboard. New nodes can then be connected to any other node.',
     'A rail on the left lists the collected papers, with a question box that answers from them.',
     'This is an illustrative reconstruction of the interface. It reports no result from the study.',

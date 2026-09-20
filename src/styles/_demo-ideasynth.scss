@@ -388,35 +388,57 @@
   color: var(--ix-muted);
 }
 
-// The caret only appears on a selected node, as in the figure, so the canvas
-// is not littered with affordances for nodes nobody is working on.
+// A tab on the node's right edge, on the side the suggestion panel opens
+// towards. It shows only on a selected node, so the canvas is not littered
+// with affordances for nodes nobody is working on — which means it has to
+// announce itself once it does appear: it carries the assistant's own colour
+// and spark, reads as part of the node rather than as a stray control, and
+// pulses once on arrival.
 .ix-caret {
   position: absolute;
-  left: -0.85rem;
-  top: 0.3rem;
-  display: grid;
-  place-items: center;
-  width: 1.05rem;
-  height: 1.3rem;
-  padding: 0;
-  border: 1px solid var(--ix-border);
-  border-right: none;
-  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
-  background: var(--ix-bg);
-  color: var(--ix-muted);
+  // Translated rather than offset by a guessed width, so the tab meets the
+  // node's edge exactly whatever it ends up containing.
+  right: 0;
+  top: 0.35rem;
+  transform: translateX(100%);
+  display: flex;
+  align-items: center;
+  gap: 0.05rem;
+  padding: 0.16rem 0.16rem 0.16rem 0.2rem;
+  border: 1px solid color-mix(in srgb, var(--ix-ai) 42%, transparent);
+  border-left: none;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  background: color-mix(in srgb, var(--ix-ai) 12%, var(--ix-bg));
+  color: var(--ix-ai);
   cursor: pointer;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 180ms ease, color 180ms ease;
+  transition: opacity 180ms ease, background-color 180ms ease;
 
-  .ix-icon { width: 0.8em; height: 0.8em; }
+  .ix-icon { width: 0.72em; height: 0.72em; }
+}
+
+.ix-caret-chev { opacity: 0.75; }
+
+@keyframes ix-caret-pulse {
+  0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--ix-ai) 40%, transparent); }
+  100% { box-shadow: 0 0 0 7px transparent; }
 }
 
 .ix-node.is-selected .ix-caret {
   opacity: 1;
   pointer-events: auto;
+  animation: ix-caret-pulse 1100ms ease-out 2;
 
-  &:hover, &:focus-visible { color: var(--ix-ai); }
+  &:hover,
+  &:focus-visible {
+    background: color-mix(in srgb, var(--ix-ai) 22%, var(--ix-bg));
+  }
+
+  &[aria-expanded='true'] {
+    background: var(--ix-ai);
+    color: var(--ix-bg);
+  }
 }
 
 // The connection handle, likewise only on a selected node.
@@ -710,12 +732,12 @@
 // Each stage reveals the next part of the canvas. `done` shows everything, so
 // a reduced-motion visitor and the static server-rendered scene both land there.
 
-$after-papers: "[data-stage='papers'], [data-stage='rq'], [data-stage='suggest'], [data-stage='design'], [data-stage='edges'], [data-stage='assist'], [data-stage='done']";
-$after-rq: "[data-stage='rq'], [data-stage='suggest'], [data-stage='design'], [data-stage='edges'], [data-stage='assist'], [data-stage='done']";
-$after-suggest: "[data-stage='suggest'], [data-stage='design'], [data-stage='edges'], [data-stage='assist'], [data-stage='done']";
-$after-design: "[data-stage='design'], [data-stage='edges'], [data-stage='assist'], [data-stage='done']";
-$after-edges: "[data-stage='edges'], [data-stage='assist'], [data-stage='done']";
-$after-assist: "[data-stage='assist'], [data-stage='done']";
+$after-papers: "[data-stage='papers'], [data-stage='rq'], [data-stage='suggest'], [data-stage='design'], [data-stage='assist'], [data-stage='edges'], [data-stage='done']";
+$after-rq: "[data-stage='rq'], [data-stage='suggest'], [data-stage='design'], [data-stage='assist'], [data-stage='edges'], [data-stage='done']";
+$after-suggest: "[data-stage='suggest'], [data-stage='design'], [data-stage='assist'], [data-stage='edges'], [data-stage='done']";
+$after-design: "[data-stage='design'], [data-stage='assist'], [data-stage='edges'], [data-stage='done']";
+$after-assist: "[data-stage='assist'], [data-stage='edges'], [data-stage='done']";
+$after-edges: "[data-stage='edges'], [data-stage='done']";
 
 .ix:is(#{$after-papers}) .ix-paper { opacity: 1; transform: none; }
 .ix[data-stage='papers'] .ix-paper { transition-delay: calc(var(--i) * 180ms); }
@@ -732,12 +754,12 @@ $after-assist: "[data-stage='assist'], [data-stage='done']";
   [data-node='design-multimodal'] { transition-delay: 480ms; }
 }
 
+.ix:is(#{$after-assist}) .ix-ai[data-ai-stage='assist'] { opacity: 1; transform: none; }
+
 .ix:is(#{$after-edges}) {
   .ix-edge { opacity: 0.85; }
   .ix-mark { opacity: 1; }
 }
-
-.ix:is(#{$after-assist}) .ix-ai[data-ai-stage='assist'] { opacity: 1; transform: none; }
 
 .ix[data-stage='done'] .ix-qa { opacity: 1; }
 
@@ -763,7 +785,7 @@ $after-assist: "[data-stage='assist'], [data-stage='done']";
     flex: none;
     min-height: 0;
     // The extra left padding is the lane the stacked edges run down.
-    padding: 0.7rem 0.6rem 0.7rem 2.4rem;
+    padding: 0.7rem 2rem 0.7rem 2.4rem;
   }
 
   .ix-node {
@@ -798,6 +820,8 @@ $after-assist: "[data-stage='assist'], [data-stage='done']";
     transition: none !important;
     transition-delay: 0ms !important;
   }
+
+  .ix-node.is-selected .ix-caret { animation: none !important; }
 
   .ix-node--new { opacity: 1 !important; transform: none !important; }
 }
