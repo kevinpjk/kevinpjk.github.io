@@ -1,0 +1,664 @@
+// =============================================================================
+// Cocoa demo — interactive plan and sidebar
+//
+// Global rather than component-scoped: the scene markup is injected by the
+// demo module, so Astro's scoping attribute is never applied to it. Every
+// selector is namespaced `cc-`.
+//
+// Colours follow the paper's Figure 2: an indigo primary action, blue for a
+// step the researcher owns, amber for the step that is asking for guidance,
+// green for one that has run.
+// =============================================================================
+
+.cc {
+  --cc-bg: #ffffff;
+  --cc-panel: #f7f8fa;
+  --cc-border: #e2e5ec;
+  --cc-text: #222831;
+  --cc-muted: #6b7482;
+  --cc-bar: #e5e8ee;
+
+  --cc-accent: #5b4bd6;    // update and run, and the agent's own colour
+  --cc-blue: #2f74d0;      // a step the researcher owns
+  --cc-blue-fill: #e8f0fb;
+  --cc-red: #d0402f;
+  --cc-amber: #c47510;     // asking for guidance
+  --cc-amber-fill: #fcefd8;
+  --cc-green: #2d9257;
+
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.42fr) minmax(0, 1fr);
+  gap: 0.75rem;
+  height: 100%;
+  min-height: 336px;
+  padding: 0.65rem;
+  background: var(--cc-bg);
+  color: var(--cc-text);
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+[data-theme='dark'] .cc {
+  --cc-bg: #1b2028;
+  --cc-panel: #232b36;
+  --cc-border: #39434f;
+  --cc-text: #e4e9ef;
+  --cc-muted: #98a3b2;
+  --cc-bar: #313b47;
+
+  --cc-accent: #9b90f5;
+  --cc-blue: #7fb2f0;
+  --cc-blue-fill: #22303f;
+  --cc-red: #f08877;
+  --cc-amber: #e0ad5c;
+  --cc-amber-fill: #3a3121;
+  --cc-green: #5ac489;
+}
+
+@container demo (min-width: 700px) {
+  .cc {
+    font-size: 0.78rem;
+    min-height: 374px;
+  }
+}
+
+.cc-icon {
+  width: 1.05em;
+  height: 1.05em;
+  display: block;
+  flex-shrink: 0;
+}
+
+.cc-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 0.22rem;
+
+  i {
+    height: 4px;
+    border-radius: 2px;
+    background: var(--cc-bar);
+  }
+}
+
+// --- the plan ----------------------------------------------------------------
+.cc-plan {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.cc-step {
+  display: flex;
+  gap: 0.35rem;
+  margin: 0;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.76rem;
+  font-weight: 600;
+  line-height: 1.35;
+  opacity: 0;
+  transform: translateY(-3px);
+  transition: opacity 320ms ease, transform 320ms ease;
+}
+
+.cc-step-n { color: var(--cc-muted); }
+
+.cc-tools {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  opacity: 0;
+  transform: translateY(-3px);
+  transition: opacity 320ms ease 120ms, transform 320ms ease 120ms;
+}
+
+.cc-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.22rem;
+  padding: 0.22rem 0.42rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  transition: filter 160ms ease;
+
+  .cc-icon { width: 0.85em; height: 0.85em; }
+
+  &:hover { filter: brightness(1.12); }
+  &:focus-visible { outline: 2px solid var(--cc-text); outline-offset: 2px; }
+}
+
+.cc-btn--run { background: var(--cc-accent); }
+.cc-btn--collapse { background: var(--cc-blue); }
+.cc-btn--delete { background: var(--cc-red); }
+
+[data-theme='dark'] .cc-btn { color: #14181e; }
+
+.cc-keys {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.52rem;
+  letter-spacing: 0.02em;
+  color: var(--cc-muted);
+}
+
+// A left rule down the whole plan, as in the figure's bracket.
+.cc-cells {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  border-left: 2px solid color-mix(in srgb, var(--cc-accent) 30%, transparent);
+}
+
+.cc-empty {
+  margin: 0;
+  padding: 0.6rem;
+  border: 1px dashed var(--cc-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.6rem;
+  font-style: italic;
+  color: var(--cc-muted);
+  text-align: center;
+}
+
+// --- a cell ------------------------------------------------------------------
+.cc-cell {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 0.35rem;
+  opacity: 0;
+  transform: translateY(5px);
+  transition: opacity 320ms ease, transform 320ms ease;
+}
+
+.cc-mark {
+  display: grid;
+  place-items: center;
+  width: 1rem;
+  height: 1.35rem;
+  color: var(--cc-green);
+
+  .cc-icon { width: 0.8em; height: 0.8em; grid-area: 1 / 1; }
+}
+
+.cc-mark-icon--help { display: none; color: var(--cc-amber); }
+
+.cc-cell[data-state='guidance'] .cc-mark {
+  color: var(--cc-amber);
+
+  .cc-mark-icon { display: none; }
+  .cc-mark-icon--help { display: block; width: 0.95em; height: 0.95em; }
+}
+
+.cc-cell-main { min-width: 0; }
+
+.cc-cell-text {
+  display: block;
+  width: 100%;
+  padding: 0.3rem 0.4rem;
+  text-align: left;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: var(--cc-panel);
+  color: var(--cc-text);
+  font: inherit;
+  font-size: 0.66rem;
+  line-height: 1.35;
+  cursor: pointer;
+  transition: background-color 180ms ease, border-color 180ms ease,
+              box-shadow 180ms ease;
+
+  &:hover { border-color: var(--cc-border); }
+  &:focus-visible { outline: 2px solid var(--cc-accent); outline-offset: 1px; }
+}
+
+// A step the researcher owns picks up the blue of its toggle, so the
+// assignment is readable from the cell itself and not only from the switch.
+.cc-cell[data-owner='user'] .cc-cell-text {
+  background: var(--cc-blue-fill);
+  border-color: color-mix(in srgb, var(--cc-blue) 34%, transparent);
+}
+
+.cc-cell[data-edited='true'] .cc-cell-text {
+  border-color: var(--cc-blue);
+}
+
+.cc-cell[data-editing='true'] .cc-cell-text {
+  border-color: var(--cc-blue);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--cc-blue) 20%, transparent);
+
+  // A caret, so the rewrite reads as someone typing rather than as text
+  // quietly changing underneath you.
+  &::after {
+    content: '';
+    display: inline-block;
+    width: 2px;
+    height: 0.9em;
+    margin-left: 1px;
+    vertical-align: -0.1em;
+    background: var(--cc-blue);
+  }
+}
+
+.cc-cell[data-state='guidance'] .cc-cell-text {
+  background: var(--cc-amber-fill);
+  border-color: color-mix(in srgb, var(--cc-amber) 46%, transparent);
+}
+
+.cc-cell.is-open .cc-cell-text {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--cc-accent) 26%, transparent);
+}
+
+.cc-out {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  margin: 0.15rem 0 0;
+  padding-left: 0.4rem;
+  font-size: 0.6rem;
+  line-height: 1.35;
+  color: var(--cc-muted);
+
+  &:has([data-out]:empty) { display: none; }
+}
+
+.cc-out-arrow { color: var(--cc-muted); }
+
+.cc-cell[data-state='guidance'] .cc-out { color: var(--cc-amber); }
+
+.cc-edited {
+  display: none;
+  padding: 0 0.28rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--cc-amber) 22%, transparent);
+  color: var(--cc-amber);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.48rem;
+  font-style: italic;
+  letter-spacing: 0.02em;
+}
+
+.cc-cell[data-edited='true'] .cc-edited { display: inline-block; }
+
+// The guidance box, on the one cell that is waiting for an answer.
+.cc-guide {
+  display: none;
+  gap: 0.25rem;
+  margin-top: 0.22rem;
+  padding-left: 0.4rem;
+}
+
+.cc-cell[data-state='guidance'] .cc-guide { display: flex; }
+
+.cc-guide-input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.22rem 0.35rem;
+  border: 1px solid color-mix(in srgb, var(--cc-amber) 46%, transparent);
+  border-radius: var(--radius-sm);
+  background: var(--cc-bg);
+  color: var(--cc-text);
+  font: inherit;
+  font-size: 0.58rem;
+
+  &::placeholder { color: var(--cc-muted); }
+  &:focus-visible { outline: 2px solid var(--cc-amber); outline-offset: -1px; }
+}
+
+.cc-guide-send {
+  padding: 0.22rem 0.45rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--cc-amber);
+  color: var(--cc-bg);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.56rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+// --- the assignment toggle ---------------------------------------------------
+.cc-toggle {
+  position: relative;
+  width: 2.1rem;
+  height: 1.1rem;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: var(--cc-bar);
+  cursor: pointer;
+  transition: background-color 200ms ease;
+
+  &:focus-visible { outline: 2px solid var(--cc-accent); outline-offset: 2px; }
+}
+
+.cc-cell[data-owner='user'] .cc-toggle {
+  background: color-mix(in srgb, var(--cc-blue) 26%, var(--cc-bar));
+}
+
+.cc-knob {
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  display: grid;
+  place-items: center;
+  width: calc(1.1rem - 2px);
+  height: calc(1.1rem - 2px);
+  border-radius: 50%;
+  border: 1.5px solid var(--cc-accent);
+  background: var(--cc-bg);
+  color: var(--cc-accent);
+  transition: transform 220ms cubic-bezier(0.34, 1.1, 0.64, 1),
+              border-color 200ms ease, background-color 200ms ease,
+              color 200ms ease;
+
+  .cc-icon { width: 0.62em; height: 0.62em; grid-area: 1 / 1; }
+}
+
+.cc-knob-user { display: none; }
+
+.cc-cell[data-owner='user'] .cc-knob {
+  transform: translateX(1rem);
+  border-color: var(--cc-blue);
+  background: var(--cc-blue);
+  color: var(--cc-bg);
+
+  .cc-knob-ai { display: none; }
+  .cc-knob-user { display: block; }
+}
+
+// --- the sidebar -------------------------------------------------------------
+// The grid row is sized by its tallest item, so a sidebar that grew with its
+// own content would make the whole demo taller every time a paper was added.
+// Lifting its contents out of flow leaves the plan column as the only thing
+// that sets the height, and the sidebar fills whatever that comes to.
+.cc-side {
+  position: relative;
+  min-width: 0;
+  min-height: 12em;
+  border: 1px solid var(--cc-border);
+  border-radius: var(--radius-md);
+  background: var(--cc-panel);
+  opacity: 0;
+  transition: opacity 320ms ease;
+}
+
+.cc-side-inner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.5rem;
+}
+
+.cc-side-label {
+  margin: 0;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.52rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--cc-muted);
+}
+
+.cc-side-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+
+  &::-webkit-scrollbar { width: 3px; }
+  &::-webkit-scrollbar-thumb { background: var(--cc-border); border-radius: 2px; }
+}
+
+.cc-topics {
+  list-style: none;
+  margin: 0 0 0.4rem;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.22rem;
+
+  &[hidden] { display: none; }
+}
+
+.cc-topic {
+  padding: 0.1rem 0.34rem;
+  border: 1px solid color-mix(in srgb, var(--cc-accent) 28%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--cc-accent) 8%, transparent);
+  font-size: 0.52rem;
+  line-height: 1.5;
+  color: var(--cc-text);
+}
+
+.cc-topic--more {
+  border-style: dashed;
+  background: none;
+  color: var(--cc-muted);
+}
+
+.cc-papers {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.cc-paper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+  padding: 0.32rem 0.38rem;
+  border: 1px solid var(--cc-border);
+  border-radius: var(--radius-sm);
+  background: var(--cc-bg);
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 300ms ease, transform 300ms ease;
+}
+
+.cc-paper[data-added] {
+  opacity: 1;
+  transform: none;
+  border-color: color-mix(in srgb, var(--cc-accent) 44%, transparent);
+}
+
+.cc-paper-title {
+  font-size: 0.6rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.cc-paper-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.25rem;
+  font-size: 0.54rem;
+  line-height: 1.38;
+  color: var(--cc-muted);
+
+  .cc-icon { width: 0.78em; height: 0.78em; margin-top: 0.22em; color: var(--cc-muted); }
+}
+
+.cc-paper-tag {
+  align-self: flex-start;
+  margin-top: 0.12rem;
+  padding: 0 0.28rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--cc-accent) 16%, transparent);
+  color: var(--cc-accent);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.46rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+// --- the sidebar's own controls ----------------------------------------------
+.cc-side-foot {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding-top: 0.35rem;
+  border-top: 1px solid var(--cc-border);
+}
+
+.cc-acts {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.cc-act {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.22rem;
+  padding: 0.22rem 0.45rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.58rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  .cc-icon { width: 0.82em; height: 0.82em; }
+
+  &:focus-visible { outline: 2px solid var(--cc-accent); outline-offset: 2px; }
+}
+
+.cc-act--save {
+  background: var(--cc-blue);
+  color: var(--cc-bg);
+}
+
+.cc-act--cancel {
+  background: none;
+  color: var(--cc-muted);
+}
+
+.cc-saved {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--cc-green);
+
+  &[hidden] { display: none; }
+}
+
+.cc-search {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.cc-search-input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.26rem 0.4rem;
+  border: 1px solid var(--cc-border);
+  border-radius: var(--radius-sm);
+  background: var(--cc-bg);
+  color: var(--cc-text);
+  font: inherit;
+  font-size: 0.58rem;
+
+  &::placeholder { color: var(--cc-muted); }
+  &:focus-visible { outline: 2px solid var(--cc-accent); outline-offset: -1px; }
+}
+
+.cc-search-go {
+  display: grid;
+  place-items: center;
+  width: 1.6rem;
+  border: 1px solid var(--cc-border);
+  border-radius: var(--radius-sm);
+  background: var(--cc-bg);
+  color: var(--cc-muted);
+  cursor: pointer;
+
+  &:hover { color: var(--cc-accent); border-color: var(--cc-accent); }
+}
+
+// --- collapsed ---------------------------------------------------------------
+.cc[data-collapsed='true'] {
+  .cc-out,
+  .cc-guide { display: none; }
+
+  .cc-cell-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+// --- staging -----------------------------------------------------------------
+// Each stage reveals the next part of the plan. `done` shows everything, so a
+// reduced-motion visitor and the static server-rendered scene both land there.
+
+$after-head: "[data-stage='head'], [data-stage='run1'], [data-stage='papers'], [data-stage='run2'], [data-stage='edit2'], [data-stage='run3'], [data-stage='guide'], [data-stage='done']";
+$after-run1: "[data-stage='run1'], [data-stage='papers'], [data-stage='run2'], [data-stage='edit2'], [data-stage='run3'], [data-stage='guide'], [data-stage='done']";
+$after-papers: "[data-stage='papers'], [data-stage='run2'], [data-stage='edit2'], [data-stage='run3'], [data-stage='guide'], [data-stage='done']";
+$after-run2: "[data-stage='run2'], [data-stage='edit2'], [data-stage='run3'], [data-stage='guide'], [data-stage='done']";
+$after-run3: "[data-stage='run3'], [data-stage='guide'], [data-stage='done']";
+
+.cc:is(#{$after-head}) {
+  .cc-step,
+  .cc-tools { opacity: 1; transform: none; }
+  .cc-side { opacity: 1; }
+}
+
+.cc:is(#{$after-run1}) [data-cell='topics'] { opacity: 1; transform: none; }
+.cc:is(#{$after-papers}) .cc-paper { opacity: 1; transform: none; }
+.cc[data-stage='papers'] .cc-paper:nth-child(2) { transition-delay: 260ms; }
+.cc[data-stage='papers'] .cc-paper:nth-child(3) { transition-delay: 520ms; }
+
+.cc:is(#{$after-run2}) [data-cell='seed'] { opacity: 1; transform: none; }
+.cc:is(#{$after-run3}) [data-cell='connect'] { opacity: 1; transform: none; }
+
+// --- narrow ------------------------------------------------------------------
+// The threshold is the frame's own width, not the viewport: the same demo sits
+// in a Selected Work row and in a detail overlay column at different widths.
+@container demo (max-width: 560px) {
+  .cc {
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+    min-height: 0;
+  }
+
+  // Stacked, nothing is competing for the height, so the sidebar goes back
+  // into flow and is simply as tall as its contents.
+  .cc-side { min-height: 0; }
+  .cc-side-inner { position: static; }
+
+  // The frame's Reset control sits over the top-right corner, which in one
+  // column is where the question is rather than the sidebar.
+  .cc-step { padding-right: 3.6rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cc-step,
+  .cc-tools,
+  .cc-cell,
+  .cc-paper,
+  .cc-side,
+  .cc-knob {
+    transition: none !important;
+    transition-delay: 0ms !important;
+  }
+}
