@@ -139,7 +139,11 @@ function slotMarkup(item: Item, index: number): string {
 }
 
 function scene(): string {
-  return `<div class="pm" data-pm>
+  // `done` rather than `idle`: every part of this scene starts invisible and
+  // is revealed by the stage, so a visitor without JavaScript would otherwise
+  // get an empty frame. The frame's inline script rewinds it to `idle` before
+  // paint whenever scripting is available. See PaperDemo.astro.
+  return `<div class="pm" data-pm data-stage="done">
   <svg class="pm-links" data-links aria-hidden="true"></svg>
 
   <section class="pm-col pm-col--scene">
@@ -190,7 +194,7 @@ function scene(): string {
     <button class="pm-voice" data-voice type="button"
             aria-label="Generated assistance. Show why this was said now.">
       <span class="pm-voice-label">assistance generated</span>
-      <span class="pm-voice-text" data-voice-text></span>
+      <span class="pm-voice-text" data-voice-text>${ASSIST}</span>
     </button>
 
     <div class="pm-step pm-step--verdict" data-step="verdict">

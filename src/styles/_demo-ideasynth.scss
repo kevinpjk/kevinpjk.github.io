@@ -1,0 +1,803 @@
+// =============================================================================
+// IdeaSynth demo canvas
+//
+// Global rather than component-scoped: the scene markup is injected by the
+// demo module, so Astro's scoping attribute is never applied to it. Every
+// selector is namespaced `ix-`.
+//
+// Facet colours follow the coloured left bars in the paper's Figure 4 — red
+// for a problem or question, green for a proposed design, indigo for an
+// evaluation, magenta for a contribution — so the canvas reads as the same
+// system the paper shows.
+// =============================================================================
+
+.ix {
+  --ix-bg: #ffffff;
+  --ix-panel: #f7f8fb;
+  --ix-border: #e0e4ec;
+  --ix-text: #232a36;
+  --ix-muted: #6d7787;
+  --ix-bar: #e6e9ef;
+
+  --ix-ai: #5b5bd6;        // the assistant's own colour
+  --ix-rq: #e2604a;
+  --ix-design: #6cb33f;
+  --ix-eval: #5566e0;
+  --ix-impact: #d857b8;
+
+  --ix-strong: #2f9e5e;
+  --ix-partial: #c98a1c;
+  --ix-weak: #8b95a4;
+
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 0.62fr) minmax(0, 1.5fr);
+  gap: 0.7rem;
+  height: 100%;
+  min-height: 378px;
+  padding: 0.6rem;
+  background: var(--ix-bg);
+  color: var(--ix-text);
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+[data-theme='dark'] .ix {
+  --ix-bg: #1b2028;
+  --ix-panel: #232b36;
+  --ix-border: #39434f;
+  --ix-text: #e4e9ef;
+  --ix-muted: #98a3b2;
+  --ix-bar: #313b47;
+
+  --ix-ai: #9b9bf0;
+  --ix-rq: #ff8f7a;
+  --ix-design: #9ad86c;
+  --ix-eval: #8c9bf5;
+  --ix-impact: #f08ad8;
+
+  --ix-strong: #5ed08c;
+  --ix-partial: #e2b155;
+  --ix-weak: #93a0b0;
+}
+
+@container demo (min-width: 700px) {
+  .ix {
+    font-size: 0.78rem;
+    min-height: 420px;
+  }
+}
+
+.ix-icon {
+  width: 1.15em;
+  height: 1.15em;
+  display: block;
+  flex-shrink: 0;
+}
+
+.ix-col-label {
+  margin: 0;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.56rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--ix-muted);
+}
+
+// The grey stand-in bars the paper's own figure uses for unelaborated text.
+.ix-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 0.3rem;
+
+  i {
+    height: 5px;
+    border-radius: 3px;
+    background: var(--ix-bar);
+  }
+}
+
+// --- the left rail -----------------------------------------------------------
+.ix-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.ix-papers {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+}
+
+.ix-paper {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
+  padding: 0.3rem 0.35rem;
+  border: 1px solid var(--ix-border);
+  border-radius: var(--radius-sm);
+  background: var(--ix-panel);
+  color: var(--ix-muted);
+  opacity: 0;
+  transform: translateX(-5px);
+  transition: opacity 300ms ease, transform 300ms ease;
+}
+
+.ix-paper-icon { color: var(--ix-ai); margin-top: 0.1em; }
+
+.ix-paper-main { min-width: 0; }
+
+.ix-paper-title {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 0.6rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--ix-text);
+}
+
+.ix-paper-tag {
+  display: block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.46rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ix-muted);
+}
+
+.ix-paper--more {
+  justify-content: center;
+  border-style: dashed;
+  background: none;
+  font-size: 0.56rem;
+  font-style: italic;
+}
+
+// --- the question box --------------------------------------------------------
+// Takes whatever height the paper list leaves, with the input pinned at the
+// bottom, so the rail reads as a panel rather than as a list with a gap.
+.ix-qa {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-top: 0.3rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--ix-border);
+  opacity: 0;
+  transition: opacity 320ms ease;
+}
+
+.ix-qa-log {
+  flex: 1;
+  min-height: 2.6em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.35rem;
+  border: 1px dashed var(--ix-border);
+  border-radius: var(--radius-sm);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+
+  // Empty, this is the largest thing in the rail, so it reads as a panel
+  // waiting for a question rather than as a gap in the layout.
+  &:empty::before {
+    content: 'Answers are drawn from the papers in your library.';
+    margin: auto 0;
+    font-size: 0.56rem;
+    line-height: 1.4;
+    font-style: italic;
+    color: var(--ix-muted);
+  }
+
+  &::-webkit-scrollbar { width: 3px; }
+  &::-webkit-scrollbar-thumb { background: var(--ix-border); border-radius: 2px; }
+}
+
+.ix-qa-msg {
+  margin: 0;
+  padding: 0.28rem 0.4rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.6rem;
+  line-height: 1.4;
+}
+
+.ix-qa-msg--you {
+  background: color-mix(in srgb, var(--ix-ai) 12%, var(--ix-bg));
+  color: var(--ix-text);
+  align-self: flex-end;
+  max-width: 92%;
+}
+
+.ix-qa-msg--ai {
+  background: var(--ix-panel);
+  border: 1px solid var(--ix-border);
+}
+
+.ix-qa-reply { color: var(--ix-muted); font-style: italic; }
+
+.ix-qa-form {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.ix-qa-input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.28rem 0.4rem;
+  border: 1px solid var(--ix-border);
+  border-radius: var(--radius-sm);
+  background: var(--ix-bg);
+  color: var(--ix-text);
+  font: inherit;
+  font-size: 0.6rem;
+
+  &::placeholder { color: var(--ix-muted); }
+  &:focus-visible { outline: 2px solid var(--ix-ai); outline-offset: -1px; }
+}
+
+.ix-qa-send {
+  display: grid;
+  place-items: center;
+  width: 1.7rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--ix-ai);
+  color: #fff;
+  cursor: pointer;
+
+  .ix-icon { width: 0.85em; height: 0.85em; }
+}
+
+// --- the canvas --------------------------------------------------------------
+.ix-canvas-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.ix-canvas {
+  position: relative;
+  flex: 1;
+  min-height: 250px;
+  border: 1px solid var(--ix-border);
+  border-radius: var(--radius-md);
+  background:
+    radial-gradient(circle at 1px 1px, var(--ix-bar) 1px, transparent 0) 0 0 / 14px 14px,
+    var(--ix-panel);
+
+  &.is-dropzone {
+    outline: 2px dashed var(--ix-ai);
+    outline-offset: -3px;
+  }
+
+  &.is-connecting { cursor: crosshair; }
+}
+
+.ix-edges {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+  overflow: visible;
+}
+
+.ix-edge {
+  fill: none;
+  stroke: var(--ix-muted);
+  stroke-width: 1.3;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  opacity: 0;
+  transition: opacity 320ms ease;
+}
+
+.ix-edge--user { stroke: var(--ix-ai); stroke-dasharray: 4 3; opacity: 1; }
+.ix-edge--live { stroke: var(--ix-ai); stroke-dasharray: 4 3; opacity: 1; }
+
+// --- a node ------------------------------------------------------------------
+.ix-node {
+  position: absolute;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.3rem 0.4rem 0.35rem;
+  border: 1px solid var(--ix-border);
+  border-left: 3px solid var(--facet, var(--ix-muted));
+  border-radius: var(--radius-sm);
+  background: var(--ix-bg);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 6%);
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 340ms ease, transform 340ms ease,
+              box-shadow 180ms ease, border-color 180ms ease;
+
+  &[data-facet='rq'] { --facet: var(--ix-rq); }
+  &[data-facet='design'] { --facet: var(--ix-design); }
+  &[data-facet='eval'] { --facet: var(--ix-eval); }
+  &[data-facet='impact'] { --facet: var(--ix-impact); }
+
+  &:hover { box-shadow: 0 2px 8px rgb(0 0 0 / 10%); }
+
+  &:focus-visible {
+    outline: 2px solid var(--ix-ai);
+    outline-offset: 1px;
+  }
+
+  &.is-selected {
+    border-color: var(--ix-ai);
+    border-left-color: var(--facet);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--ix-ai) 22%, transparent);
+    z-index: 4;
+  }
+}
+
+// Newly dropped nodes start small so the drop reads as a placement rather
+// than as something that was always there.
+.ix-node--new {
+  opacity: 0 !important;
+  transform: scale(0.9) !important;
+}
+
+[data-layer='made'] { opacity: 1; transform: none; }
+
+.ix-facet {
+  font-family: 'JetBrains Mono', monospace;
+  // Tight enough that "Proposed Design & Solution" fits a bottom-row node
+  // without ellipsis, which is where the label does the most work.
+  font-size: 0.42rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--facet, var(--ix-muted));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ix-title {
+  margin: 0;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.62rem;
+  font-weight: 600;
+  line-height: 1.28;
+  color: var(--ix-text);
+}
+
+.ix-body {
+  margin: 0.1rem 0 0;
+  font-size: 0.56rem;
+  line-height: 1.4;
+  color: var(--ix-muted);
+}
+
+// The caret only appears on a selected node, as in the figure, so the canvas
+// is not littered with affordances for nodes nobody is working on.
+.ix-caret {
+  position: absolute;
+  left: -0.85rem;
+  top: 0.3rem;
+  display: grid;
+  place-items: center;
+  width: 1.05rem;
+  height: 1.3rem;
+  padding: 0;
+  border: 1px solid var(--ix-border);
+  border-right: none;
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+  background: var(--ix-bg);
+  color: var(--ix-muted);
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease, color 180ms ease;
+
+  .ix-icon { width: 0.8em; height: 0.8em; }
+}
+
+.ix-node.is-selected .ix-caret {
+  opacity: 1;
+  pointer-events: auto;
+
+  &:hover, &:focus-visible { color: var(--ix-ai); }
+}
+
+// The connection handle, likewise only on a selected node.
+.ix-port {
+  position: absolute;
+  left: 50%;
+  bottom: -0.3rem;
+  width: 0.6rem;
+  height: 0.6rem;
+  margin-left: -0.3rem;
+  padding: 0;
+  border: 1.5px solid var(--ix-ai);
+  border-radius: 50%;
+  background: var(--ix-bg);
+  cursor: crosshair;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease, transform 150ms ease;
+}
+
+.ix-node.is-selected .ix-port {
+  opacity: 1;
+  pointer-events: auto;
+
+  &:hover { transform: scale(1.25); }
+  &:focus-visible { outline: 2px solid var(--ix-ai); outline-offset: 2px; }
+}
+
+.ix-canvas.is-connecting .ix-node:hover { border-color: var(--ix-ai); }
+
+// --- literature-grounded feedback inside a node ------------------------------
+.ix-ai {
+  margin-top: 0.3rem;
+  padding: 0.3rem 0.35rem;
+  border: 1px solid color-mix(in srgb, var(--ix-ai) 32%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--ix-ai) 7%, var(--ix-bg));
+  opacity: 0;
+  transform: translateY(3px);
+  transition: opacity 300ms ease, transform 300ms ease;
+}
+
+.ix-ai-head {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--ix-ai);
+}
+
+.ix-ai-spark { width: 0.85em; height: 0.85em; }
+
+.ix-ai-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.44rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.ix-ai-text {
+  margin: 0.15rem 0 0;
+  font-size: 0.56rem;
+  font-style: italic;
+  line-height: 1.4;
+  color: var(--ix-text);
+  min-height: 2.4em;
+}
+
+// A caret while the suggestion is still being written.
+.ix:is([data-stage='suggest'], [data-stage='assist']) .ix-ai-text::after {
+  content: '';
+  display: inline-block;
+  width: 2px;
+  height: 0.9em;
+  margin-left: 1px;
+  vertical-align: -0.1em;
+  background: var(--ix-ai);
+}
+
+// The paper the suggestion is grounded in.
+.ix-cite {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  margin-top: 0.25rem;
+  padding-top: 0.22rem;
+  border-top: 1px dashed color-mix(in srgb, var(--ix-ai) 26%, transparent);
+  font-size: 0.5rem;
+  line-height: 1.3;
+  color: var(--ix-muted);
+
+  .ix-icon { width: 0.78em; height: 0.78em; color: var(--ix-ai); }
+
+  span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+// --- the connection indicator ------------------------------------------------
+.ix-marks {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.ix-mark {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  transition: opacity 280ms ease;
+
+  &[data-verdict='strong'] { --v: var(--ix-strong); }
+  &[data-verdict='partial'] { --v: var(--ix-partial); }
+  &[data-verdict='weak'] { --v: var(--ix-weak); }
+
+  &.is-open { z-index: 2; }
+}
+
+.ix-mark-btn {
+  display: grid;
+  place-items: center;
+  width: 1.15rem;
+  height: 1.15rem;
+  padding: 0;
+  border: 1px solid var(--v);
+  border-radius: 50%;
+  background: var(--ix-bg);
+  color: var(--v);
+  cursor: pointer;
+  pointer-events: auto;
+  transition: transform 150ms ease, box-shadow 150ms ease;
+
+  .ix-icon { width: 0.72em; height: 0.72em; }
+
+  &:hover { transform: scale(1.14); }
+
+  &:focus-visible { outline: 2px solid var(--v); outline-offset: 2px; }
+
+  &[aria-expanded='true'] {
+    background: var(--v);
+    color: var(--ix-bg);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--v) 24%, transparent);
+  }
+}
+
+.ix-mark-pop {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 0.3rem);
+  transform: translateX(-50%);
+  width: 14rem;
+  max-width: 62vw;
+  padding: 0.35rem 0.45rem;
+  border: 1px solid var(--v);
+  border-radius: var(--radius-sm);
+  background: var(--ix-bg);
+  box-shadow: 0 4px 14px rgb(0 0 0 / 12%);
+  pointer-events: auto;
+}
+
+.ix-mark-verdict {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.46rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--v);
+}
+
+.ix-mark-text {
+  margin: 0.15rem 0 0;
+  font-size: 0.56rem;
+  line-height: 1.42;
+  color: var(--ix-text);
+}
+
+// --- the suggestion panel ----------------------------------------------------
+.ix-panel {
+  position: absolute;
+  z-index: 6;
+  width: 12.5rem;
+  max-width: 82%;
+  padding: 0.35rem;
+  border: 1px solid var(--ix-border);
+  border-radius: var(--radius-md);
+  background: var(--ix-bg);
+  box-shadow: 0 6px 20px rgb(0 0 0 / 14%);
+
+  &[hidden] { display: none; }
+}
+
+.ix-panel-head {
+  display: block;
+  margin-bottom: 0.3rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.46rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ix-muted);
+}
+
+.ix-panel-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.ix-sug {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.3rem;
+  padding: 0.32rem 0.38rem;
+  border: 1px solid var(--ix-border);
+  border-left: 3px solid var(--facet, var(--ix-muted));
+  border-radius: var(--radius-sm);
+  background: var(--ix-panel);
+  text-align: left;
+  cursor: grab;
+  touch-action: none;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+
+  &[data-facet='rq'] { --facet: var(--ix-rq); }
+  &[data-facet='design'] { --facet: var(--ix-design); }
+  &[data-facet='eval'] { --facet: var(--ix-eval); }
+  &[data-facet='impact'] { --facet: var(--ix-impact); }
+
+  &:hover { box-shadow: 0 2px 8px rgb(0 0 0 / 10%); }
+  &:active { cursor: grabbing; }
+  &:focus-visible { outline: 2px solid var(--ix-ai); outline-offset: 1px; }
+}
+
+.ix-sug-grip { color: var(--ix-muted); margin-top: 0.1em; }
+
+.ix-sug-main { min-width: 0; }
+
+.ix-sug-facet {
+  display: block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.42rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--facet);
+}
+
+.ix-sug-title {
+  display: block;
+  font-size: 0.58rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--ix-text);
+}
+
+.ix-sug-note {
+  display: block;
+  font-size: 0.5rem;
+  line-height: 1.35;
+  color: var(--ix-muted);
+}
+
+// The card that follows the pointer while a suggestion is being dragged out.
+.ix-ghost {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 99;
+  max-width: 11rem;
+  padding: 0.3rem 0.42rem;
+  border: 1px solid var(--ix-border);
+  border-left: 3px solid var(--facet, var(--ix-muted));
+  border-radius: var(--radius-sm);
+  background: var(--ix-bg);
+  box-shadow: 0 6px 18px rgb(0 0 0 / 22%);
+  font-size: 0.58rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--ix-text);
+  pointer-events: none;
+
+  &[data-facet='rq'] { --facet: var(--ix-rq); }
+  &[data-facet='design'] { --facet: var(--ix-design); }
+  &[data-facet='eval'] { --facet: var(--ix-eval); }
+  &[data-facet='impact'] { --facet: var(--ix-impact); }
+}
+
+// --- staging -----------------------------------------------------------------
+// Each stage reveals the next part of the canvas. `done` shows everything, so
+// a reduced-motion visitor and the static server-rendered scene both land there.
+
+$after-papers: "[data-stage='papers'], [data-stage='rq'], [data-stage='suggest'], [data-stage='design'], [data-stage='edges'], [data-stage='assist'], [data-stage='done']";
+$after-rq: "[data-stage='rq'], [data-stage='suggest'], [data-stage='design'], [data-stage='edges'], [data-stage='assist'], [data-stage='done']";
+$after-suggest: "[data-stage='suggest'], [data-stage='design'], [data-stage='edges'], [data-stage='assist'], [data-stage='done']";
+$after-design: "[data-stage='design'], [data-stage='edges'], [data-stage='assist'], [data-stage='done']";
+$after-edges: "[data-stage='edges'], [data-stage='assist'], [data-stage='done']";
+$after-assist: "[data-stage='assist'], [data-stage='done']";
+
+.ix:is(#{$after-papers}) .ix-paper { opacity: 1; transform: none; }
+.ix[data-stage='papers'] .ix-paper { transition-delay: calc(var(--i) * 180ms); }
+
+.ix:is(#{$after-rq}) [data-layer='top'] { opacity: 1; transform: none; }
+.ix[data-stage='rq'] [data-layer='top']:nth-of-type(2) { transition-delay: 220ms; }
+
+.ix:is(#{$after-suggest}) .ix-ai[data-ai-stage='suggest'] { opacity: 1; transform: none; }
+
+.ix:is(#{$after-design}) [data-layer='bottom'] { opacity: 1; transform: none; }
+.ix[data-stage='design'] {
+  [data-node='design-editor'] { transition-delay: 0ms; }
+  [data-node='design-complexity'] { transition-delay: 240ms; }
+  [data-node='design-multimodal'] { transition-delay: 480ms; }
+}
+
+.ix:is(#{$after-edges}) {
+  .ix-edge { opacity: 0.85; }
+  .ix-mark { opacity: 1; }
+}
+
+.ix:is(#{$after-assist}) .ix-ai[data-ai-stage='assist'] { opacity: 1; transform: none; }
+
+.ix[data-stage='done'] .ix-qa { opacity: 1; }
+
+// --- narrow ------------------------------------------------------------------
+// The threshold is the frame's own width, not the viewport: the same demo sits
+// in a Selected Work row and in a detail overlay column at different widths.
+@container demo (max-width: 560px) {
+  .ix {
+    grid-template-columns: 1fr;
+    gap: 0.55rem;
+    min-height: 0;
+  }
+
+  // Absolute placement needs width the frame does not have here, so the
+  // canvas becomes a single column and the nodes fall into flow. They stay
+  // `relative` rather than `static` so the caret and the connection handle
+  // keep hanging off their own node, and the edges are measured from the
+  // live boxes either way, so they follow without any extra work.
+  .ix-canvas {
+    display: flex;
+    flex-direction: column;
+    gap: 1.3rem;
+    flex: none;
+    min-height: 0;
+    // The extra left padding is the lane the stacked edges run down.
+    padding: 0.7rem 0.6rem 0.7rem 2.4rem;
+  }
+
+  .ix-node {
+    position: relative;
+    left: auto !important;
+    top: auto !important;
+    width: auto !important;
+  }
+
+  // The indicator sits in the left lane, so its callout opens rightward
+  // rather than centring itself off the edge of the canvas.
+  .ix-mark-pop {
+    left: 0;
+    transform: none;
+    width: min(13rem, 74vw);
+  }
+
+  .ix-qa-log { max-height: 5em; }
+
+  .ix-panel { width: 11rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ix-paper,
+  .ix-node,
+  .ix-ai,
+  .ix-edge,
+  .ix-mark,
+  .ix-qa,
+  .ix-caret,
+  .ix-port {
+    transition: none !important;
+    transition-delay: 0ms !important;
+  }
+
+  .ix-node--new { opacity: 1 !important; transform: none !important; }
+}
