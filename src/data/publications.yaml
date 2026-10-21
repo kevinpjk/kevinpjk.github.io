@@ -343,3 +343,29 @@
   teaser_type: image
   ring_concept: "learner memory graph"
   ring_keywords: ["personalization", "learning", "memory", "LLM"]
+
+- slug: plateau-web-automation
+  title: "Towards Semantic User Intent Expression and Refinement in Web Automation"
+  authors:
+    - { name: "Kevin Pu", url: null, highlight: true }
+    - { name: "Tovi Grossman", url: "https://www.tovigrossman.com/" }
+    - { name: "Yan Chen", url: "https://chensivan.github.io/" }
+  venue: PLATEAU Workshop
+  year: 2024
+  workshop: true
+  venue_full: "PLATEAU 2024: Annual Workshop at the Intersection of HCI and Programming Languages"
+  category: null
+  award: null
+  links:
+    pdf: /assets/pdf/PLATEAU_Workshop_2024.pdf
+    video: null
+    arxiv: null
+    website: null
+    doi: null
+    code: null
+  summary: ""
+  selected: false
+  teaser: plateau.png
+  teaser_type: image
+  ring_concept: "semantic intent expression"
+  ring_keywords: ["web automation", "PBD", "neurosymbolic", "semantic UI"]
