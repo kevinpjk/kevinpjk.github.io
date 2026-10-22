@@ -31,11 +31,11 @@
     - { name: "Michael Xieyang Liu", url: null }
     - { name: "Savvas Petridis", url: null }
   year: 2026
-  # Placeholders — fill in when the material is ready.
+  # Teaser still to come; arXiv preprint posted October 2026.
   teaser: null
   links:
     pdf: null
-    arxiv: null
+    arxiv: https://arxiv.org/abs/2610.27170
     website: null
 
 - slug: helm
