@@ -284,6 +284,30 @@
 
 # Accepted workshop proposal. `role` marks Kevin's organizing contribution,
 # which is not conveyed by author position alone.
+- slug: uist-doctoral-symposium
+  title: "Designing Mixed-Initiative Collaboration Between Humans and Increasingly Autonomous AI Systems"
+  authors:
+    - { name: "Kevin Pu", url: null, highlight: true }
+  venue: UIST Doctoral Symposium
+  year: 2026
+  workshop: true
+  venue_full: "UIST 2026 Doctoral Symposium: Adjunct Proceedings of the 39th Annual ACM Symposium on User Interface Software and Technology"
+  category: null
+  award: null
+  links:
+    pdf: /assets/pdf/doctoral_symposium_uist_2026.pdf
+    video: null
+    arxiv: null
+    website: null
+    doi: https://doi.org/10.1145/3830397.3841711
+    code: null
+  summary: ""
+  selected: false
+  teaser: doctoral-symposium.png
+  teaser_type: image
+  ring_concept: "mixed-initiative collaboration"
+  ring_keywords: ["mixed-initiative", "proactive AI", "steerability", "human-AI interaction"]
+
 - slug: revibing-hci
   title: "Revibing HCI: Agentic Reimplementation as Community Practice"
   authors:
