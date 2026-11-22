@@ -45,6 +45,8 @@ export interface Author {
 
 export interface PubLinks {
   pdf: string | null;
+  /** Optional: most entries omit it, so it is not required in the YAML. */
+  poster?: string | null;
   video: string | null;
   arxiv: string | null;
   website: string | null;
@@ -123,6 +125,7 @@ export function publicationToItem(pub: Publication): SelectedItem {
     award: pub.award,
     links: [
       { label: 'PDF', url: pub.links.pdf },
+      { label: 'Poster', url: pub.links.poster },
       { label: 'Video', url: pub.links.video },
       { label: 'arXiv', url: pub.links.arxiv },
       { label: 'ACM DL', url: pub.links.doi },
